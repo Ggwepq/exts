@@ -39,7 +39,7 @@ new class extends Component {
 
 <section>
     <header>
-        <h2 class="text-lg font-medium text-gray-900">
+        <h2 class="text-lg font-medium text-primary">
             {{ __('Update Password') }}
         </h2>
 

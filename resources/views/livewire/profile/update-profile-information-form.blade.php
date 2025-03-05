@@ -73,7 +73,7 @@ new class extends Component {
 
 <section>
     <header>
-        <h2 class="text-lg font-medium text-gray-900">
+        <h2 class="text-lg font-medium text-primary">
             {{ __('Profile Information') }}
         </h2>
 
@@ -140,7 +140,7 @@ new class extends Component {
         </div>
 
         <div class="flex items-center gap-4">
-            <x-primary-button>{{ __('Save') }}</x-primary-button>
+            <button class="btn btn-primary">{{ __('Save') }}</button>
 
             <x-action-message class="me-3" on="profile-updated">
                 {{ __('Saved.') }}
