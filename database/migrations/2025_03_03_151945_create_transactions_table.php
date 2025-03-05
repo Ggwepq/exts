@@ -21,8 +21,11 @@ return new class extends Migration
             $table->enum('type', ['Expense', 'Income']);
             $table->decimal('amount', 15, 2);
             $table->decimal('balance_before', 15, 2);
-            $table->boolean('is_deleted')->default(false);
+            $table->string('image')->nullable();
+            $table->string('tags')->nullable();
+            $table->softDeletes(); 
             $table->timestamps();
+            $table->index('type');
         });
     }
 
