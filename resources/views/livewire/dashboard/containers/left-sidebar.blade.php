@@ -19,7 +19,7 @@ new class extends Component {
                 <div class="mask mask-squircle w-10">
                     <img src="{{ asset('img/logo192.png') }}" alt="Logo">
                 </div>
-                Nigga
+                Gastababy
             </a>
         </li>
 
