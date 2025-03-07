@@ -10,7 +10,7 @@ new class extends Component {
 
     <!-- Page Content -->
     <div class="drawer-content flex flex-col">
-        <livewire:dashboard.containers.header />
+        @livewire('dashboard.containers.header');
 
         <main class="flex-1 overflow-y-auto md:pt-4 pt-4 px-6 bg-base-200">
             @livewire('dashboard.pages.profile')
@@ -19,5 +19,5 @@ new class extends Component {
     </div>
 
     <!-- Left Sidebar -->
-    <livewire:dashboard.containers.left-sidebar />
+    @livewire('dashboard.containers.left-sidebar');
 </div>
