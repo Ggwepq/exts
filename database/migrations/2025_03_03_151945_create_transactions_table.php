@@ -12,9 +12,9 @@ return new class extends Migration {
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('account_id')->constrained()->onDelete('cascade');
-            $table->foreignId('category_id')->constrained('transaction_categories')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('account_id')->nullable()->constrained('accounts')->onDelete('cascade');
+            $table->foreignId('category_id')->nullable()->constrained('transaction_categories')->onDelete('cascade');
             $table->string('name');
             $table->text('description')->nullable();
             $table->enum('type', ['Expense', 'Income']);
