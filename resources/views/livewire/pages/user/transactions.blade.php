@@ -7,11 +7,22 @@ new #[Layout('layouts.app')] class extends Component {
 
     public function mount()
     {
-        // Fetch user transactions
+        /*
+         * Fetch user tranasction based on date
+         */
         $this->transactions = auth()
             ->user()
             ->transactions->groupBy(function ($transaction) {
-                return \Carbon\Carbon::parse($transaction->created_at)->format('M d Y');
+                $date = \Carbon\Carbon::parse($transaction->created_at);
+
+                // Make date readable
+                if ($date->isToday()) {
+                    return 'Today';
+                } elseif ($date->isYesterday()) {
+                    return 'Yesterday';
+                }
+
+                return $date->diffForHumans();
             })
             ->all();
     }
@@ -23,12 +34,12 @@ new #[Layout('layouts.app')] class extends Component {
 }; ?>
 
 <div>
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-        <div class="p-4 sm:p-8  shadow sm:rounded-lg">
+    <div class="max-w-2xl mx-auto sm:px-6 lg:px-8 space-y-6">
+        <div class="p-4 sm:p-8">
             <div class="max-w-xl">
                 @if (count($transactions))
-                    <div class="list bg-base-100 rounded-box shadow-md">
 
+                    <ul class="list bg-base-100 rounded-box">
                         @foreach ($transactions as $date => $transaction_records)
                             <div class="p-4">
                                 <div class="text-xs opacity-60 ">
@@ -39,31 +50,24 @@ new #[Layout('layouts.app')] class extends Component {
                                     <li class="list-row flex justify-between">
                                         <div>
                                             <div class="mb-1">{{ $transaction->name }}</div>
-                                            <div class="text-xs uppercase font-semibold opacity-60">
-                                                @if ($transaction->type == 'Expense')
-                                                    <div class="badge badge-outline badge-error">
-                                                        {{ $transaction->type }}
-                                                    </div>
-                                                @else
-                                                    <div class="badge badge-outline badge-success">
-                                                        {{ $transaction->type }}
-                                                    </div>
-                                                @endif
-                                            </div>
+                                            <div class="text-xs uppercase font-semibold opacity-60"></div>
                                         </div>
-                                        <button class="btn btn-square btn-ghost">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" class="size-6">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25" />
-                                            </svg>
-                                        </button>
+                                        <div class="text-xs uppercase font-semibold opacity-60">
+                                            @if ($transaction->type == 'Expense')
+                                                <div class="badge badge-outline badge-error">
+                                                    {{ $transaction->amount }}
+                                                </div>
+                                            @else
+                                                <div class="badge badge-outline badge-success">
+                                                    {{ $transaction->amount }}
+                                                </div>
+                                            @endif
+                                        </div>
                                     </li>
                                 @endforeach
                             </div>
                         @endforeach
-
-                    </div>
+                    </ul>
                 @else
                     <div class="flex flex-row justify-center">
                         😪 No transactions
