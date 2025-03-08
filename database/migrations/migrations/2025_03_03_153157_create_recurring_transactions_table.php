@@ -16,7 +16,9 @@ return new class extends Migration
                 $table->id();
                 $table->foreignId('transaction_id')->constrained('transactions')->onDelete('cascade');
                 $table->string('frequency');
+                $table->date('due_date');
                 $table->date('next_due_date');
+                $table->decimal('total_installment', 15, 2);
                 $table->enum('status', ['Paused', 'Active', 'Done']);
                 $table->timestamps();
             });
