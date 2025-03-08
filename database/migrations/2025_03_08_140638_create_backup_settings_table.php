@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('backup_settings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->boolean('auto_backup')->default(false);
             $table->string('backup_frequency', 50)->default('weekly');
             $table->timestamps();

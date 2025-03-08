@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('transaction_categories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('category_group_id')->nullable()->constrained('category_groups')->onDelete('cascade');
             $table->string('name');
             $table->enum('type', ['Income', 'Expense']);

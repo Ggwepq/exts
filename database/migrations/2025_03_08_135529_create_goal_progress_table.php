@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('goal_progress', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('goal_id')->constrained('goals')->onDelete('cascade');
             $table->decimal('progress_amount', 15, 2);
             $table->timestamps();

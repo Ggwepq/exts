@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('settings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('currency_id')->nullable()->constrained('currencies')->onDelete('set null');
             $table->foreignId('theme_id')->nullable()->constrained('themes')->onDelete('set null');
             $table->foreignId('notification_type_id')->nullable()->constrained('notification_types')->onDelete('set null');
