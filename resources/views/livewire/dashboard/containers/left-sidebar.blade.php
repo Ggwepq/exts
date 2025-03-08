@@ -16,20 +16,20 @@ new class extends Component {
 }; ?>
 <div class="drawer-side z-30">
     <label for="left-sidebar-drawer" class="drawer-overlay"></label>
-    <ul class="menu pt-2 w-55 bg-base-100 min-h-full text-base-content">
+    <div class="menu pt-2 w-55 bg-base-100 min-h-full text-base-content flex flex-col">
         <button class="btn btn-ghost bg-base-300  btn-circle z-50 top-0 right-0 mt-4 mr-2 absolute lg:hidden"><svg
                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                 stroke="currentColor" aria-hidden="true" class="h-5 inline-block w-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
             </svg></button>
-        <li class="mb-2 font-semibold text-xl">
+        <div class="mb-2 p-1  font-semibold text-xl">
             <a href="{{ route('dashboard') }}" class="flex items-center">
-                <div class="mask mask-squircle w-10">
+                <div class="mask mask-squircle w-10 mr-1">
                     <img src="{{ asset('img/sample-logo.png') }}" alt="Logo">
                 </div>
                 Gastababy
             </a>
-        </li>
+        </div>
 
         <!-- Menu Items -->
         <div>
@@ -98,29 +98,36 @@ new class extends Component {
                     </a>
                 </li>
             </ul>
+
+            <div class="divider"></div>
         </div>
 
         <!-- Account Wallets -->
 
-        <div class="divider"></div>
-        <ul>
-            <li>
-                <details>
-                    <summary>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="size-6">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
-                        </svg>
-                        Account
-                    </summary>
-                    <ul>
-                        <li><a>Account 1</a></li>
-                        <li><a>Account 2</a></li>
-                    </ul>
-                </details>
-            </li>
-        </ul>
+        <div class="grow">
+            <ul>
+                <li>
+                    <details open>
+                        <summary>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke-width="1.5" stroke="currentColor" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+                            </svg>
+                            Account
+                        </summary>
+                        <ul>
+                            <li><a>Account 1</a></li>
+                            <li><a>Account 2</a></li>
+                            <li><a>Account 3</a></li>
+                            <li><a>Account 4</a></li>
+                            <li><a>Account 5</a></li>
+                            <li><a>Account 6</a></li>
+                        </ul>
+                    </details>
+                </li>
+            </ul>
+        </div>
 
         <!-- User Buttons -->
         <div>
@@ -145,7 +152,7 @@ new class extends Component {
                     </svg>
                 </div>
                 <ul role="menu" tabindex="0"
-                    class="dropdown-content menu bg-base-100 rounded-box shadow-base-content/4 mb-1 w-48 p-1 shadow-[0px_-10px_40px_0px]">
+                    class="dropdown-content menu bg-base-300 rounded-box shadow-base-content/4 mb-1 w-48 p-1 shadow-[0px_-10px_40px_0px]">
                     <li>
                         <a href="{{ route('profile') }}" wire:navigate>
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -182,5 +189,5 @@ new class extends Component {
                 </ul>
             </div>
         </div>
-    </ul>
+    </div>
 </div>
