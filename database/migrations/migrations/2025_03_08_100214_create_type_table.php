@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('type', function (Blueprint $table) {
             $table->id();
-            $table->enum('type', ['Expense', 'Income']);
+            $table->string('type_name')->unique();
             $table->timestamps();
             
         });
