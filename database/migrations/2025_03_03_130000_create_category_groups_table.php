@@ -12,8 +12,10 @@ return new class extends Migration {
     {
         Schema::create('category_groups', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('users_id')->nullable()->constrained()->onDelete('cascade');
             $table->string('group_name');
-            $table->enum('type', ['Account', 'Transaction']);
+            $table->enum('type', ['Account', 'Transaction', 'Both']);
+            $table->timestamps();
         });
     }
 
