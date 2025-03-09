@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('settings', function (Blueprint $table) {
+        Schema::create('goals', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('currency');
-            $table->string('language');
-            $table->boolean('email_notification')->default(true);
-            $table->string('theme')->default('light');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->string('goal_name');
+            $table->decimal('target_amount', 15, 2);
+            $table->date('target_date');
+            $table->enum('status', ['In Progress', 'Completed', 'Expired']);
             $table->timestamps();
         });
     }
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('settings');
+        Schema::dropIfExists('goals');
     }
 };

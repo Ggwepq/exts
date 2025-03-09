@@ -13,18 +13,15 @@ return new class extends Migration {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('account_id')->nullable()->constrained('accounts')->onDelete('cascade');
-            $table->foreignId('category_id')->nullable()->constrained('transaction_categories')->onDelete('cascade');
+            $table->foreignId('account_id')->constrained('accounts')->onDelete('cascade');
+            $table->foreignId('category_id')->constrained('transaction_categories')->onDelete('cascade');
+            $table->foreignId('recurring_id')->nullable()->constrained('transaction_categories')->onDelete('cascade');
+            $table->foreignId('type_id')->constrained('types')->onDelete('cascade');
             $table->string('name');
             $table->text('description')->nullable();
-            $table->enum('type', ['Expense', 'Income']);
             $table->decimal('amount', 15, 2);
-            $table->decimal('balance_before', 15, 2);
-            $table->string('image')->nullable();
-            $table->string('tags')->nullable();
-            $table->softDeletes();
+            $table->string('image_url')->nullable();
             $table->timestamps();
-            $table->index('type');
         });
     }
 

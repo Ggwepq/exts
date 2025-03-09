@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -13,7 +12,6 @@ return new class extends Migration
     {
         Schema::create('notification_types', function (Blueprint $table) {
             $table->id();
-            // You can add additional columns (e.g., type name) as needed.
             $table->string('name', 50)->unique();
             $table->timestamps();
         });

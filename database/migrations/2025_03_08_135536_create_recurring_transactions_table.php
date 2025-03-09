@@ -13,13 +13,15 @@ return new class extends Migration
     {
         Schema::create('recurring_transactions', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('transaction_id')->constrained('transactions')->onDelete('cascade');
-            $table->string('frequency');
+            $table->decimal('amount', 15, 2)->nullable();
+            $table->string('frequency', 50);
             $table->date('next_due_date');
+            $table->date('due_date');
             $table->enum('status', ['Paused', 'Active', 'Done']);
             $table->timestamps();
         });
-        
     }
 
     /**
