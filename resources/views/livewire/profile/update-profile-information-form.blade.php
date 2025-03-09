@@ -8,7 +8,6 @@ use Livewire\Volt\Component;
 
 new class extends Component {
     public string $first_name = '';
-    public string $middle_name = '';
     public string $last_name = '';
     public string $phone_number = '';
     public string $email = '';
@@ -19,7 +18,6 @@ new class extends Component {
     public function mount(): void
     {
         $this->first_name = Auth::user()->first_name;
-        $this->middle_name = Auth::user()->middle_name;
         $this->last_name = Auth::user()->last_name;
         $this->phone_number = Auth::user()->phone_number;
         $this->email = Auth::user()->email;
@@ -88,14 +86,6 @@ new class extends Component {
             <input type="text" wire:model="first_name" class="input mt-1 w-full" name="first_name" required autofocus
                 autocomplete="Name" />
             <x-input-error :messages="$errors->get('first_name')" class="mt-2" />
-        </div>
-
-        <!-- Name -->
-        <div class="mt-4">
-            <x-input-label for="middle_name" :value="__('Middle Name')" />
-            <input type="text" wire:model="middle_name" class="input mt-1 w-full" name="middle_name"
-                autocomplete="middle_name" />
-            <x-input-error :messages="$errors->get('middle_name')" class="mt-2" />
         </div>
 
         <!-- Name -->
