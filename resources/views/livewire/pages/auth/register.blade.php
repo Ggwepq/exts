@@ -10,7 +10,6 @@ use Livewire\Volt\Component;
 
 new #[Layout('layouts.guest')] class extends Component {
     public string $first_name = '';
-    public string $middle_name = '';
     public string $last_name = '';
     public string $phone_number = '';
     public string $email = '';
@@ -25,7 +24,6 @@ new #[Layout('layouts.guest')] class extends Component {
         $validated = $this->validate([
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'first_name' => ['string', 'max:255'],
-            'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['string', 'max:255'],
             'phone_number' => ['string', 'max:255'],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
@@ -66,15 +64,6 @@ new #[Layout('layouts.guest')] class extends Component {
                                     class="input input-bordered validator w-full" name="first_name" required
                                     autocomplete="Name" />
                                 <x-input-error :messages="$errors->get('first_name')" class="mt-2" />
-                            </div>
-
-                            <!-- Middle Name -->
-                            <div class="form-control w-full mt-4">
-                                <x-input-label for="middle_name" :value="__('Middle Name')" />
-                                <input type="text" wire:model="middle_name"
-                                    class="input input-bordered validator w-full" name="middle_name"
-                                    autocomplete="middle_name" />
-                                <x-input-error :messages="$errors->get('middle_name')" class="mt-2" />
                             </div>
 
                             <!-- Last Name -->
