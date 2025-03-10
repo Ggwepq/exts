@@ -8,7 +8,6 @@ on:
   push:
     branches:
       - prod
-      - sprint-1
 
 jobs:
   Deploy-Production:
