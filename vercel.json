@@ -10,7 +10,7 @@
             "dest": "/public/img/$1"
         },
         {
-            "src": "/(.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|css|js|woff2|woff|ttf|eot|otf|mp4|webm))",
+            "src": "/(.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|css|woff2|woff|ttf|eot|otf|mp4|webm))",
             "dest": "/public/$1"
         },
         {
