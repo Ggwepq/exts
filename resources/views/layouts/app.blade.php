@@ -25,7 +25,7 @@
         <div class="drawer-content flex flex-col">
             <livewire:dashboard.containers.header />
 
-            <main class="flex-1 overflow-y-auto md:pt-4 pt-4 px-6 bg-base-200">
+            <main class="flex-1 overflow-y-auto  bg-base-200">
                 {{ $slot }}
                 <div class="h-16"></div>
             </main>
