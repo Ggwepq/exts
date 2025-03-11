@@ -2,8 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
+use Livewire\Livewire;
 
 Route::view('/', 'welcome');
+
+Livewire::setScriptRoute(function ($handle) {
+    return Route::get('/vendor/livewire/livewire.js', $handle);
+});
 
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
