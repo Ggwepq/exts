@@ -15,6 +15,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Install dependencies (fix missing OpenSSL)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl-dev
+
       - name: Install Vercel CLI
         run: npm install --global vercel
 
