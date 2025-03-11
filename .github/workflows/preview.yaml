@@ -15,10 +15,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install dependencies (fix missing OpenSSL)
+      - name: Install missing dependencies (OpenSSL & PHP)
         run: |
           sudo apt-get update
-          sudo apt-get install -y libssl-dev
+          sudo apt-get install -y libssl1.0.0 libssl-dev php-cli php-mbstring php-xml unzip
+          sudo ln -s /usr/lib/x86_64-linux-gnu/libssl.so.1.0.0 /usr/lib/x86_64-linux-gnu/libssl.so.10
+          sudo ln -s /usr/lib/x86_64-linux-gnu/libcrypto.so.1.0.0 /usr/lib/x86_64-linux-gnu/libcrypto.so.10
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
