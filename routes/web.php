@@ -14,7 +14,7 @@ Route::view('profile', 'profile')
     ->name('profile');
 
 Route::middleware(['auth'])->group(function () {
-    Volt::route('transactions', 'pages.user.transactions')->name('user.transactions')->lazy();
+    Volt::route('transactions', 'pages.user.transactions')->name('user.transactions');
     Volt::route('categories', 'pages.user.categories')->name('user.categories');
     Volt::route('recurring', 'pages.user.recurring')->name('user.recurring');
     Volt::route('accounts', 'pages.user.accounts')->name('user.accounts');

@@ -12,17 +12,13 @@ new #[Layout('layouts.app')] class extends Component {
          */
         $this->transactions = auth()
             ->user()
-            ->transactions->groupBy(function ($transaction) {
+            ->transactions()
+            ->orderBy('created_at', 'DESC')
+            ->get()
+            ->groupBy(function ($transaction) {
                 $date = \Carbon\Carbon::parse($transaction->created_at);
 
-                // Make date readable
-                if ($date->isToday()) {
-                    return 'Today';
-                } elseif ($date->isYesterday()) {
-                    return 'Yesterday';
-                }
-
-                return $date->diffForHumans();
+                return $date->format('F j, Y');
             })
             ->all();
     }
@@ -33,48 +29,10 @@ new #[Layout('layouts.app')] class extends Component {
     }
 }; ?>
 
-<div>
-    <div class="max-w-2xl mx-auto sm:px-6 lg:px-8 space-y-6">
-        <div class="p-4 sm:p-8">
-            <div class="max-w-xl">
-                @if (count($transactions))
-
-                    <ul class="list bg-base-100 rounded-box">
-                        @foreach ($transactions as $date => $transaction_records)
-                            <div class="p-4">
-                                <div class="text-xs opacity-60 ">
-                                    {{ $date }}
-                                </div>
-
-                                @foreach ($transaction_records as $transaction)
-                                    <li class="list-row flex justify-between">
-                                        <div>
-                                            <div class="mb-1">{{ $transaction->name }}</div>
-                                            <div class="text-xs uppercase font-semibold opacity-60"></div>
-                                        </div>
-                                        <div class="text-xs uppercase font-semibold opacity-60">
-                                            @if ($transaction->type == 'Expense')
-                                                <div class="badge badge-outline badge-error">
-                                                    {{ $transaction->amount }}
-                                                </div>
-                                            @else
-                                                <div class="badge badge-outline badge-success">
-                                                    {{ $transaction->amount }}
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </li>
-                                @endforeach
-                            </div>
-                        @endforeach
-                    </ul>
-                @else
-                    <div class="flex flex-row justify-center">
-                        😪 No transactions
-                    </div>
-                @endif
-
-            </div>
-        </div>
+<div x-data="{ isOpen: false }">
+    @livewire('pages.user.components.page-header')
+    <div class="flex min-h-screen">
+        @livewire('pages.user.transactions.list-transaction', ['lazy' => true])
+        @livewire('pages.user.components.right-sidebar')
     </div>
 </div>

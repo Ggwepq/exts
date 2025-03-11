@@ -7,16 +7,17 @@ use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
 
 new class extends Component {
-    public string $first_name = '';
-    public string $last_name = '';
-    public string $phone_number = '';
-    public string $email = '';
+    public $first_name = '';
+    public $last_name = '';
+    public $phone_number = '';
+    public $email = '';
 
     /**
      * Mount the component.
      */
     public function mount(): void
     {
+        // dd(Auth::user()->phone_number);
         $this->first_name = Auth::user()->first_name;
         $this->last_name = Auth::user()->last_name;
         $this->phone_number = Auth::user()->phone_number;
@@ -33,7 +34,6 @@ new class extends Component {
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'first_name' => ['string', 'max:255'],
-            'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['string', 'max:255'],
             'phone_number' => ['string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
