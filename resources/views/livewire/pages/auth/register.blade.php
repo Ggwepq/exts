@@ -11,7 +11,7 @@ use Livewire\Volt\Component;
 new #[Layout('layouts.guest')] class extends Component {
     public string $first_name = '';
     public string $last_name = '';
-    public string $phone_number = '';
+    // public string $phone_number = '';
     public string $email = '';
     public string $password = '';
     public string $password_confirmation = '';
@@ -25,8 +25,8 @@ new #[Layout('layouts.guest')] class extends Component {
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'first_name' => ['string', 'max:255'],
             'last_name' => ['string', 'max:255'],
-            'phone_number' => ['string', 'max:255'],
-            'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
+            // 'phone_number' => ['string', 'max:255'],
+            'password' => ['required', 'string', 'min:8', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
@@ -73,15 +73,6 @@ new #[Layout('layouts.guest')] class extends Component {
                                     class="input input-bordered validator w-full" name="last_name" required
                                     autocomplete="last_name" />
                                 <x-input-error :messages="$errors->get('last_name')" class="mt-2" />
-                            </div>
-
-                            <!-- Phone Number -->
-                            <div class="form-control w-full mt-4">
-                                <x-input-label for="phone_number" :value="__('Phone Number')" />
-                                <input type="text" wire:model="phone_number"
-                                    class="input input-bordered validator w-full" name="phone_number"
-                                    autocomplete="phone_number" />
-                                <x-input-error :messages="$errors->get('phone_number')" class="mt-2" />
                             </div>
 
                             <!-- Email -->
