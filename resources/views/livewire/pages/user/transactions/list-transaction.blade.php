@@ -56,7 +56,7 @@ new #[Layout('layouts.app')] class extends Component {
                                                 <div class="text-xs uppercase font-semibold opacity-60"></div>
                                             </div>
                                             <div class="text-xs uppercase font-semibold opacity-60">
-                                                @if ($transaction->type == 'Expense')
+                                                @if ($transaction->types->name == 'Expense')
                                                     <div class="badge badge-outline badge-error">
                                                         {{ $transaction->amount }}
                                                     </div>

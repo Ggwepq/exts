@@ -12,4 +12,9 @@ class Transaction extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
+    public function types()
+    {
+        return $this->belongsTo(Type::class, 'type_id');
+    }
 }
