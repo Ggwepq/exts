@@ -27,7 +27,7 @@ new #[Layout('layouts.app')] class extends Component {
     #[Validate('required|exists:accounts,id')]
     public $account_id;
 
-    #[Validate('required|exists:transaction_categories,id')]
+    #[Validate('nullable|exists:transaction_categories,id')]
     public $category_id;
 
     #[Validate('nullable|exists:transaction_categories,id')]
@@ -38,6 +38,7 @@ new #[Layout('layouts.app')] class extends Component {
 
     public function save()
     {
+        // dd($this);
         $this->validate();
 
         // Handle file upload if an image is provided
@@ -46,7 +47,7 @@ new #[Layout('layouts.app')] class extends Component {
         Transaction::create([
             'user_id' => Auth::id(),
             'account_id' => $this->account_id,
-            'category_id' => $this->category_id,
+            'category_id' => $this->category_id == null ? 1 : $this->category_id,
             'recurring_id' => $this->recurring_id,
             'type_id' => $this->type_id,
             'name' => $this->name,
@@ -90,20 +91,25 @@ new #[Layout('layouts.app')] class extends Component {
 
             <!-- Success Message -->
             @if (session()->has('message'))
-                <div class="alert alert-success">
-                    {{ session('message') }}
+                <div class="alert alert-soft alert-success mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span> {{ session('message') }}</span>
                 </div>
             @endif
 
             <!-- Form -->
-            <form wire:submit="save" class="space-y-4">
+            <form wire:submit="save" class="space-y-5">
                 <!-- Name -->
                 <div class="form-control">
                     <label class="label" for="name">
                         <span class="label-text">Transaction Name</span>
                     </label>
-                    <input id="name" type="text" wire:model="name" class="input input-bordered w-full"
-                        required />
+                    <input id="name" type="text" wire:model="name" class="input input-bordered w-full" required
+                        autocomplete="name" />
                     @error('name')
                         <span class="text-error">{{ $message }}</span>
                     @enderror
@@ -114,7 +120,8 @@ new #[Layout('layouts.app')] class extends Component {
                     <label class="label" for="description">
                         <span class="label-text">Description (Optional)</span>
                     </label>
-                    <textarea id="description" wire:model="description" class="textarea textarea-bordered w-full"></textarea>
+                    <textarea id="description" wire:model="description" class="textarea textarea-bordered w-full"
+                        autocomplete="description"></textarea>
                     @error('description')
                         <span class="text-error">{{ $message }}</span>
                     @enderror
@@ -126,7 +133,7 @@ new #[Layout('layouts.app')] class extends Component {
                         <span class="label-text">Amount</span>
                     </label>
                     <input id="amount" type="number" wire:model="amount" class="input input-bordered w-full"
-                        step="0.01" required />
+                        step="0.01" required autocomplete="amount" />
                     @error('amount')
                         <span class="text-error">{{ $message }}</span>
                     @enderror
@@ -137,7 +144,8 @@ new #[Layout('layouts.app')] class extends Component {
                     <label class="label" for="account_id">
                         <span class="label-text">Account</span>
                     </label>
-                    <select id="account_id" wire:model="account_id" class="select select-bordered w-full">
+                    <select id="account_id" wire:model="account_id" class="select select-bordered w-full"
+                        autocomplete="account">
                         <option value="">Select an account</option>
                         @foreach (\App\Models\Account::all() as $account)
                             <option value="{{ $account->id }}">{{ $account->name }}</option>
@@ -154,9 +162,11 @@ new #[Layout('layouts.app')] class extends Component {
                         <span class="label-text">Category</span>
                     </label>
                     <select id="category_id" wire:model="category_id" class="select select-bordered w-full">
-                        <option value="">Select an account</option>
+                        <option value="None">None</option>
                         @foreach (\App\Models\TransactionCategory::all() as $category)
-                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                            @if ($category->name !== 'None')
+                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                            @endif
                         @endforeach
                     </select>
                     @error('category_id')
