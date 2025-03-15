@@ -22,8 +22,8 @@
         <input id="left-sidebar-drawer" type="checkbox" class="drawer-toggle" />
 
         <!-- Page Content -->
-        <div class="drawer-content flex flex-col">
-            <livewire:dashboard.containers.header />
+        <div class="drawer-content flex flex-col" x-data="{ isOpen: false }">
+            <livewire:pages.user.containers.main-header />
 
             <main class="flex-1 overflow-y-auto  bg-base-200">
                 {{ $slot }}
@@ -32,7 +32,7 @@
         </div>
 
         <!-- Left Sidebar -->
-        <livewire:dashboard.containers.left-sidebar />
+        <livewire:pages.user.containers.sidebar />
     </div>
 </body>
 
