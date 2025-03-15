@@ -17,4 +17,19 @@ class Transaction extends Model
     {
         return $this->belongsTo(Type::class, 'type_id');
     }
+
+    public function transferTransactions()
+    {
+        return $this->belongsTo(TransferTransaction::class);
+    }
+
+    public function transactionTags()
+    {
+        return $this->hasMany(TransactionTags::class);
+    }
+
+    public function transactionCategories()
+    {
+        return $this->hasMany(TransactionCategory::class);
+    }
 }

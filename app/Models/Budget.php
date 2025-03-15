@@ -6,5 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Budget extends Model
 {
-    //
+    protected $guarded = [];
+
+    public function users()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function transacionCategories()
+    {
+        return $this->belongsTo(TransactionCategory::class);
+    }
 }

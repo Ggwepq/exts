@@ -52,4 +52,49 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Transaction::class);
     }
+
+    public function recurrings()
+    {
+        return $this->hasMany(Recurring::class);
+    }
+
+    public function accounts()
+    {
+        return $this->hasMany(Account::class);
+    }
+
+    public function accountCategories()
+    {
+        return $this->hasMany(AccountCategory::class);
+    }
+
+    public function transfers()
+    {
+        return $this->hasMany(Transfer::class);
+    }
+
+    public function goals()
+    {
+        return $this->hasMany(Goal::class);
+    }
+
+    public function goalProgress()
+    {
+        return $this->hasMany(GoalProgress::class);
+    }
+
+    public function categories()
+    {
+        return $this->hasMany(CategoryGroup::class);
+    }
+
+    public function histories()
+    {
+        return $this->hasMany(History::class);
+    }
+
+    public function settings()
+    {
+        return $this->hasMany(Setting::class);
+    }
 }

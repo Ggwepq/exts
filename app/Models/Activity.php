@@ -4,13 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Theme extends Model
+class Activity extends Model
 {
+    //
     //
     protected $guarded = [];
 
-    public function settings()
+    public function histories()
     {
-        return $this->belongsTo(Setting::class);
+        return $this->belongsTo(History::class);
     }
 }
