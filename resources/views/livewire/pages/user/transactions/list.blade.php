@@ -36,49 +36,45 @@ new #[Layout('layouts.app')] class extends Component {
 }; ?>
 
 <div class="flex-1">
-    <div class="flex-1 transition-all duration-300" :class="isOpen ? 'md:mr-0' : ''">
-        <div class="max-w-2xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8">
-                <div class="max-w-xl">
-                    @if (count($transactions))
+    <div class="flex-1 transition-all" :class="isOpen ? 'md:mr-0' : ''">
 
-                        <ul class="list bg-base-100 rounded-box">
-                            @foreach ($transactions as $date => $transaction_records)
-                                <div class="p-4">
-                                    <div class="text-xs opacity-60 ">
-                                        {{ $date }}
+        <main class="flex-1 overflow-y-auto md:pt-4 pt-4 px-6  bg-base-200">
+
+            <div class="card w-full p-6 bg-base-100 shadow-xl mt-2">
+                @if (count($transactions))
+                    <ul class="list bg-base-100 rounded-box shadow-md">
+
+                        @foreach ($transactions as $date => $record)
+                            <li class="p-4 pb-2 text-xs opacity-60 tracking-wide">{{ $date }}</li>
+
+                            @foreach ($record as $transaction)
+                                <li class="list-row">
+                                    <div><img class="size-10 rounded-box"
+                                            src="{{ $transaction->image_url ? Storage::url($transaction->image_url) : 'https://img.daisyui.com/images/profile/demo/1@94.webp' }}" />
+                                    </div>
+                                    <div>
+                                        <div class="font-bold text-md mb-2">{{ $transaction->name }}</div>
+                                        <div
+                                            class="text-[0.70rem] uppercase font-semibold badge badge-outline {{ $transaction->types->name == 'Expense' ? 'badge-secondary' : 'badge-primary' }}">
+                                            {{ $transaction->types->name }}</div>
                                     </div>
 
-                                    @foreach ($transaction_records as $transaction)
-                                        <li class="list-row flex justify-between">
-                                            <div>
-                                                <div class="mb-1">{{ $transaction->name }}</div>
-                                                <div class="text-xs uppercase font-semibold opacity-60"></div>
-                                            </div>
-                                            <div class="text-xs uppercase font-semibold opacity-60">
-                                                @if ($transaction->types->name == 'Expense')
-                                                    <div class="badge badge-outline badge-error">
-                                                        {{ number_format($transaction->amount) }}
-                                                    </div>
-                                                @else
-                                                    <div class="badge badge-outline badge-success">
-                                                        {{ number_format($transaction->amount) }}
-                                                    </div>
-                                                @endif
-                                            </div>
-                                        </li>
-                                    @endforeach
-                                </div>
+                                    <div>
+                                        <div
+                                            class="text-sm uppercase font-semibold badge {{ $transaction->types->name == 'Expense' ? 'badge-secondary' : 'badge-primary' }}">
+                                            {{ $transaction->types->name == 'Expense' ? '-' : '+' }}{{ $transaction->amount }}
+                                        </div>
+                                    </div>
+                                </li>
                             @endforeach
-                        </ul>
-                    @else
-                        <div class="flex flex-row justify-center">
-                            😪 No transactions
-                        </div>
-                    @endif
-
-                </div>
+                        @endforeach
+                    </ul>
+                @else
+                    <div class="flex flex-row justify-center">
+                        😪 No transactions
+                    </div>
+                @endif
             </div>
-        </div>
+        </main>
     </div>
 </div>

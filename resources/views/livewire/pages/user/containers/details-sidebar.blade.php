@@ -21,7 +21,7 @@ new #[Layout('layouts.app')] class extends Component {
     #[Validate('required|numeric|min:0.01')]
     public $amount; // 2MB max
 
-    #[Validate('nullable|image|max:2048')]
+    #[Validate('nullable|image')]
     public $image;
 
     #[Validate('required|exists:accounts,id')]
@@ -38,11 +38,10 @@ new #[Layout('layouts.app')] class extends Component {
 
     public function save()
     {
-        // dd($this);
         $this->validate();
 
         // Handle file upload if an image is provided
-        $imagePath = $this->image ? $this->image->store('transactions', 'public') : null;
+        $imagePath = $this->image ? $this->image->store('img/transactions', 'public') : null;
 
         Transaction::create([
             'user_id' => Auth::id(),
