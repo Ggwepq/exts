@@ -18,6 +18,6 @@ class AccountCategory extends Model
 
     public function accounts()
     {
-        return $this->hasMany(Account::class);
+        return $this->hasMany(Account::class, 'category_id');
     }
 }

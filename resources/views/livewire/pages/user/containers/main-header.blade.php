@@ -13,6 +13,8 @@ new class extends Component {
             @livewire('pages.user.dashboard.header')
         @elseif (request()->routeIs('user.transactions'))
             @livewire('pages.user.transactions.header')
+        @elseif (request()->routeIs('user.accounts'))
+            @livewire('pages.user.accounts.header')
         @endif
     </div>
 </div>
