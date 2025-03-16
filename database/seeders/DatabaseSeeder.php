@@ -27,53 +27,81 @@ class DatabaseSeeder extends Seeder
         // Type
         DB::table('types')->insert([
             [
-                'name' => 'Income'
+                'name' => 'Income',
             ],
             [
-                'name' => 'Expense'
+                'name' => 'Expense',
             ],
         ]);
 
-        // Category Group Default
         DB::table('category_groups')->insert([
             [
-                'group_name' => 'None',
-                'type' => 'Both'
+                'user_id' => 1,
+                'name' => 'Essential',
+                'type' => 'Transaction',
+            ],
+            [
+                'user_id' => 1,
+                'name' => 'Personal',
+                'type' => 'Account',
+            ],
+            [
+                'user_id' => 1,
+                'name' => 'Job',
+                'type' => 'Transaction',
             ],
         ]);
 
-        // Account Category Default
         DB::table('account_categories')->insert([
             [
-                'group_id' => 1,
-                'name' => 'None',
+                'user_id' => 1,
+                'group_id' => 2,
+                'name' => 'Bank',
             ],
-        ]);
-
-        // Transaction Category Default
-        DB::table('transaction_categories')->insert([
-            // Income Category Default
             [
-                'group_id' => 1,
-                'type_id' => 1,
-                'name' => 'None',
-            ],
-            // Expense Category Default
-            [
-                'group_id' => 1,
-                'type_id' => 2,
-                'name' => 'None',
+                'user_id' => 1,
+                'group_id' => 2,
+                'name' => 'Digital',
             ],
         ]);
 
         // Account Default
         DB::table('accounts')->insert([
+
             [
                 'user_id' => 1,
                 'category_id' => 1,
-                'name' => 'Test Account',
-                'balance' => 1500,
+                'name' => 'BDO',
+                'balance' => 7500,
+            ],
+            [
+                'user_id' => 1,
+                'category_id' => 2,
+                'name' => 'Gcash',
+                'balance' => 10000,
             ],
         ]);
+
+        DB::table('transaction_categories')->insert([
+            [
+                'user_id' => 1,
+                'group_id' => 1,
+                'name' => 'Food',
+                'type_id' => 2,
+            ],
+            [
+                'user_id' => 1,
+                'group_id' => 3,
+                'name' => 'Salary',
+                'type_id' => 1,
+            ],
+            [
+                'user_id' => 1,
+                'group_id' => 3,
+                'name' => 'Freelance',
+                'type_id' => 1,
+            ],
+        ]);
+
     }
 }

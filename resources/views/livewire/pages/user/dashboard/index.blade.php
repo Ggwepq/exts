@@ -11,10 +11,10 @@ new class extends Component {
         $transactions = auth()->user()->transactions;
 
         $this->transactions = [
-            'totalExpense' => $transactions->where('type_id', 1)->sum('amount'),
-            'totalIncome' => $transactions->where('type_id', 2)->sum('amount'),
-            'expenseCount' => count($transactions->where('type_id', 1)),
-            'incomeCount' => count($transactions->where('type_id', 2)),
+            'totalIncome' => $transactions->where('type_id', 1)->sum('amount'),
+            'totalExpense' => $transactions->where('type_id', 2)->sum('amount'),
+            'incomeCount' => count($transactions->where('type_id', 1)),
+            'expenseCount' => count($transactions->where('type_id', 2)),
         ];
     }
 }; ?>
@@ -36,7 +36,7 @@ new class extends Component {
                     </svg>
                 </div>
                 <div class="stat-title">Income {{ $transactions['incomeCount'] }}</div>
-                <div class="stat-value text-primary">{{ number_format($transactions['totalIncome']) }}</div>
+                <div class="stat-value text-primary">₱{{ number_format($transactions['totalIncome']) }}</div>
             </div>
         </div>
         <div class="stats shadow">
@@ -49,7 +49,7 @@ new class extends Component {
                     </svg>
                 </div>
                 <div class="stat-title ">Expense {{ $transactions['expenseCount'] }}</div>
-                <div class="stat-value text-primary">{{ number_format($transactions['totalExpense']) }}</div>
+                <div class="stat-value text-primary">₱{{ number_format($transactions['totalExpense']) }}</div>
             </div>
         </div>
     </div>

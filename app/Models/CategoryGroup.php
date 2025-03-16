@@ -15,7 +15,7 @@ class CategoryGroup extends Model
 
     public function accountCategories()
     {
-        return $this->hasMany(AccountCategory::class);
+        return $this->hasMany(AccountCategory::class, 'group_id');
     }
 
     public function transactionCategory()

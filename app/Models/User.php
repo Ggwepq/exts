@@ -83,7 +83,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(GoalProgress::class);
     }
 
-    public function categories()
+    public function categoryGroups()
     {
         return $this->hasMany(CategoryGroup::class);
     }

@@ -4,6 +4,7 @@ use App\Livewire\Actions\Logout;
 use Livewire\Volt\Component;
 
 new class extends Component {
+    public $accounts;
     /**
      * Log the current user out of the application.
      */
@@ -12,6 +13,22 @@ new class extends Component {
         $logout();
 
         $this->redirect('/', navigate: true);
+    }
+
+    public function mount()
+    {
+        $this->accounts = \App\Models\Account::with('accountCategories')
+            ->orderByRaw('category_id IS NOT NULL') // "null" comes first
+            ->orderBy(function ($query) {
+                $query->select('created_at')->from('account_categories')->whereColumn('account_categories.id', 'accounts.category_id')->limit(1);
+            })
+            ->get()
+            ->groupBy(function ($accounts) {
+                $name = $accounts->accountCategories ? $accounts->accountCategories->name : 'None';
+
+                return $name;
+            })
+            ->toArray();
     }
 }; ?>
 <div class="drawer-side z-30">
@@ -36,7 +53,9 @@ new class extends Component {
             <ul class="text-md">
                 <!-- Dashboard -->
                 <li class="">
-                    <a aria-current="page" class="font-semibold  bg-base-200 " href="{{ route('dashboard') }}">
+                    <a aria-current="page"
+                        class="{{ request()->routeIs('dashboard') ? 'bg-base-200 font-semibold' : 'font-normal' }}"
+                        href="{{ route('dashboard') }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" aria-hidden="true" class="h-6 w-6">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -44,26 +63,53 @@ new class extends Component {
                             </path>
                         </svg>
                         Dashboard
-                        <!-- <span class="absolute inset-y-0 left-0 w-1 rounded-tr-md rounded-br-md bg-primary " -->
-                        <!--     aria-hidden="true"></span> -->
+                        @if (request()->routeIs('dashboard'))
+                            <span class="absolute inset-y-0 left-0 w-1 rounded-tr-md rounded-br-md bg-primary "
+                                aria-hidden="true"></span>
+                        @endif
                     </a>
                 </li>
 
                 <!-- Transactions -->
                 <li class="">
-                    <a class="font-normal" href="{{ route('user.transactions') }}">
+                    <a class="{{ request()->routeIs('user.transactions') ? 'bg-base-200 font-semibold' : 'font-normal' }}"
+                        href="{{ route('user.transactions') }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-6">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
                         </svg>
                         Transactions
+
+                        @if (request()->routeIs('user.transactions'))
+                            <span class="absolute inset-y-0 left-0 w-1 rounded-tr-md rounded-br-md bg-primary "
+                                aria-hidden="true"></span>
+                        @endif
+                    </a>
+                </li>
+
+                <!-- Accounts -->
+                <li class="">
+                    <a class="{{ request()->routeIs('user.accounts') ? 'bg-base-200 font-semibold' : 'font-normal' }}"
+                        href="{{ route('user.accounts') }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+                        </svg>
+                        Accounts
+
+                        @if (request()->routeIs('user.accounts'))
+                            <span class="absolute inset-y-0 left-0 w-1 rounded-tr-md rounded-br-md bg-primary "
+                                aria-hidden="true"></span>
+                        @endif
                     </a>
                 </li>
 
                 <!-- Save Goals -->
                 <li class="">
-                    <a class="font-normal" href="/app/leads">
+                    <a class="{{ request()->routeIs('user.goals') ? 'bg-base-200 font-semibold' : 'font-normal' }}"
+                        href="/app/leads">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" aria-hidden="true" class="h-6 w-6">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -71,30 +117,44 @@ new class extends Component {
                             </path>
                         </svg>
                         Save Goals
+                        @if (request()->routeIs('user.goals'))
+                            <span class="absolute inset-y-0 left-0 w-1 rounded-tr-md rounded-br-md bg-primary "
+                                aria-hidden="true"></span>
+                        @endif
                     </a>
                 </li>
 
                 <!-- Categories -->
                 <li class="">
-                    <a class="font-normal" href="/app/leads">
+                    <a class="{{ request()->routeIs('user.categories') ? 'bg-base-200 font-semibold' : 'font-normal' }}"
+                        href="/app/leads">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-6">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 0 0 3.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008Z" />
                         </svg>
                         Categories
+                        @if (request()->routeIs('user.categories'))
+                            <span class="absolute inset-y-0 left-0 w-1 rounded-tr-md rounded-br-md bg-primary "
+                                aria-hidden="true"></span>
+                        @endif
                     </a>
                 </li>
 
                 <!-- Recurring -->
                 <li class="">
-                    <a class="font-normal" href="/app/leads">
+                    <a class="{{ request()->routeIs('user.recurring') ? 'bg-base-200 font-semibold' : 'font-normal' }}"
+                        href="/app/leads">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-6">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3" />
                         </svg>
                         Recurring
+                        @if (request()->routeIs('user.recurring'))
+                            <span class="absolute inset-y-0 left-0 w-1 rounded-tr-md rounded-br-md bg-primary "
+                                aria-hidden="true"></span>
+                        @endif
                     </a>
                 </li>
             </ul>
@@ -117,12 +177,25 @@ new class extends Component {
                             Account
                         </summary>
                         <ul>
-                            <li><a>Account 1</a></li>
-                            <li><a>Account 2</a></li>
-                            <li><a>Account 3</a></li>
-                            <li><a>Account 4</a></li>
-                            <li><a>Account 5</a></li>
-                            <li><a>Account 6</a></li>
+                            <li>
+                                @foreach ($accounts as $categoryName => $records)
+                                    <details open>
+                                        <summary class="p-4 pb-2 text-xs opacity-60 tracking-wide">
+                                            {{ $categoryName }}
+                                        </summary>
+                                        @foreach ($records as $account)
+                                            <ul>
+                                                <li>
+                                                    <div>
+                                                        <div class="">{{ $account['name'] }}</div>
+                                                    </div>
+
+                                                </li>
+                                            </ul>
+                                        @endforeach
+                                    </details>
+                                @endforeach
+                            </li>
                         </ul>
                     </details>
                 </li>
