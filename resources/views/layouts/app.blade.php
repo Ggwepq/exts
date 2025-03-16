@@ -18,14 +18,15 @@
 
 <body class="font-roboto antialiased">
 
-    <div class="drawer lg:drawer-open">
+    <div class="drawer lg:drawer-open" x-data="{ isOpen: false }">
         <input id="left-sidebar-drawer" type="checkbox" class="drawer-toggle" />
 
         <!-- Page Content -->
-        <div class="drawer-content flex flex-col" x-data="{ isOpen: false }">
+        <div class="drawer-content flex flex-col">
             <livewire:pages.user.containers.main-header />
 
             <main class="flex-1 overflow-y-auto  bg-base-200">
+
                 {{ $slot }}
                 <div class="h-16"></div>
             </main>

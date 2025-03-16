@@ -15,7 +15,7 @@ class Account extends Model
 
     public function accountCategories()
     {
-        return $this->belongsTo(AccountCategory::class);
+        return $this->belongsTo(AccountCategory::class, 'category_id');
     }
 
     public function transactions()

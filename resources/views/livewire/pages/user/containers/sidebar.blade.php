@@ -4,6 +4,7 @@ use App\Livewire\Actions\Logout;
 use Livewire\Volt\Component;
 
 new class extends Component {
+    public $accounts;
     /**
      * Log the current user out of the application.
      */
@@ -12,6 +13,22 @@ new class extends Component {
         $logout();
 
         $this->redirect('/', navigate: true);
+    }
+
+    public function mount()
+    {
+        $this->accounts = \App\Models\Account::with('accountCategories')
+            ->orderByRaw('category_id IS NOT NULL') // "null" comes first
+            ->orderBy(function ($query) {
+                $query->select('created_at')->from('account_categories')->whereColumn('account_categories.id', 'accounts.category_id')->limit(1);
+            })
+            ->get()
+            ->groupBy(function ($accounts) {
+                $name = $accounts->accountCategories ? $accounts->accountCategories->name : 'None';
+
+                return $name;
+            })
+            ->toArray();
     }
 }; ?>
 <div class="drawer-side z-30">
@@ -160,12 +177,25 @@ new class extends Component {
                             Account
                         </summary>
                         <ul>
-                            <li><a>Account 1</a></li>
-                            <li><a>Account 2</a></li>
-                            <li><a>Account 3</a></li>
-                            <li><a>Account 4</a></li>
-                            <li><a>Account 5</a></li>
-                            <li><a>Account 6</a></li>
+                            <li>
+                                @foreach ($accounts as $categoryName => $records)
+                                    <details open>
+                                        <summary class="p-4 pb-2 text-xs opacity-60 tracking-wide">
+                                            {{ $categoryName }}
+                                        </summary>
+                                        @foreach ($records as $account)
+                                            <ul>
+                                                <li>
+                                                    <div>
+                                                        <div class="">{{ $account['name'] }}</div>
+                                                    </div>
+
+                                                </li>
+                                            </ul>
+                                        @endforeach
+                                    </details>
+                                @endforeach
+                            </li>
                         </ul>
                     </details>
                 </li>
