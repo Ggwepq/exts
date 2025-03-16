@@ -99,10 +99,10 @@ new #[Layout('layouts.app')] class extends Component {
         <!-- Name -->
         <div class="form-control">
             <label class="label" for="name">
-                <span class="label-text">Transaction Name</span>
+                <span class="label-text">Name</span>
             </label>
-            <input id="name" type="text" wire:model="name" class="input input-bordered w-full" required
-                autocomplete="name" />
+            <input id="name" type="text" wire:model="name" placeholder="Name"
+                class="input input-bordered w-full" required autocomplete="name" />
             @error('name')
                 <span class="text-error">{{ $message }}</span>
             @enderror
@@ -113,7 +113,7 @@ new #[Layout('layouts.app')] class extends Component {
             <label class="label" for="description">
                 <span class="label-text">Description (Optional)</span>
             </label>
-            <textarea id="description" wire:model="description" class="textarea textarea-bordered w-full"
+            <textarea id="description" wire:model="description" placeholder="..." class="textarea textarea-bordered w-full"
                 autocomplete="description"></textarea>
             @error('description')
                 <span class="text-error">{{ $message }}</span>
@@ -122,11 +122,11 @@ new #[Layout('layouts.app')] class extends Component {
 
         <!-- Amount -->
         <div class="form-control">
-            <label class="label" for="amount">
-                <span class="label-text">Amount</span>
+            <label class="input w-full">
+                <span class="label">₱</span>
+                <input id="amount" type="number" wire:model="amount" placeholder="0.00"step="0.01" required
+                    autocomplete="amount" />
             </label>
-            <input id="amount" type="number" wire:model="amount" class="input input-bordered w-full" step="0.01"
-                required autocomplete="amount" />
             @error('amount')
                 <span class="text-error">{{ $message }}</span>
             @enderror
@@ -149,44 +149,54 @@ new #[Layout('layouts.app')] class extends Component {
             @enderror
         </div>
 
+        <!-- Type -->
+        <div class="form-control">
+
+            <div class="filter">
+                <input class="btn filter-reset" type="radio" name="metaframeworks" aria-label="All" />
+                <input class="btn checked:bg-secondary " type="radio" wire:model.live="type_id" value="2"
+                    name="metaframeworks" aria-label="Expense" />
+                <input class="btn checked:bg-primary " type="radio" wire:model.live="type_id" value="1"
+                    name="metaframeworks" aria-label="Income" />
+            </div>
+            @error('type_id')
+                <span class="text-error">{{ $message }}</span>
+            @enderror
+        </div>
+
         <!-- Category -->
         <div class="form-control">
             <label class="label" for="category_id">
                 <span class="label-text">Category</span>
             </label>
             <select id="category_id" wire:model="category_id" class="select select-bordered w-full">
-                <option value="None">None</option>
-                @foreach (\App\Models\TransactionCategory::all() as $category)
-                    @if ($category->name !== 'None')
-                        <option value="{{ $category->id }}">{{ $category->name }}</option>
-                    @endif
-                @endforeach
+                <option>None</option>
+                @if ($type_id == 1)
+                    @foreach (\App\Models\TransactionCategory::where('type_id', $type_id)->get() as $income)
+                        @if ($income->name !== 'None')
+                            <option value="{{ $income->id }}">{{ $income->name }}</option>
+                        @endif
+                    @endforeach
+                @else
+                    @foreach (\App\Models\TransactionCategory::where('type_id', $type_id)->get() as $expense)
+                        @if ($expense->name !== 'None')
+                            <option value="{{ $expense->id }}">{{ $expense->name }}</option>
+                        @endif
+                    @endforeach
+                @endif
             </select>
             @error('category_id')
                 <span class="text-error">{{ $message . ' ' . $category_id }}</span>
             @enderror
         </div>
 
-        <!-- Type -->
-        <div class="form-control">
-            <label class="label" for="type_id">
-                <span class="label-text">Transaction Type</span>
-            </label>
-            <select id="type_id" wire:model="type_id" class="select select-bordered w-full">
-                <option value="">Select a type</option>
-                @foreach (\App\Models\Type::all() as $type)
-                    <option value="{{ $type->id }}">{{ $type->name }}</option>
-                @endforeach
-            </select>
-            @error('type_id')
-                <span class="text-error">{{ $message }}</span>
-            @enderror
-        </div>
+
+
 
         <!-- Image Upload -->
         <div class="form-control">
             <label class="label" for="image">
-                <span class="label-text">Upload Image (Optional)</span>
+                <span class="label-text">Image (Optional)</span>
             </label>
             <input id="image" type="file" wire:model="image" class="file-input file-input-bordered w-full" />
             @error('image')
