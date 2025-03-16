@@ -61,7 +61,7 @@ new #[Layout('layouts.app')] class extends Component {
                                     <div>
                                         <div
                                             class="text-sm uppercase font-semibold badge {{ $transaction->types->name == 'Expense' ? 'badge-secondary' : 'badge-primary' }}">
-                                            {{ $transaction->types->name == 'Expense' ? '-' : '+' }}{{ $transaction->amount }}
+                                            {{ $transaction->types->name == 'Expense' ? '-₱' : '+₱' }}{{ $transaction->amount }}
                                         </div>
                                     </div>
                                 </li>

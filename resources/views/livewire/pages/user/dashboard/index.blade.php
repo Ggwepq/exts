@@ -36,7 +36,7 @@ new class extends Component {
                     </svg>
                 </div>
                 <div class="stat-title">Income {{ $transactions['incomeCount'] }}</div>
-                <div class="stat-value text-primary">{{ number_format($transactions['totalIncome']) }}</div>
+                <div class="stat-value text-primary">₱{{ number_format($transactions['totalIncome']) }}</div>
             </div>
         </div>
         <div class="stats shadow">
@@ -49,7 +49,7 @@ new class extends Component {
                     </svg>
                 </div>
                 <div class="stat-title ">Expense {{ $transactions['expenseCount'] }}</div>
-                <div class="stat-value text-primary">{{ number_format($transactions['totalExpense']) }}</div>
+                <div class="stat-value text-primary">₱{{ number_format($transactions['totalExpense']) }}</div>
             </div>
         </div>
     </div>

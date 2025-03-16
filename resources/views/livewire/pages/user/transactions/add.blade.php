@@ -43,7 +43,7 @@ new #[Layout('layouts.app')] class extends Component {
         // Handle file upload if an image is provided
         $imagePath = $this->image ? $this->image->store('img/transactions', 'public') : null;
 
-        Transaction::create([
+        $transaction = Transaction::create([
             'user_id' => Auth::id(),
             'account_id' => $this->account_id,
             'category_id' => $this->category_id == null ? 1 : $this->category_id,
@@ -56,6 +56,11 @@ new #[Layout('layouts.app')] class extends Component {
             'created_at' => Carbon\Carbon::now(),
             'updated_at' => Carbon\Carbon::now(),
         ]);
+
+        // Updates the Account
+        $account = Account::find($transaction->account_id);
+        $account->balance = $transaction->types->name == 'Expense' ? $account->balance - $transaction->amount : $account->balance + $transaction->amount;
+        $account->save();
 
         // Reset form fields
         $this->reset(['name', 'description', 'amount', 'image', 'account_id', 'category_id', 'recurring_id', 'type_id']);

@@ -1,11 +1,12 @@
 <?php
-use App\Models\AccountCategory;
+use App\Models\Account;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 
 new class extends Component {
-    public $accountCategories;
     public $accounts;
+    public $totalBalance;
 
     public function mount()
     {
@@ -15,7 +16,7 @@ new class extends Component {
     #[On('accountCreated')]
     public function loadAccounts()
     {
-        $this->accounts = \App\Models\Account::with('accountCategories')
+        $this->accounts = Account::with('accountCategories')
             ->orderByRaw('category_id IS NOT NULL') // "null" comes first
             ->orderBy(function ($query) {
                 $query->select('created_at')->from('account_categories')->whereColumn('account_categories.id', 'accounts.category_id')->limit(1);
@@ -27,6 +28,13 @@ new class extends Component {
                 return $name;
             })
             ->toArray();
+
+        $this->getTotal();
+    }
+
+    public function getTotal()
+    {
+        $this->totalBalance = Auth::user()->accounts->sum('balance');
     }
 }; ?>
 
@@ -35,6 +43,9 @@ new class extends Component {
 
         <div class="card w-full p-6 bg-base-100 shadow-xl mt-2">
             <ul class="list bg-base-100 rounded-box shadow-md">
+                <div role="alert" class="alert alert-info alert-soft">
+                    <span>Total Balance: ₱{{ number_format($totalBalance) }}</span>
+                </div>
                 @foreach ($accounts as $categoryName => $records)
                     <li class="p-4 pb-2 text-xs opacity-60 tracking-wide">{{ $categoryName }}</li>
 
