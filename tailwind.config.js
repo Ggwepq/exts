@@ -9,6 +9,7 @@ export default {
         "./resources/views/**/*.blade.php",
     ],
 
+    darkMode: false,
     theme: {
         extend: {
             fontFamily: {
@@ -17,5 +18,5 @@ export default {
         },
     },
 
-    plugins: [require("daisyui"),forms],
+    plugins: [require("daisyui"), forms],
 };

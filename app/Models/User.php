@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
@@ -17,7 +17,10 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'first_name',
+        'middle_name',
+        'last_name',
+        'phone_number',
         'email',
         'password',
     ];
@@ -43,5 +46,55 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    public function recurrings()
+    {
+        return $this->hasMany(Recurring::class);
+    }
+
+    public function accounts()
+    {
+        return $this->hasMany(Account::class);
+    }
+
+    public function accountCategories()
+    {
+        return $this->hasMany(AccountCategory::class);
+    }
+
+    public function transfers()
+    {
+        return $this->hasMany(Transfer::class);
+    }
+
+    public function goals()
+    {
+        return $this->hasMany(Goal::class);
+    }
+
+    public function goalProgress()
+    {
+        return $this->hasMany(GoalProgress::class);
+    }
+
+    public function categoryGroups()
+    {
+        return $this->hasMany(CategoryGroup::class);
+    }
+
+    public function histories()
+    {
+        return $this->hasMany(History::class);
+    }
+
+    public function settings()
+    {
+        return $this->hasMany(Setting::class);
     }
 }

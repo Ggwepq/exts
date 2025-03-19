@@ -16,23 +16,24 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="font-sans antialiased">
-    <div class="min-h-screen bg-gray-100">
-        <livewire:layout.navigation />
+<body class="font-roboto antialiased">
 
-        <!-- Page Heading -->
-        @if (isset($header))
-            <header class="bg-white shadow">
-                <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                    {{ $header }}
-                </div>
-            </header>
-        @endif
+    <div class="drawer lg:drawer-open" x-data="{ isOpen: false }">
+        <input id="left-sidebar-drawer" type="checkbox" class="drawer-toggle" />
 
         <!-- Page Content -->
-        <main>
-            {{ $slot }}
-        </main>
+        <div class="drawer-content flex flex-col">
+            <livewire:pages.user.containers.main-header />
+
+            <main class="flex-1 overflow-y-auto  bg-base-200">
+
+                {{ $slot }}
+                <div class="h-16"></div>
+            </main>
+        </div>
+
+        <!-- Left Sidebar -->
+        <livewire:pages.user.containers.sidebar />
     </div>
 </body>
 
