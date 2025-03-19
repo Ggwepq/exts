@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use App\Livewire\Actions\Logout;
 use Livewire\Volt\Component;
 
@@ -17,7 +18,8 @@ new class extends Component {
 
     public function mount()
     {
-        $this->accounts = \App\Models\Account::with('accountCategories')
+        $this->accounts = \App\Models\Account::where('user_id', Auth::id())
+            ->with('accountCategories')
             ->orderByRaw('category_id IS NOT NULL') // "null" comes first
             ->orderBy(function ($query) {
                 $query->select('created_at')->from('account_categories')->whereColumn('account_categories.id', 'accounts.category_id')->limit(1);

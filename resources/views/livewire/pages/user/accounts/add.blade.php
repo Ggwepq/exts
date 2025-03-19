@@ -6,13 +6,14 @@ use App\Models\Transaction;
 use App\Models\Account;
 use App\Models\TransactionCategory;
 use App\Models\Type;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Volt\Component;
 
 new #[Layout('layouts.app')] class extends Component {
     use WithFileUploads;
 
-    #[Validate('required|string|max:255')]
+    // [Validate('required|string|max:255')]
     public $name;
 
     #[Validate('nullable|exists:account_categories,id')]
@@ -20,6 +21,20 @@ new #[Layout('layouts.app')] class extends Component {
 
     #[Validate('required|numeric|min:0.01')]
     public $amount; // 2MB max
+
+    public function rules()
+    {
+        return [
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('accounts')->where(function ($query) {
+                    return $query->where('user_id', auth()->id());
+                }),
+            ],
+        ];
+    }
 
     public function create()
     {
