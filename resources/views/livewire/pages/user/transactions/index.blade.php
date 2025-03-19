@@ -31,7 +31,7 @@ new #[Layout('layouts.app')] class extends Component {
 
     public function placeholder()
     {
-        return view('livewire.pages.user.components.placeholder');
+        return view('livewire.pages.user.components.placeholders.placeholder');
     }
 }; ?>
 <section class="flex min-h-screen">
@@ -49,7 +49,7 @@ new #[Layout('layouts.app')] class extends Component {
                             @foreach ($record as $transaction)
                                 <li class="list-row">
                                     <div><img class="size-10 rounded-box"
-                                            src="{{ $transaction->image_url ? Storage::url($transaction->image_url) : 'https://img.daisyui.com/images/profile/demo/1@94.webp' }}" />
+                                            src="{{ $transaction->image_url ? Storage::url($transaction->image_url) : asset('img/default-img.png') }}" />
                                     </div>
                                     <div>
                                         <div class="font-bold text-md mb-2">{{ $transaction->name }}</div>
