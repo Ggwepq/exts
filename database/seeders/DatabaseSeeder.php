@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             'first_name' => 'Test',
             'last_name' => 'User',
             'email' => 'test@gmail.com',
+            'email_verified_at' => \Carbon\Carbon::now(),
             'password' => bcrypt('testuser123'),
         ]);
 
