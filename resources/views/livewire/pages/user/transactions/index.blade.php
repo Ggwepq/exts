@@ -49,7 +49,7 @@ new #[Layout('layouts.app')] class extends Component {
                             @foreach ($record as $transaction)
                                 <li class="list-row">
                                     <div><img class="size-10 rounded-box"
-                                            src="{{ $transaction->image_url ? Storage::url($transaction->image_url) : asset('img/default-img.png') }}" />
+                                            src="{{ $transaction->image_url ? asset('app/' . $transaction->image_url) : asset('img/default-img.png') }}" />
                                     </div>
                                     <div>
                                         <div class="font-bold text-md mb-2">{{ $transaction->name }}</div>

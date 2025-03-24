@@ -34,7 +34,7 @@ new class extends Component {
     {
         $user = Auth::user();
 
-        $imagePath = $this->image ? $this->image->store('img/user', 'public') : null;
+        $imagePath = $this->image ? $this->image->store('img/user', 'local') : null;
 
         $validated = $this->validate([
             'first_name' => ['string', 'max:255'],
@@ -92,7 +92,7 @@ new class extends Component {
             <div class="avatar">
                 <div class="w-24 rounded-xl">
                     <img
-                        src="{{ auth()->user()->profile_image_url ? Storage::url(auth()->user()->profile_image_url) : asset('img/user-img.jpg') }}" />
+                        src="{{ auth()->user()->profile_image_url ? asset('app/' . auth()->user()->profile_image_url) : asset('img/user-img.jpg') }}" />
                 </div>
             </div>
         </div>

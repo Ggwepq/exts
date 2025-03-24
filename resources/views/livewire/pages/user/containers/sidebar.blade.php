@@ -213,7 +213,7 @@ new class extends Component {
                     <div class="avatar">
                         <div class="bg-base-200 mask mask-squircle w-8">
                             <img class="avatar"
-                                src="{{ auth()->user()->profile_image_url ? Storage::url(auth()->user()->profile_image_url) : asset('img/user-img.jpg') }}"
+                                src="{{ auth()->user()->profile_image_url ? asset('app/' . auth()->user()->profile_image_url) : asset('img/user-img.jpg') }}"
                                 alt="Logo">
                         </div>
                     </div>
