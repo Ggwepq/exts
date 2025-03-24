@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
 use Livewire\Volt\Volt;
@@ -8,6 +9,10 @@ Route::view('/', 'welcome');
 
 Livewire::setScriptRoute(function ($handle) {
     return Route::get('/vendor/livewire/livewire.js', $handle);
+});
+
+Route::get('link', function () {
+    Artisan::call('storage:link');
 });
 
 Route::view('profile', 'profile')
