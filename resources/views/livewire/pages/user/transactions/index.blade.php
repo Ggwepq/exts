@@ -10,12 +10,12 @@ new #[Layout('layouts.app')] class extends Component {
         $this->loadTransactions();
     }
 
+    /**
+     * Fetch user tranasction based on date
+     */
     #[On('transactionCreated')]
     public function loadTransactions()
     {
-        /*
-         * Fetch user tranasction based on date
-         */
         $this->transactions = auth()
             ->user()
             ->transactions()

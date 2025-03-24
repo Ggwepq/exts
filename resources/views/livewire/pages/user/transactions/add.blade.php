@@ -12,6 +12,10 @@ use Livewire\Volt\Component;
 new #[Layout('layouts.app')] class extends Component {
     use WithFileUploads;
 
+    public $accounts;
+    public $expenses;
+    public $incomes;
+
     #[Validate('required|string|max:255')]
     public $name;
 
@@ -69,6 +73,15 @@ new #[Layout('layouts.app')] class extends Component {
         $this->dispatch('transactionCreated');
 
         session()->flash('message', 'Transaction created successfully!');
+    }
+
+    public function mount()
+    {
+        $this->accounts = Account::where('user_id', Auth::id())->get();
+        $this->incomes = TransactionCategory::where('user_id', Auth::id())->where('type_id', 1)->get();
+        $this->expenses = TransactionCategory::where('user_id', Auth::id())->where('type_id', 2)->get();
+
+        // dd($accounts);
     }
 }; ?>
 
@@ -140,7 +153,7 @@ new #[Layout('layouts.app')] class extends Component {
             <select id="account_id" wire:model="account_id" class="select select-bordered w-full"
                 autocomplete="account">
                 <option value="">Select an account</option>
-                @foreach (\App\Models\Account::all() as $account)
+                @foreach ($accounts as $account)
                     <option value="{{ $account->id }}">{{ $account->name }}</option>
                 @endforeach
             </select>
@@ -172,26 +185,27 @@ new #[Layout('layouts.app')] class extends Component {
             <select id="category_id" wire:model="category_id" class="select select-bordered w-full">
                 <option>None</option>
                 @if ($type_id == 1)
-                    @foreach (\App\Models\TransactionCategory::where('type_id', $type_id)->get() as $income)
-                        @if ($income->name !== 'None')
-                            <option value="{{ $income->id }}">{{ $income->name }}</option>
-                        @endif
-                    @endforeach
+                    @if ($incomes)
+                        @foreach ($incomes as $income)
+                            @if ($income->name !== 'None')
+                                <option value="{{ $income->id }}">{{ $income->name }}</option>
+                            @endif
+                        @endforeach
+                    @endif
                 @else
-                    @foreach (\App\Models\TransactionCategory::where('type_id', $type_id)->get() as $expense)
-                        @if ($expense->name !== 'None')
-                            <option value="{{ $expense->id }}">{{ $expense->name }}</option>
-                        @endif
-                    @endforeach
+                    @if ($expenses)
+                        @foreach ($expenses as $expense)
+                            @if ($expense->name !== 'None')
+                                <option value="{{ $expense->id }}">{{ $expense->name }}</option>
+                            @endif
+                        @endforeach
+                    @endif
                 @endif
             </select>
             @error('category_id')
                 <span class="text-error">{{ $message . ' ' . $category_id }}</span>
             @enderror
         </div>
-
-
-
 
         <!-- Image Upload -->
         <div class="form-control">
