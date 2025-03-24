@@ -9,7 +9,6 @@ use Livewire\Volt\Component;
 new class extends Component {
     public $first_name = '';
     public $last_name = '';
-    public $phone_number = '';
     public $email = '';
 
     /**
@@ -32,10 +31,8 @@ new class extends Component {
         $user = Auth::user();
 
         $validated = $this->validate([
-            'name' => ['required', 'string', 'max:255'],
             'first_name' => ['string', 'max:255'],
             'last_name' => ['string', 'max:255'],
-            'phone_number' => ['string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
         ]);
 
@@ -71,11 +68,11 @@ new class extends Component {
 
 <section>
     <header>
-        <h2 class="text-lg font-medium text-primary">
+        <h2 class="text-lg font-medium text-base-content">
             {{ __('Profile Information') }}
         </h2>
 
-        <p class="mt-1 text-sm text-gray-600">
+        <p class="mt-1 text-sm text-base-content/70">
             {{ __("Update your account's profile information and email address.") }}
         </p>
     </header>
@@ -94,13 +91,6 @@ new class extends Component {
             <input type="text" wire:model="last_name" class="input mt-1 w-full" name="last_name" required
                 autocomplete="last_name" />
             <x-input-error :messages="$errors->get('last_name')" class="mt-2" />
-        </div>
-
-        <div class="mt-4">
-            <x-input-label for="phone_number" :value="__('Last Name')" />
-            <input type="text" wire:model="phone_number" class="input mt-1 w-full" name="phone_number" required
-                autocomplete="phone_number" />
-            <x-input-error :messages="$errors->get('phone_number')" class="mt-2" />
         </div>
 
         <div class="mt-4">
@@ -130,7 +120,8 @@ new class extends Component {
         </div>
 
         <div class="flex items-center gap-4">
-            <button class="btn btn-primary">{{ __('Save') }}</button>
+            <button class="btn btn-primary">{{ __('Save') }}<span
+                    wire:loading.class="loading loading-bars"></span></button>
 
             <x-action-message class="me-3" on="profile-updated">
                 {{ __('Saved.') }}
