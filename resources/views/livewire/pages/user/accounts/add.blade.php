@@ -5,6 +5,7 @@ use Livewire\WithFileUploads;
 use App\Models\Transaction;
 use App\Models\Account;
 use App\Models\TransactionCategory;
+use App\Models\AccountCategory;
 use App\Models\Type;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,7 @@ new #[Layout('layouts.app')] class extends Component {
     use WithFileUploads;
 
     // [Validate('required|string|max:255')]
+    public $categories;
     public $name;
 
     #[Validate('nullable|exists:account_categories,id')]
@@ -29,9 +31,16 @@ new #[Layout('layouts.app')] class extends Component {
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('accounts')->where(function ($query) {
-                    return $query->where('user_id', auth()->id());
-                }),
+                function ($attribute, $value, $fail) {
+                    $exists = DB::table('accounts')
+                        ->where('user_id', auth()->id())
+                        ->whereRaw('LOWER(name) = ?', [strtolower($value)])
+                        ->exists();
+
+                    if ($exists) {
+                        $fail('The name must be unique.');
+                    }
+                },
             ],
         ];
     }
@@ -56,6 +65,11 @@ new #[Layout('layouts.app')] class extends Component {
         $this->dispatch('accountCreated');
 
         session()->flash('message', 'Account created successfully!');
+    }
+
+    public function mount()
+    {
+        $this->categories = AccountCategory::where('user_id', Auth::id())->get();
     }
 }; ?>
 
@@ -113,7 +127,7 @@ new #[Layout('layouts.app')] class extends Component {
             </label>
             <select id="category_id" wire:model="category_id" class="select select-bordered w-full">
                 <option value="None">None</option>
-                @foreach (\App\Models\AccountCategory::all() as $category)
+                @foreach ($categories as $category)
                     @if ($category->name !== 'None')
                         <option value="{{ $category->id }}">{{ $category->name }}</option>
                     @endif
