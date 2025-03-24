@@ -5,11 +5,15 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
+use Livewire\WithFileUploads;
 
 new class extends Component {
+    use WithFileUploads;
     public $first_name = '';
     public $last_name = '';
     public $email = '';
+    public $profile_image_url;
+    public $image;
 
     /**
      * Mount the component.
@@ -30,11 +34,16 @@ new class extends Component {
     {
         $user = Auth::user();
 
+        $imagePath = $this->image ? $this->image->store('img/user', 'public') : null;
+
         $validated = $this->validate([
             'first_name' => ['string', 'max:255'],
             'last_name' => ['string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
+            'profile_image_url' => ['nullable', 'image'],
         ]);
+
+        $validated['profile_image_url'] = $imagePath;
 
         $user->fill($validated);
 
@@ -78,6 +87,17 @@ new class extends Component {
     </header>
 
     <form wire:submit="updateProfileInformation" class="mt-6 space-y-6">
+
+        <div class="">
+            <div class="avatar">
+                <div class="w-24 rounded-xl">
+                    <img
+                        src="{{ auth()->user()->profile_image_url ? Storage::url(auth()->user()->profile_image_url) : asset('img/user-img.jpg') }}" />
+                </div>
+            </div>
+        </div>
+        <input id="image" type="file" wire:model="image" class="file-input file-input-ghost" />
+
         <div>
             <x-input-label for="first_name" :value="__('First Name')" />
             <input type="text" wire:model="first_name" class="input mt-1 w-full" name="first_name" required autofocus
