@@ -79,9 +79,9 @@ new #[Layout('layouts.guest')] class extends Component {
                         </div>
 
                         <!-- Submit Button -->
-                        <button type="submit" class="btn mt-2 w-full btn-primary"
-                            wire:loading.class="loading loading-dots loading-sm">
+                        <button type="submit" class="btn mt-2 w-full btn-primary">
                             Login
+                            <span wire:loading.class="loading loading-dots loading-sm"></span>
                         </button>
 
                         <!-- Register Link -->

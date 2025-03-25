@@ -41,7 +41,7 @@ new #[Layout('layouts.app')] class extends Component {
         $this->validate();
 
         // Handle file upload if an image is provided
-        $imagePath = $this->image ? $this->image->store('img/transactions', 'public') : null;
+        $imagePath = $this->image ? $this->image->store('img/transactions', 'local') : null;
 
         $transaction = Transaction::create([
             'user_id' => Auth::id(),

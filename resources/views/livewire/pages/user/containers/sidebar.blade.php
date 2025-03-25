@@ -212,7 +212,9 @@ new class extends Component {
                     class="bg-base-200 hover:bg-base-100 rounded-box mx-2 mt-0 flex cursor-pointer items-center gap-2.5 px-3 py-2 transition-all">
                     <div class="avatar">
                         <div class="bg-base-200 mask mask-squircle w-8">
-                            <img class="avatar" src="{{ asset('img/logo192.png') }}" alt="Logo">
+                            <img class="avatar"
+                                src="{{ auth()->user()->profile_image_url ? asset('app/' . auth()->user()->profile_image_url) : asset('img/user-img.jpg') }}"
+                                alt="Logo">
                         </div>
                     </div>
                     <div class="grow -space-y-0.5">
