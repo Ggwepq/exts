@@ -1,28 +1,57 @@
 <?php
 
+use Livewire\Attributes\Reactive;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
+use Livewire\Attributes\Layout;
 
-new #[Layout('layouts.app')] class extends Component {}; ?>
+new #[Layout('layouts.app')] class extends Component {
+    public string $operation = 'details'; // create, edit, view
+    public string $page = ''; // Account, Transaction
+    public string $component = '';
+    public mixed $modelId = null;
 
-<section>
-    <!-- Sidebar Backdrop (Mobile Only) -->
-    <div x-show="isOpen" x-transition.duration.500 @click.away="isOpen = false"
-        class="fixed inset-y-0 bg-base-300 z-40 md:hidden" wire:click="closeDetail"
-        x-transition:enter="transition-opacity ease-linear duration-300"
-        x-transition:leave="transition-opacity ease-linear duration-300">
-    </div>
+    #[On('showSidebar')]
+    public function open(string $operation, string $page, string $component = '', ?int $modelId = null): void
+    {
+        $this->operation = $operation;
+        $this->page = $page;
+        $this->component = $component;
+        $this->modelId = $modelId;
+    }
+};
 
+?>
+
+<div>
     <!-- Sidebar -->
-    <div x-show="isOpen" x-transition.duration.500 @click.away="isOpen = false"
-        class="fixed md:sticky top-0 start-0 bottom-0 right-0 w-full md:w-96 bg-base-100 border-l border-base-200 shadow-lg z-50 md:relative md:transform-none transform transition-transform duration-300"
-        :class="isOpen ? 'translate-x-0' : 'translate-x-full'">
+    <aside x-show="detailSidebarOpen" x-transition:enter="transition-transform duration-300 ease-in-out"
+        x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
+        x-transition:leave="transition-transform duration-300 ease-in-out" x-transition:leave-start="translate-x-0"
+        x-transition:leave-end="translate-x-full"
+        class="fixed right-0 top-0 h-full w-full top-15 md:top-0 md:max-w-md z-30 bg-base-100 border-l border-base-200 shadow-lg"
+        x-cloak>
+        <div class="flex flex-col h-full">
+            <!-- Header -->
+            <div class="flex items-center justify-between p-4 border-b border-base-200">
+                <h2 class="text-xl font-semibold capitalize">
+                    {{ ucfirst($operation) }} {{ $page }}
+                </h2>
+                <button class="btn btn-ghost btn-sm" @click="detailSidebarOpen = false">
+                    ✕
+                </button>
+            </div>
 
-        <div class="p-6 h-full overflow-y-auto">
-            @if (request()->routeIs('user.transactions'))
-                @livewire('pages.user.transactions.add')
-            @elseif (request()->routeIs('user.accounts'))
-                @livewire('pages.user.accounts.add')
-            @endif
+            <!-- Content -->
+            <div class="flex-1 overflow-y-auto p-4">
+                @if ($component)
+                    @livewire($component, $operation === 'create' ? [] : ['modelId' => $modelId, 'lazy' => true], key($operation . '-' . $component . '-' . $modelId . \Str::random(4)))
+                @else
+                    <div class="h-full flex items-center justify-center">
+                        <span class="loading loading-dots loading-xl"></span>
+                    </div>
+                @endif
+            </div>
         </div>
-    </div>
-</section>
+    </aside>
+</div>

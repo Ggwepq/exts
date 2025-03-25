@@ -83,18 +83,14 @@ new #[Layout('layouts.app')] class extends Component {
 
         // dd($accounts);
     }
+
+    public function placeholder()
+    {
+        return view('livewire.pages.user.components.details-placeholder');
+    }
 }; ?>
 
 <section>
-
-    <!-- Close Button -->
-    <div class="flex mb-4">
-        <h3 class="flex-1 text-xl font-bold">New Transaction</h3>
-        <button @click="isOpen = false" class="btn btn-circle btn-ghost btn-sm flex-none">
-            ✕
-        </button>
-    </div>
-
     <!-- Success Message -->
     @if (session()->has('message'))
         <div class="alert alert-soft alert-success mb-4">
