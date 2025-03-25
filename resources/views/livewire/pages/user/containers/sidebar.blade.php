@@ -33,7 +33,7 @@ new class extends Component {
             ->toArray();
     }
 }; ?>
-<div class="drawer-side z-30">
+<div class="drawer-side z-50">
     <label for="left-sidebar-drawer" class="drawer-overlay"></label>
     <div class="menu pt-2 w-55 bg-base-100 min-h-full text-base-content flex flex-col">
         <button class="btn btn-ghost bg-base-300  btn-circle z-50 top-0 right-0 mt-4 mr-2 absolute lg:hidden"><svg

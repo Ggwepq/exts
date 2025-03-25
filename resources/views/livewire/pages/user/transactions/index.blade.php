@@ -34,11 +34,13 @@ new #[Layout('layouts.app')] class extends Component {
         return view('livewire.pages.user.components.placeholders.placeholder');
     }
 }; ?>
-<section class="flex min-h-screen">
-    <div class="flex-1 transition-all" :class="isOpen ? 'md:mr-0' : ''">
 
-        <main class="flex-1 overflow-y-auto md:pt-4 pt-4 px-6  bg-base-200">
+<div>
+    <!-- Main Content with Animated Margin -->
+    <div class="transition-all duration-300 ease-in-out" :class="{ 'md:mr-[28rem]': detailSidebarOpen }">
+        @livewire('pages.user.containers.main-header', ['component' => 'pages.user.transactions.header'])
 
+        <div class="flex-1 overflow-y-auto md:pt-4 pt-4 px-6  bg-base-200">
             <div class="card w-full p-6 bg-base-100 shadow-xl mt-2">
                 @if (count($transactions))
                     <ul class="list bg-base-100 rounded-box shadow-md">
@@ -47,7 +49,8 @@ new #[Layout('layouts.app')] class extends Component {
                             <li class="p-4 pb-2 text-xs opacity-60 tracking-wide">{{ $date }}</li>
 
                             @foreach ($record as $transaction)
-                                <li class="list-row">
+                                <li class="list-row hover:bg-base-200"
+                                    @click="$dispatch('showSidebar', {operation: 'view', page: 'Transaction', component: 'pages.user.transactions.edit', modelId: {{ $transaction->id }}}); detailSidebarOpen = true;">
                                     <div><img class="size-10 rounded-box"
                                             src="{{ $transaction->image_url ? asset('app/' . $transaction->image_url) : asset('img/default-img.png') }}" />
                                     </div>
@@ -74,7 +77,7 @@ new #[Layout('layouts.app')] class extends Component {
                     </div>
                 @endif
             </div>
-        </main>
+        </div>
     </div>
-    @livewire('pages.user.containers.details-sidebar')
-</section>
+    @livewire('pages.user.containers.details-sidebar', ['lazy' => true])
+</div>

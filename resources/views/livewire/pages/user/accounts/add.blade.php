@@ -71,17 +71,14 @@ new #[Layout('layouts.app')] class extends Component {
     {
         $this->categories = AccountCategory::where('user_id', Auth::id())->get();
     }
+
+    public function placeholder()
+    {
+        return view('livewire.pages.user.components.placeholders.details-placeholder');
+    }
 }; ?>
 
 <section>
-    <!-- Close Button -->
-    <div class="flex mb-4">
-        <h3 class="flex-1 text-xl font-bold">New Account</h3>
-        <button @click="isOpen = false" class="btn btn-circle btn-ghost btn-sm flex-none">
-            ✕
-        </button>
-    </div>
-
     <!-- Success Message -->
     @if (session()->has('message'))
         <div class="alert alert-soft alert-success mb-4">
