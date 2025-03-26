@@ -13,7 +13,7 @@ new class extends Component {
         $this->loadAccounts();
     }
 
-    #[On('accountCreated')]
+    #[On('accountUpdate')]
     public function loadAccounts()
     {
         $user = Account::where('user_id', Auth::id());
