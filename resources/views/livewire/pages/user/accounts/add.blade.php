@@ -49,14 +49,28 @@ new #[Layout('layouts.app')] class extends Component {
     {
         $this->validate();
 
-        Account::create([
+        $account = Account::create([
             'user_id' => Auth::id(),
             'category_id' => $this->category_id ? $this->category_id : null,
             'name' => $this->name,
-            'balance' => $this->amount,
+            'balance' => 0,
             'created_at' => Carbon\Carbon::now(),
             'updated_at' => Carbon\Carbon::now(),
         ]);
+
+        $balance = Transaction::create([
+            'user_id' => Auth::id(),
+            'account_id' => $account->id,
+            'category_id' => null,
+            'type_id' => 1,
+            'name' => 'Initial Account Balance',
+            'amount' => $this->amount,
+            'created_at' => Carbon\Carbon::now(),
+            'updated_at' => Carbon\Carbon::now(),
+        ]);
+
+        $account->balance = $balance->amount;
+        $account->save();
 
         // Reset form fields
         $this->reset(['name', 'amount', 'category_id']);
@@ -136,6 +150,7 @@ new #[Layout('layouts.app')] class extends Component {
         </div>
 
         <!-- Submit Button -->
-        <button type="submit" class="btn btn-primary w-full">Save</button>
+        <button type="submit" class="btn btn-primary w-full">Save<span
+                wire:loading.class="loading loading-bars loading-lg"></span></button>
     </form>
 </section>
