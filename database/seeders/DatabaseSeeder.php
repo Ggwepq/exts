@@ -66,23 +66,6 @@ class DatabaseSeeder extends Seeder
             ],
         ]);
 
-        // Account Default
-        DB::table('accounts')->insert([
-
-            [
-                'user_id' => 1,
-                'category_id' => 1,
-                'name' => 'BDO',
-                'balance' => 7500,
-            ],
-            [
-                'user_id' => 1,
-                'category_id' => 2,
-                'name' => 'Gcash',
-                'balance' => 10000,
-            ],
-        ]);
-
         DB::table('transaction_categories')->insert([
             [
                 'user_id' => 1,
@@ -104,5 +87,6 @@ class DatabaseSeeder extends Seeder
             ],
         ]);
 
+        $this->call(TransactionAccountSeeder::class);
     }
 }
