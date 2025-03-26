@@ -45,7 +45,7 @@ new #[Layout('layouts.app')] class extends Component {
             <!-- Content -->
             <div class="flex-1 overflow-y-auto p-4">
                 @if ($component)
-                    @livewire($component, $operation === 'create' ? [] : ['modelId' => $modelId, 'lazy' => true], key($operation . '-' . $component . '-' . $modelId . \Str::random(4)))
+                    @livewire($component, $operation === 'create' ? [] : ['modelId' => $modelId], key($operation . '-' . $component . '-' . $modelId . \Str::random(4)))
                 @else
                     <div class="h-full flex items-center justify-center">
                         <span class="loading loading-dots loading-xl"></span>

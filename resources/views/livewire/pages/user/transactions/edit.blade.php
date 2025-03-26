@@ -1,5 +1,7 @@
 <?php
 
+use Livewire\Volt\Component;
+use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\WithFileUploads;
 use App\Models\Transaction;
@@ -7,14 +9,12 @@ use App\Models\Account;
 use App\Models\TransactionCategory;
 use App\Models\Type;
 use Illuminate\Support\Facades\Auth;
-use Livewire\Volt\Component;
 
 new #[Layout('layouts.app')] class extends Component {
     use WithFileUploads;
 
-    public $accounts;
-    public $expenses;
-    public $incomes;
+    public Transaction $transaction;
+    public Transaction $oldTransaction;
 
     #[Validate('required|string|max:255')]
     public $name;
@@ -40,14 +40,52 @@ new #[Layout('layouts.app')] class extends Component {
     #[Validate('required|exists:types,id')]
     public $type_id;
 
+    public $accounts;
+    public $incomes;
+    public $expenses;
+
+    public function mount(?int $modelId = null)
+    {
+        $transaction = Transaction::findOrFail($modelId);
+        $this->transaction = $transaction;
+        $this->oldTransaction = $transaction;
+        $this->name = $transaction->name;
+        $this->description = $transaction->description;
+        $this->amount = $transaction->amount;
+        $this->account_id = $transaction->account_id;
+        $this->category_id = $transaction->category_id;
+        $this->type_id = $transaction->type_id;
+        $this->image = $transaction->image;
+
+        $this->dropdowns();
+    }
+
+    public function dropdowns()
+    {
+        $this->accounts = Account::where('user_id', Auth::id())->get();
+        $this->incomes = TransactionCategory::where('user_id', Auth::id())->where('type_id', 1)->get();
+        $this->expenses = TransactionCategory::where('user_id', Auth::id())->where('type_id', 2)->get();
+    }
+
+    public function placeholder()
+    {
+        return view('livewire.pages.user.components.placeholders.details-placeholder');
+    }
+
+    public function delete()
+    {
+        $this->transaction->delete();
+        $this->dispatch('transactionUpdate');
+    }
+
     public function save()
     {
+        $oldTransaction = $this->transaction;
         $this->validate();
 
-        // Handle file upload if an image is provided
-        $imagePath = $this->image ? $this->image->store('img/transactions', 'local') : null;
+        $imagePath = $this->image == null ? $this->transaction->image_url : $this->image->store('img/transactions', 'local');
 
-        $transaction = Transaction::create([
+        $transaction = $this->transaction->update([
             'user_id' => Auth::id(),
             'account_id' => $this->account_id,
             'category_id' => $this->category_id == null ? 1 : $this->category_id,
@@ -57,38 +95,40 @@ new #[Layout('layouts.app')] class extends Component {
             'description' => $this->description,
             'amount' => $this->amount,
             'image_url' => $imagePath,
-            'created_at' => Carbon\Carbon::now(),
             'updated_at' => Carbon\Carbon::now(),
         ]);
 
-        // Updates the Account
-        $account = Account::find($transaction->account_id);
-        $account->balance = $transaction->types->name == 'Expense' ? $account->balance - $transaction->amount : $account->balance + $transaction->amount;
-        $account->save();
+        if ($this->account_id != $this->oldTransaction->account_id) {
+            $previousAccount = Account::find($this->oldTransaction->account_id);
+            if ($previousAccount) {
+                $income = Auth::user()->transactions->where('account_id', $previousAccount->id)->where('type_id', 1)->sum('amount') - $this->oldTransaction->account_id;
 
-        // Reset form fields
-        $this->reset(['name', 'description', 'amount', 'image', 'account_id', 'category_id', 'recurring_id', 'type_id']);
+                $expense = Auth::user()->transactions->where('account_id', $previousAccount->id)->where('type_id', 2)->sum('amount') + $this->oldTransaction->account_id;
 
-        // Emit event to refresh transaction list
+                $previousAccount->balance = $income - $expense;
+                $previousAccount->save();
+            }
+        }
+
+        $newAccount = Account::find($this->account_id);
+        if ($newAccount) {
+            $income = Auth::user()->transactions->where('account_id', $newAccount->id)->where('type_id', 1)->sum('amount');
+
+            $expense = Auth::user()->transactions->where('account_id', $newAccount->id)->where('type_id', 2)->sum('amount');
+
+            $total = $income - $expense;
+
+            $newAccount->balance = $total;
+            $newAccount->save();
+        }
+
         $this->dispatch('transactionUpdate');
 
         session()->flash('message', 'Transaction created successfully!');
     }
+};
 
-    public function mount()
-    {
-        $this->accounts = Account::where('user_id', Auth::id())->get();
-        $this->incomes = TransactionCategory::where('user_id', Auth::id())->where('type_id', 1)->get();
-        $this->expenses = TransactionCategory::where('user_id', Auth::id())->where('type_id', 2)->get();
-
-        // dd($accounts);
-    }
-
-    public function placeholder()
-    {
-        return view('livewire.pages.user.components.details-placeholder');
-    }
-}; ?>
+?>
 
 <section>
     <!-- Success Message -->
@@ -111,7 +151,7 @@ new #[Layout('layouts.app')] class extends Component {
                 <span class="label-text">Name</span>
             </label>
             <input id="name" type="text" wire:model="name" placeholder="Name"
-                class="input input-bordered w-full" required autocomplete="name" />
+                class="input input-bordered w-full" required />
             @error('name')
                 <span class="text-error">{{ $message }}</span>
             @enderror
@@ -179,7 +219,7 @@ new #[Layout('layouts.app')] class extends Component {
                 <span class="label-text">Category</span>
             </label>
             <select id="category_id" wire:model="category_id" class="select select-bordered w-full">
-                <option value="1">None</option>
+                <option>None</option>
                 @if ($type_id == 1)
                     @if ($incomes)
                         @foreach ($incomes as $income)
@@ -203,6 +243,15 @@ new #[Layout('layouts.app')] class extends Component {
             @enderror
         </div>
 
+        <div class="">
+            <div class="avatar">
+                <div class="w-24 rounded-xl">
+                    <img
+                        src="{{ $transaction->image_url ? asset('app/' . $transaction->image_url) : asset('img/default-img.png') }}" />
+                </div>
+            </div>
+        </div>
+
         <!-- Image Upload -->
         <div class="form-control">
             <label class="label" for="image">
@@ -216,6 +265,25 @@ new #[Layout('layouts.app')] class extends Component {
 
         <!-- Submit Button -->
         <button type="submit" class="btn btn-primary w-full">Save Transaction<span
-                wire:loading.class="loading loading-bars loading-lg"></span></button>
+                wire:loading.class="loading loading-bars loading-lg" wire:target="save"></span></button>
     </form>
+
+    <div x-data="{ isDelete: false }" class="mt-4">
+
+        <template x-if="!isDelete">
+            <button @click="isDelete = true" class="btn btn-error w-full">Delete Transaction<span
+                    wire:loading.class="loading loading-bars loading-lg"></span></button>
+        </template>
+        <template x-if="isDelete">
+            <div class="flex flex-row gap-x-2">
+                <button @click="isDelete = false" class="flex-1 btn btn-neutral">Cancel
+                </button>
+
+                <button class="btn btn-error flex-1" wire:click="delete"
+                    @click="setTimeout(() => detailSidebarOpen = false, 1000)">Delete<span
+                        wire:loading.class="loading loading-bars loading-lg" wire:target="delete"></span></button>
+            </div>
+        </template>
+
+    </div>
 </section>

@@ -11,7 +11,7 @@ new class extends Component {
         $transactions = auth()->user()->transactions;
 
         $this->transactions = [
-            'totalIncome' => $transactions->where('type_id', 1)->sum('amount'),
+            'totalIncome' => $transactions->where('type_id', 1)->where('name', 'not like', 'Initial Account Balance')->sum('amount'),
             'totalExpense' => $transactions->where('type_id', 2)->sum('amount'),
             'incomeCount' => count($transactions->where('type_id', 1)),
             'expenseCount' => count($transactions->where('type_id', 2)),

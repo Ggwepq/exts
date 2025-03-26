@@ -13,12 +13,13 @@ new #[Layout('layouts.app')] class extends Component {
     /**
      * Fetch user tranasction based on date
      */
-    #[On('transactionCreated')]
+    #[On('transactionUpdate')]
     public function loadTransactions()
     {
         $this->transactions = auth()
             ->user()
             ->transactions()
+            ->where('name', 'not like', 'Initial Account Balance')
             ->orderBy('created_at', 'DESC')
             ->get()
             ->groupBy(function ($transaction) {
@@ -50,7 +51,7 @@ new #[Layout('layouts.app')] class extends Component {
 
                             @foreach ($record as $transaction)
                                 <li class="list-row hover:bg-base-200"
-                                    @click="$dispatch('showSidebar', {operation: 'view', page: 'Transaction', component: 'pages.user.transactions.edit', modelId: {{ $transaction->id }}}); detailSidebarOpen = true;">
+                                    @click="$dispatch('showSidebar', {operation: 'edit', page: 'Transaction', component: 'pages.user.transactions.edit', modelId: {{ $transaction->id }}}); detailSidebarOpen = true;">
                                     <div><img class="size-10 rounded-box"
                                             src="{{ $transaction->image_url ? asset('app/' . $transaction->image_url) : asset('img/default-img.png') }}" />
                                     </div>
@@ -59,6 +60,12 @@ new #[Layout('layouts.app')] class extends Component {
                                         <div
                                             class="text-[0.70rem] uppercase font-semibold badge badge-outline {{ $transaction->types->name == 'Expense' ? 'badge-secondary' : 'badge-primary' }}">
                                             {{ $transaction->types->name }}</div>
+                                    </div>
+
+                                    <div>
+                                        <div
+                                            class="text-[0.70rem] uppercase font-semibold badge badge-outline {{ $transaction->types->name == 'Expense' ? 'badge-secondary' : 'badge-primary' }}">
+                                            {{ $transaction->accounts->name }}</div>
                                     </div>
 
                                     <div>
