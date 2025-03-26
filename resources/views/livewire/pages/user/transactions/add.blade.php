@@ -70,7 +70,7 @@ new #[Layout('layouts.app')] class extends Component {
         $this->reset(['name', 'description', 'amount', 'image', 'account_id', 'category_id', 'recurring_id', 'type_id']);
 
         // Emit event to refresh transaction list
-        $this->dispatch('transactionCreated');
+        $this->dispatch('transactionUpdate');
 
         session()->flash('message', 'Transaction created successfully!');
     }
@@ -179,7 +179,7 @@ new #[Layout('layouts.app')] class extends Component {
                 <span class="label-text">Category</span>
             </label>
             <select id="category_id" wire:model="category_id" class="select select-bordered w-full">
-                <option>None</option>
+                <option value="1">None</option>
                 @if ($type_id == 1)
                     @if ($incomes)
                         @foreach ($incomes as $income)
@@ -215,6 +215,7 @@ new #[Layout('layouts.app')] class extends Component {
         </div>
 
         <!-- Submit Button -->
-        <button type="submit" class="btn btn-primary w-full">Save Transaction</button>
+        <button type="submit" class="btn btn-primary w-full">Save Transaction<span
+                wire:loading.class="loading loading-bars loading-lg"></span></button>
     </form>
 </section>

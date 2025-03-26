@@ -33,11 +33,19 @@ new class extends Component {
             ->toArray();
 
         $this->getTotal();
+        $this->getBalance();
     }
 
     public function getTotal()
     {
         $this->totalBalance = Auth::user()->accounts->sum('balance');
+    }
+
+    public function getBalance()
+    {
+        $expense = Auth::user()->transactions->where('type_id', 2)->sum('amount');
+        $income = Auth::user()->transactions->where('type_id', 1)->sum('amount');
+        $total = $expense . '/' . $income;
     }
 
     public function placeholder()
@@ -84,7 +92,7 @@ new class extends Component {
                     </ul>
                 @else
                     <div class="flex flex-row justify-center">
-                        😪 No transactions
+                        😪 No Accounts
                     </div>
                 @endif
             </div>
