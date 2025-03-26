@@ -2,19 +2,18 @@
 
 use App\Models\Transaction;
 use Livewire\Volt\Component;
+use Illuminate\Support\Facades\Auth;
 
 new class extends Component {
     public $transactions;
 
     public function mount()
     {
-        $transactions = auth()->user()->transactions;
-
         $this->transactions = [
-            'totalIncome' => $transactions->where('type_id', 1)->where('name', 'not like', 'Initial Account Balance')->sum('amount'),
-            'totalExpense' => $transactions->where('type_id', 2)->sum('amount'),
-            'incomeCount' => count($transactions->where('type_id', 1)),
-            'expenseCount' => count($transactions->where('type_id', 2)),
+            'totalIncome' => Auth::user()->transactions()->where('type_id', 1)->where('name', '!=', 'Initial Account Balance')->sum('amount'),
+            'totalExpense' => Auth::user()->transactions()->where('type_id', 2)->sum('amount'),
+            'incomeCount' => count(Auth::user()->transactions()->where('type_id', 1)->where('name', 'not like', 'Initial Account Balance')->get()),
+            'expenseCount' => count(Auth::user()->transactions()->where('type_id', 2)->get()),
         ];
     }
 }; ?>
