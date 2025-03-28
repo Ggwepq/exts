@@ -69,7 +69,8 @@ new class extends Component {
                             <li class="p-4 pb-2 text-xs opacity-60 tracking-wide">{{ $categoryName }}</li>
 
                             @foreach ($records as $account)
-                                <li class="list-row">
+                                <li class="list-row hover:bg-base-200"
+                                    @click="$dispatch('showSidebar', {operation: 'edit', page: 'Account', component: 'pages.user.accounts.edit', modelId: {{ $account['id'] }}}); detailSidebarOpen = true;">
                                     <div>
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor" class="size-10">
