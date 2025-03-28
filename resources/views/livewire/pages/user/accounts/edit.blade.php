@@ -14,10 +14,9 @@ use Livewire\Volt\Component;
 new #[Layout('layouts.app')] class extends Component {
     use WithFileUploads;
 
-    // [Validate('required|string|max:255')]
-    public $categories;
-    public $name;
     public $account;
+    public $name;
+    public $categories;
 
     #[Validate('nullable|exists:account_categories,id')]
     public $category_id;
@@ -34,6 +33,44 @@ new #[Layout('layouts.app')] class extends Component {
         $this->amount = $account->balance;
 
         $this->categories = AccountCategory::where('user_id', Auth::id())->get();
+    }
+
+    public function rules()
+    {
+        return [
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) {
+                    $exists = DB::table('accounts')
+                        ->where('user_id', auth()->id())
+                        ->where('id', '!=', $this->account->id ?? null)
+                        ->whereRaw('LOWER(name) = ?', [strtolower($value)])
+                        ->exists();
+
+                    if ($exists) {
+                        $fail('The name must be unique.');
+                    }
+                },
+            ],
+        ];
+    }
+
+    public function update()
+    {
+        $this->validate();
+
+        $account = $this->account->update([
+            'category_id' => $this->category_id ? $this->category_id : null,
+            'name' => $this->name,
+            'updated_at' => Carbon\Carbon::now(),
+        ]);
+
+        // Emit event to refresh transaction list
+        $this->dispatch('accountUpdate');
+
+        session()->flash('message', 'Account Edited Successfully!');
     }
 
     public function placeholder()
@@ -55,7 +92,7 @@ new #[Layout('layouts.app')] class extends Component {
     @endif
 
     <!-- Form -->
-    <form wire:submit="create" class="space-y-5">
+    <form wire:submit="update" class="space-y-5">
         <!-- Name -->
         <div class="form-control">
             <label class="label" for="name">
@@ -86,7 +123,7 @@ new #[Layout('layouts.app')] class extends Component {
                 <span class="label-text">Category</span>
             </label>
             <select id="category_id" wire:model="category_id" class="select select-bordered w-full">
-                <option value="None">None</option>
+                <option value="">None</option>
                 @foreach ($categories as $category)
                     @if ($category->name !== 'None')
                         <option value="{{ $category->id }}">{{ $category->name }}</option>
@@ -99,7 +136,7 @@ new #[Layout('layouts.app')] class extends Component {
         </div>
 
         <!-- Submit Button -->
-        <!-- <button type="submit" class="btn btn-primary w-full">Save<span -->
-        <!--         wire:loading.class="loading loading-bars loading-lg"></span></button> -->
+        <button type="submit" class="btn btn-primary w-full">Save Changes<span
+                wire:loading.class="loading loading-bars loading-lg" wire:target="update"></span></button>
     </form>
 </section>
