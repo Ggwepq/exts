@@ -76,7 +76,7 @@ new #[Layout('layouts.app')] class extends Component {
         $this->reset(['name', 'amount', 'category_id']);
 
         // Emit event to refresh transaction list
-        $this->dispatch('accountCreated');
+        $this->dispatch('accountUpdate');
 
         session()->flash('message', 'Account created successfully!');
     }

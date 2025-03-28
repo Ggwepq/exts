@@ -9,12 +9,14 @@ use App\Models\Account;
 use App\Models\TransactionCategory;
 use App\Models\Type;
 use Illuminate\Support\Facades\Auth;
+use App\Livewire\Actions\User\Balance;
 
 new #[Layout('layouts.app')] class extends Component {
     use WithFileUploads;
 
     public Transaction $transaction;
     public Transaction $oldTransaction;
+    public Balance $balance;
 
     #[Validate('required|string|max:255')]
     public $name;
@@ -75,6 +77,7 @@ new #[Layout('layouts.app')] class extends Component {
     public function delete()
     {
         $this->transaction->delete();
+        $this->balance->update($this->transaction->account_id);
         $this->dispatch('transactionUpdate');
     }
 
@@ -83,11 +86,17 @@ new #[Layout('layouts.app')] class extends Component {
         $oldTransaction = $this->transaction;
         $this->validate();
 
+        if ($this->account_id != $this->oldTransaction->account_id) {
+            $currentAccount = Account::find($this->account_id);
+        } else {
+            $currentAccount = $this->oldTransaction->accounts;
+        }
+
         $imagePath = $this->image == null ? $this->transaction->image_url : $this->image->store('img/transactions', 'local');
 
         $transaction = $this->transaction->update([
             'user_id' => Auth::id(),
-            'account_id' => $this->account_id,
+            'account_id' => $currentAccount->id,
             'category_id' => $this->category_id == null ? 1 : $this->category_id,
             'recurring_id' => $this->recurring_id,
             'type_id' => $this->type_id,
@@ -98,33 +107,33 @@ new #[Layout('layouts.app')] class extends Component {
             'updated_at' => Carbon\Carbon::now(),
         ]);
 
-        if ($this->account_id != $this->oldTransaction->account_id) {
-            $previousAccount = Account::find($this->oldTransaction->account_id);
-            if ($previousAccount) {
-                $income = Auth::user()->transactions->where('account_id', $previousAccount->id)->where('type_id', 1)->sum('amount') - $this->oldTransaction->account_id;
+        $previousAccount = Account::find($this->oldTransaction->account_id);
 
-                $expense = Auth::user()->transactions->where('account_id', $previousAccount->id)->where('type_id', 2)->sum('amount') + $this->oldTransaction->account_id;
+        // If user updated the transaction account
+        $prev = $this->balance->get($this->oldTransaction->account_id);
+        $current = $this->balance->get($this->account_id);
 
-                $previousAccount->balance = $income - $expense;
-                $previousAccount->save();
+        if ($this->type_id != $this->oldTransaction->type_id) {
+            if ($this->type_id == 1) {
+                $current += $this->amount;
+            } else {
+                $current -= $this->amount;
             }
         }
 
-        $newAccount = Account::find($this->account_id);
-        if ($newAccount) {
-            $income = Auth::user()->transactions->where('account_id', $newAccount->id)->where('type_id', 1)->sum('amount');
-
-            $expense = Auth::user()->transactions->where('account_id', $newAccount->id)->where('type_id', 2)->sum('amount');
-
-            $total = $income - $expense;
-
-            $newAccount->balance = $total;
-            $newAccount->save();
+        if ($this->account_id != $this->oldTransaction->account_id) {
+            $previousAccount->balance = $prev;
+            $previousAccount->save();
         }
 
-        $this->dispatch('transactionUpdate');
+        $currentAccount->balance = $current;
+        $currentAccount->save();
 
-        session()->flash('message', 'Transaction created successfully!');
+        $this->oldTransaction = $this->transaction;
+        $this->dispatch('transactionUpdate');
+        $this->dispatch('accountUpdate');
+
+        session()->flash('message', 'Transaction Edited Successfully!');
     }
 };
 
