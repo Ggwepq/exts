@@ -73,6 +73,12 @@ new #[Layout('layouts.app')] class extends Component {
         session()->flash('message', 'Account Edited Successfully!');
     }
 
+    public function delete()
+    {
+        $this->account->delete();
+        $this->dispatch('accountUpdate');
+    }
+
     public function placeholder()
     {
         return view('livewire.pages.user.components.placeholders.details-placeholder');
@@ -139,4 +145,23 @@ new #[Layout('layouts.app')] class extends Component {
         <button type="submit" class="btn btn-primary w-full">Save Changes<span
                 wire:loading.class="loading loading-bars loading-lg" wire:target="update"></span></button>
     </form>
+
+    <div x-data="{ isDelete: false }" class="mt-4">
+
+        <template x-if="!isDelete">
+            <button @click="isDelete = true" class="btn btn-error w-full">Delete Transaction<span
+                    wire:loading.class="loading loading-bars loading-lg"></span></button>
+        </template>
+        <template x-if="isDelete">
+            <div class="flex flex-row gap-x-2">
+                <button @click="isDelete = false" class="flex-1 btn btn-neutral">Cancel
+                </button>
+
+                <button class="btn btn-error flex-1" wire:click="delete"
+                    @click="setTimeout(() => detailSidebarOpen = false, 1000)">Delete<span
+                        wire:loading.class="loading loading-bars loading-lg" wire:target="delete"></span></button>
+            </div>
+        </template>
+
+    </div>
 </section>
