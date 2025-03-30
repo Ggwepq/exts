@@ -92,6 +92,21 @@ new #[Layout('layouts.app')] class extends Component {
             $currentAccount = $this->oldTransaction->accounts;
         }
 
+        // Check for sufficient balance if it's an expense transaction
+        if ($this->type_id == 2) { // Expense type
+            $accountBalance = $currentAccount->balance;
+            
+            // If this is an update of an existing expense, add back the old amount to the balance check
+            if ($this->oldTransaction->type_id == 2 && $this->account_id == $this->oldTransaction->account_id) {
+                $accountBalance += $this->oldTransaction->amount;
+            }
+            
+            if ($accountBalance < $this->amount) {
+                session()->flash('error', 'Insufficient Balance');
+                return;
+            }
+        }
+
         $imagePath = $this->image == null ? $this->transaction->image_url : $this->image->store('img/transactions', 'local');
 
         $transaction = $this->transaction->update([
@@ -149,6 +164,18 @@ new #[Layout('layouts.app')] class extends Component {
                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span> {{ session('message') }}</span>
+        </div>
+    @endif
+
+    <!-- Error Message -->
+    @if (session()->has('error'))
+        <div class="alert alert-soft alert-error mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span> {{ session('error') }}</span>
         </div>
     @endif
 
@@ -264,8 +291,22 @@ new #[Layout('layouts.app')] class extends Component {
         <!-- Image Upload -->
         <div class="form-control">
             <label class="label" for="image">
-                <span class="label-text">Image (Optional)</span>
+                <span class="label-text">Receipt Image</span>
             </label>
+            
+            @if($transaction->image_url)
+            <div class="mb-2">
+                <img 
+                    src="{{ asset('app/' . $transaction->image_url) }}" 
+                    alt="Transaction Receipt" 
+                    class="max-w-full h-auto rounded-lg cursor-pointer border border-base-300 hover:border-primary transition-colors" 
+                    style="max-height: 200px;" 
+                    @click="$dispatch('open-image-viewer', '{{ asset('app/' . $transaction->image_url) }}')"
+                />
+                <div class="text-xs text-base-content/70 mt-1">Click the image to view in full size</div>
+            </div>
+            @endif
+            
             <input id="image" type="file" wire:model="image" class="file-input file-input-bordered w-full" />
             @error('image')
                 <span class="text-error">{{ $message }}</span>

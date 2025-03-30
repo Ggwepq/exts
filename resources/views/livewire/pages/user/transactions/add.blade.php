@@ -44,6 +44,15 @@ new #[Layout('layouts.app')] class extends Component {
     {
         $this->validate();
 
+        // Check for sufficient balance if it's an expense transaction
+        if ($this->type_id == 2) { // Expense type
+            $account = Account::find($this->account_id);
+            if ($account->balance < $this->amount) {
+                session()->flash('error', 'Insufficient Balance');
+                return;
+            }
+        }
+
         // Handle file upload if an image is provided
         $imagePath = $this->image ? $this->image->store('img/transactions', 'local') : null;
 
@@ -100,6 +109,18 @@ new #[Layout('layouts.app')] class extends Component {
                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span> {{ session('message') }}</span>
+        </div>
+    @endif
+
+    <!-- Error Message -->
+    @if (session()->has('error'))
+        <div class="alert alert-soft alert-error mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span> {{ session('error') }}</span>
         </div>
     @endif
 
@@ -206,16 +227,19 @@ new #[Layout('layouts.app')] class extends Component {
         <!-- Image Upload -->
         <div class="form-control">
             <label class="label" for="image">
-                <span class="label-text">Image (Optional)</span>
+                <span class="label-text">Receipt Image (Optional)</span>
+                <span class="label-text-alt">Max 2MB</span>
             </label>
-            <input id="image" type="file" wire:model="image" class="file-input file-input-bordered w-full" />
+            <input id="image" type="file" wire:model="image" class="file-input file-input-bordered w-full" accept="image/*" />
+            <div class="text-xs text-base-content/70 mt-1">Upload a photo of your receipt for this transaction</div>
             @error('image')
                 <span class="text-error">{{ $message }}</span>
             @enderror
         </div>
 
         <!-- Submit Button -->
-        <button type="submit" class="btn btn-primary w-full">Save Transaction<span
-                wire:loading.class="loading loading-bars loading-lg"></span></button>
+        <div class="form-control">
+            <button type="submit" class="btn btn-primary">Save</button>
+        </div>
     </form>
 </section>
