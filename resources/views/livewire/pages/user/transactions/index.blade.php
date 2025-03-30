@@ -1,11 +1,12 @@
 <?php
 use Livewire\Attributes\On;
 use Livewire\Volt\Component;
+use Livewire\Attributes\Layout;
 use App\Models\Account;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\Auth;
 
-new class extends Component {
+new #[Layout('layouts.app')] class extends Component {
     public $transactions;
     public $filters = [
         'types' => [],
@@ -100,13 +101,9 @@ new class extends Component {
 <div>
     <!-- Main Content with Animated Margin -->
     <div class="transition-all duration-300 ease-in-out" :class="{ 'md:mr-[28rem]': detailSidebarOpen }">
-        @livewire('pages.user.containers.main-header', [
-            'component' => 'pages.user.transactions.header',
-            'filters' => $filters,
-            'wire:key' => 'transaction-header'
-        ])
+        @livewire('pages.user.containers.main-header', ['component' => 'pages.user.transactions.header'])
 
-        <div class="flex-1 overflow-y-auto md:pt-4 pt-4 px-6 bg-base-200">
+        <div class="flex-1 overflow-y-auto md:pt-4 pt-4 px-6  bg-base-200">
             <div class="card w-full p-6 bg-base-100 shadow-xl mt-2">
                 <!-- Active Filters Banner -->
                 @if (!empty($filters['types']) || !empty($filters['account_id']) || !empty($filters['date_from']) || !empty($filters['date_to']))
@@ -127,7 +124,8 @@ new class extends Component {
                             <li class="p-4 pb-2 text-xs opacity-60 tracking-wide">{{ $date }}</li>
 
                             @foreach ($record as $transaction)
-                                <li class="list-row hover:bg-base-200">
+                                <li class="list-row hover:bg-base-200"
+                                    @click="$dispatch('showSidebar', {operation: 'edit', page: 'Transaction', component: 'pages.user.transactions.edit', modelId: {{ $transaction->id }}}); detailSidebarOpen = true;">
                                     <div>
                                         @if($transaction->image_url)
                                             <img class="size-10 rounded-box cursor-pointer"
@@ -140,20 +138,20 @@ new class extends Component {
                                                 alt="No receipt" />
                                         @endif
                                     </div>
-                                    <div @click="$dispatch('showSidebar', {operation: 'edit', page: 'Transaction', component: 'pages.user.transactions.edit', modelId: {{ $transaction->id }}}); detailSidebarOpen = true;">
+                                    <div>
                                         <div class="font-bold text-md mb-2">{{ $transaction->name }}</div>
                                         <div
                                             class="text-[0.70rem] uppercase font-semibold badge badge-outline {{ $transaction->types->name == 'Expense' ? 'badge-secondary' : 'badge-primary' }}">
                                             {{ $transaction->types->name }}</div>
                                     </div>
 
-                                    <div @click="$dispatch('showSidebar', {operation: 'edit', page: 'Transaction', component: 'pages.user.transactions.edit', modelId: {{ $transaction->id }}}); detailSidebarOpen = true;">
+                                    <div>
                                         <div
                                             class="text-[0.70rem] uppercase font-semibold badge badge-outline {{ $transaction->types->name == 'Expense' ? 'badge-secondary' : 'badge-primary' }}">
                                             {{ $transaction->accounts->name }}</div>
                                     </div>
 
-                                    <div @click="$dispatch('showSidebar', {operation: 'edit', page: 'Transaction', component: 'pages.user.transactions.edit', modelId: {{ $transaction->id }}}); detailSidebarOpen = true;">
+                                    <div>
                                         <div
                                             class="text-sm uppercase font-semibold badge {{ $transaction->types->name == 'Expense' ? 'badge-secondary' : 'badge-primary' }}">
                                             {{ $transaction->types->name == 'Expense' ? '-₱' : '+₱' }}{{ $transaction->amount }}

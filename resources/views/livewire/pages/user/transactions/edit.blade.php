@@ -1,6 +1,7 @@
 <?php
 
 use Livewire\Volt\Component;
+use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\WithFileUploads;
 use App\Models\Transaction;
@@ -10,7 +11,7 @@ use App\Models\Type;
 use Illuminate\Support\Facades\Auth;
 use App\Livewire\Actions\User\Balance;
 
-new class extends Component {
+new #[Layout('layouts.app')] class extends Component {
     use WithFileUploads;
 
     public Transaction $transaction;
@@ -276,6 +277,15 @@ new class extends Component {
             @error('category_id')
                 <span class="text-error">{{ $message . ' ' . $category_id }}</span>
             @enderror
+        </div>
+
+        <div class="">
+            <div class="avatar">
+                <div class="w-24 rounded-xl">
+                    <img
+                        src="{{ $transaction->image_url ? asset('app/' . $transaction->image_url) : asset('img/default-img.png') }}" />
+                </div>
+            </div>
         </div>
 
         <!-- Image Upload -->

@@ -9,7 +9,7 @@ use App\Models\Type;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Volt\Component;
 
-new class extends Component {
+new #[Layout('layouts.app')] class extends Component {
     use WithFileUploads;
 
     public $accounts;
@@ -238,7 +238,8 @@ new class extends Component {
         </div>
 
         <!-- Submit Button -->
-        <button type="submit" class="btn btn-primary w-full">Save Transaction<span
-                wire:loading.class="loading loading-bars loading-lg"></span></button>
+        <div class="form-control">
+            <button type="submit" class="btn btn-primary">Save</button>
+        </div>
     </form>
 </section>
