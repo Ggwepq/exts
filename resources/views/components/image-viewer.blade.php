@@ -1,4 +1,4 @@
-@props(['imageUrl', 'name' => 'image-viewer', 'show' => false, 'maxWidth' => '4xl', 'withInstructions' => true])
+@props(['imageUrl', 'name' => 'image-viewer', 'show' => false, 'maxWidth' => '4xl', 'withInstructions' => false])
 
 @php
 $maxWidth = [
@@ -67,8 +67,14 @@ $maxWidth = [
     x-init="$watch('show', value => {
         if (value) {
             document.body.classList.add('overflow-y-hidden');
+            document.body.classList.add('hide-sidebar');
+            const drawerSide = document.querySelector('.drawer-side');
+            if (drawerSide) drawerSide.style.display = 'none';
         } else {
             document.body.classList.remove('overflow-y-hidden');
+            document.body.classList.remove('hide-sidebar');
+            const drawerSide = document.querySelector('.drawer-side');
+            if (drawerSide) drawerSide.style.display = '';
             resetView();
         }
     })"
