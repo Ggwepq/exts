@@ -29,7 +29,7 @@ new #[Layout('layouts.app')] class extends Component {
         x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
         x-transition:leave="transition-transform duration-300 ease-in-out" x-transition:leave-start="translate-x-0"
         x-transition:leave-end="translate-x-full"
-        class="fixed right-0 top-0 h-full w-full top-15 md:top-0 md:max-w-md z-30 bg-base-100 border-l border-base-200 shadow-lg"
+        class="fixed right-0 h-full w-full top-15 md:top-0 md:max-w-md z-30 bg-base-100 border-l border-base-200 shadow-lg"
         x-cloak>
         <div class="flex flex-col h-full">
             <!-- Header -->

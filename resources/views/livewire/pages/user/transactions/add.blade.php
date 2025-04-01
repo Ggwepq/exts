@@ -45,7 +45,8 @@ new #[Layout('layouts.app')] class extends Component {
         $this->validate();
 
         // Check for sufficient balance if it's an expense transaction
-        if ($this->type_id == 2) { // Expense type
+        if ($this->type_id == 2) {
+            // Expense type
             $account = Account::find($this->account_id);
             if ($account->balance < $this->amount) {
                 session()->flash('error', 'Insufficient Balance');
@@ -125,102 +126,85 @@ new #[Layout('layouts.app')] class extends Component {
     @endif
 
     <!-- Form -->
-    <form wire:submit="save" class="space-y-5">
+    <form wire:submit="save" class="space-y-10">
         <!-- Name -->
-        <div class="form-control">
-            <label class="label" for="name">
-                <span class="label-text">Name</span>
-            </label>
-            <input id="name" type="text" wire:model="name" placeholder="Name"
-                class="input input-bordered w-full" required autocomplete="name" />
-            @error('name')
-                <span class="text-error">{{ $message }}</span>
-            @enderror
+        <div class="flex flex-row items-end mb-5 gap-x-4" x-data="{ expense: false }">
+            <div class="">
+                <input id="name" type="text" wire:model="name" placeholder="Name"
+                    :class="expense ? 'text-primary' : 'text-secondary'"
+                    class="input input-ghost input-xl font-bold text-4xl" required autocomplete="name" />
+            </div>
+            <div class="flex flex-col gap-3">
+                <div>
+                    <input type="checkbox" checked="checked" wire:model.live="type_id"
+                        class="toggle border-secondary bg-secondary checked:bg-primary checked:text-primary checked:border-primary"
+                        @click="expense = !expense; console.log(expense)" />
+                    <span x-text="expense ? 'Expense' : 'Income'"
+                        :class="expense ? 'text-primary' : 'text-secondary'"></span>
+                </div>
+
+                <label class="input input-ghost font-semibold text-2xl"
+                    :class="expense ? 'text-primary' : 'text-secondary'">
+                    <span class="label">₱</span>
+                    <input id="amount" type="text" wire:model="amount" placeholder="0.00"step="0.01" required
+                        autocomplete="amount" />
+                </label>
+            </div>
+            <div class="">
+            </div>
+        </div>
+
+        <div class="flex flex-row gap-4 mt-5">
+
+            <div class="grow">
+                <select id="account_id" wire:model="account_id" class="select select-bordered w-full"
+                    autocomplete="account">
+                    <option value="">Select an account</option>
+                    @foreach ($accounts as $account)
+                        <option value="{{ $account->id }}">{{ $account->name }}</option>
+                    @endforeach
+                </select>
+                @error('account_id')
+                    <span class="text-error">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="grow">
+                <select id="category_id" wire:model="category_id" class="select select-bordered w-full">
+                    <option value="1">Select a category</option>
+                    @if ($type_id == 1)
+                        @if ($incomes)
+                            @foreach ($incomes as $income)
+                                @if ($income->name !== 'None')
+                                    <option value="{{ $income->id }}">{{ $income->name }}</option>
+                                @endif
+                            @endforeach
+                        @endif
+                    @else
+                        @if ($expenses)
+                            @foreach ($expenses as $expense)
+                                @if ($expense->name !== 'None')
+                                    <option value="{{ $expense->id }}">{{ $expense->name }}</option>
+                                @endif
+                            @endforeach
+                        @endif
+                    @endif
+                </select>
+                @error('category_id')
+                    <span class="text-error">{{ $message . ' ' . $category_id }}</span>
+                @enderror
+            </div>
         </div>
 
         <!-- Description -->
         <div class="form-control">
             <label class="label" for="description">
-                <span class="label-text">Description (Optional)</span>
+                <span class="label-text">Note</span>
             </label>
             <textarea id="description" wire:model="description" placeholder="..." class="textarea textarea-bordered w-full"
                 autocomplete="description"></textarea>
             @error('description')
                 <span class="text-error">{{ $message }}</span>
-            @enderror
-        </div>
-
-        <!-- Amount -->
-        <div class="form-control">
-            <label class="input w-full">
-                <span class="label">₱</span>
-                <input id="amount" type="number" wire:model="amount" placeholder="0.00"step="0.01" required
-                    autocomplete="amount" />
-            </label>
-            @error('amount')
-                <span class="text-error">{{ $message }}</span>
-            @enderror
-        </div>
-
-        <!-- Account -->
-        <div class="form-control">
-            <label class="label" for="account_id">
-                <span class="label-text">Account</span>
-            </label>
-            <select id="account_id" wire:model="account_id" class="select select-bordered w-full"
-                autocomplete="account">
-                <option value="">Select an account</option>
-                @foreach ($accounts as $account)
-                    <option value="{{ $account->id }}">{{ $account->name }}</option>
-                @endforeach
-            </select>
-            @error('account_id')
-                <span class="text-error">{{ $message }}</span>
-            @enderror
-        </div>
-
-        <!-- Type -->
-        <div class="form-control">
-
-            <div class="filter">
-                <input class="btn filter-reset" type="radio" name="metaframeworks" aria-label="All" />
-                <input class="btn checked:bg-secondary " type="radio" wire:model.live="type_id" value="2"
-                    name="metaframeworks" aria-label="Expense" />
-                <input class="btn checked:bg-primary " type="radio" wire:model.live="type_id" value="1"
-                    name="metaframeworks" aria-label="Income" />
-            </div>
-            @error('type_id')
-                <span class="text-error">{{ $message }}</span>
-            @enderror
-        </div>
-
-        <!-- Category -->
-        <div class="form-control">
-            <label class="label" for="category_id">
-                <span class="label-text">Category</span>
-            </label>
-            <select id="category_id" wire:model="category_id" class="select select-bordered w-full">
-                <option value="1">None</option>
-                @if ($type_id == 1)
-                    @if ($incomes)
-                        @foreach ($incomes as $income)
-                            @if ($income->name !== 'None')
-                                <option value="{{ $income->id }}">{{ $income->name }}</option>
-                            @endif
-                        @endforeach
-                    @endif
-                @else
-                    @if ($expenses)
-                        @foreach ($expenses as $expense)
-                            @if ($expense->name !== 'None')
-                                <option value="{{ $expense->id }}">{{ $expense->name }}</option>
-                            @endif
-                        @endforeach
-                    @endif
-                @endif
-            </select>
-            @error('category_id')
-                <span class="text-error">{{ $message . ' ' . $category_id }}</span>
             @enderror
         </div>
 
@@ -230,7 +214,8 @@ new #[Layout('layouts.app')] class extends Component {
                 <span class="label-text">Receipt Image (Optional)</span>
                 <span class="label-text-alt">Max 2MB</span>
             </label>
-            <input id="image" type="file" wire:model="image" class="file-input file-input-bordered w-full" accept="image/*" />
+            <input id="image" type="file" wire:model="image" class="file-input file-input-bordered w-full"
+                accept="image/*" />
             <div class="text-xs text-base-content/70 mt-1">Upload a photo of your receipt for this transaction</div>
             @error('image')
                 <span class="text-error">{{ $message }}</span>
@@ -239,7 +224,7 @@ new #[Layout('layouts.app')] class extends Component {
 
         <!-- Submit Button -->
         <div class="form-control">
-            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="submit" class="btn btn-primary w-full">Save</button>
         </div>
     </form>
 </section>
