@@ -87,8 +87,15 @@ new #[Layout('layouts.app')] class extends Component {
         
         // Update the account balance before deleting the transaction
         if ($type_id == 1) { // Income
-            $account->balance -= $amount;
-        } else { // Expense
+            // Check if removing this income would cause a negative balance
+            if ($account->balance >= $amount) {
+                $account->balance -= $amount;
+            } else {
+                // Handle the edge case - set to zero or minimum allowed balance
+                $account->balance = 0;
+                session()->flash('warning', 'Account balance was set to 0 as it would have gone negative.');
+            }
+        } else { // Expense - add the amount back
             $account->balance += $amount;
         }
         $account->save();
@@ -99,6 +106,8 @@ new #[Layout('layouts.app')] class extends Component {
         // Dispatch events
         $this->dispatch('transactionUpdate');
         $this->dispatch('accountUpdate');
+        
+        session()->flash('message', 'Transaction deleted successfully!');
     }
 
     #[On('update-selected-tags')]

@@ -58,16 +58,16 @@ new #[Layout('layouts.app')] class extends Component {
         if ($this->type_id == 2) { // Expense type
             $account = Account::find($this->account_id);
             if ($account->balance < $this->amount) {
-                session()->flash('error', 'Insufficient Balance');
+                session()->flash('error', 'Insufficient Balance. Available balance: ₱' . number_format($account->balance, 2));
                 return;
             }
         }
 
-        // Handle file upload if an image is provided
-        $imagePath = $this->image ? $this->image->store('img/transactions', 'local') : null;
-
         // Use database transaction to ensure data integrity
-        DB::transaction(function () use ($imagePath) {
+        DB::transaction(function () {
+            // Handle file upload if an image is provided
+            $imagePath = $this->image ? $this->image->store('img/transactions', 'local') : null;
+            
             $transaction = Transaction::create([
                 'user_id' => Auth::id(),
                 'account_id' => $this->account_id,
@@ -89,7 +89,11 @@ new #[Layout('layouts.app')] class extends Component {
 
             // Updates the Account
             $account = Account::find($transaction->account_id);
-            $account->balance = $transaction->types->name == 'Expense' ? $account->balance - $transaction->amount : $account->balance + $transaction->amount;
+            if ($transaction->types->name == 'Expense') {
+                $account->balance -= $transaction->amount;
+            } else {
+                $account->balance += $transaction->amount;
+            }
             $account->save();
         });
 

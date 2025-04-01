@@ -1,5 +1,6 @@
 <?php
 
+use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\WithFileUploads;
 use App\Models\Transaction;
@@ -7,8 +8,9 @@ use App\Models\Account;
 use App\Models\TransactionCategory;
 use App\Models\AccountCategory;
 use App\Models\Type;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
 
 new #[Layout('layouts.app')] class extends Component {
@@ -18,11 +20,11 @@ new #[Layout('layouts.app')] class extends Component {
     public $categories;
     public $name;
 
-    #[Validate('nullable|exists:account_categories,id')]
-    public $category_id;
+    #[Validate('nullable')]
+    public $category_id = null;
 
-    #[Validate('required|numeric|min:0.01')]
-    public $amount; // 2MB max
+    #[Validate('required|numeric|min:0')]
+    public $amount;
 
     public function rules()
     {
@@ -33,7 +35,7 @@ new #[Layout('layouts.app')] class extends Component {
                 'max:255',
                 function ($attribute, $value, $fail) {
                     $exists = DB::table('accounts')
-                        ->where('user_id', auth()->id())
+                        ->where('user_id', Auth::id())
                         ->whereRaw('LOWER(name) = ?', [strtolower($value)])
                         ->exists();
 
@@ -49,36 +51,42 @@ new #[Layout('layouts.app')] class extends Component {
     {
         $this->validate();
 
-        $account = Account::create([
-            'user_id' => Auth::id(),
-            'category_id' => $this->category_id ? $this->category_id : null,
-            'name' => $this->name,
-            'balance' => 0,
-            'created_at' => Carbon\Carbon::now(),
-            'updated_at' => Carbon\Carbon::now(),
-        ]);
+        try {
+            // Use a database transaction to ensure consistency
+            DB::beginTransaction();
 
-        $balance = Transaction::create([
-            'user_id' => Auth::id(),
-            'account_id' => $account->id,
-            'category_id' => null,
-            'type_id' => 1,
-            'name' => 'Initial Account Balance',
-            'amount' => $this->amount,
-            'created_at' => Carbon\Carbon::now(),
-            'updated_at' => Carbon\Carbon::now(),
-        ]);
+            $account = Account::create([
+                'user_id' => Auth::id(),
+                'category_id' => !empty($this->category_id) ? $this->category_id : null,
+                'name' => $this->name,
+                'balance' => $this->amount, // Set initial balance directly
+            ]);
 
-        $account->balance = $balance->amount;
-        $account->save();
+            // Create an initial transaction to track this balance
+            if ($this->amount > 0) {
+                Transaction::create([
+                    'user_id' => Auth::id(),
+                    'account_id' => $account->id,
+                    'category_id' => null,
+                    'type_id' => 1, // Income type
+                    'name' => 'Initial Account Balance',
+                    'amount' => $this->amount,
+                ]);
+            }
 
-        // Reset form fields
-        $this->reset(['name', 'amount', 'category_id']);
+            DB::commit();
 
-        // Emit event to refresh transaction list
-        $this->dispatch('accountUpdate');
+            // Reset form fields
+            $this->reset(['name', 'amount', 'category_id']);
 
-        session()->flash('message', 'Account created successfully!');
+            // Emit event to refresh transaction list
+            $this->dispatch('accountUpdate');
+
+            session()->flash('message', 'Account created successfully!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            session()->flash('error', 'Failed to create account: ' . $e->getMessage());
+        }
     }
 
     public function mount()
@@ -102,6 +110,18 @@ new #[Layout('layouts.app')] class extends Component {
                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span> {{ session('message') }}</span>
+        </div>
+    @endif
+
+    <!-- Error Message -->
+    @if (session()->has('error'))
+        <div class="alert alert-soft alert-error mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span> {{ session('error') }}</span>
         </div>
     @endif
 
@@ -137,7 +157,7 @@ new #[Layout('layouts.app')] class extends Component {
                 <span class="label-text">Category</span>
             </label>
             <select id="category_id" wire:model="category_id" class="select select-bordered w-full">
-                <option value="None">None</option>
+                <option value="">None</option>
                 @foreach ($categories as $category)
                     @if ($category->name !== 'None')
                         <option value="{{ $category->id }}">{{ $category->name }}</option>
@@ -145,7 +165,7 @@ new #[Layout('layouts.app')] class extends Component {
                 @endforeach
             </select>
             @error('category_id')
-                <span class="text-error">{{ $message . ' ' . $category_id }}</span>
+                <span class="text-error">{{ $message }}</span>
             @enderror
         </div>
 

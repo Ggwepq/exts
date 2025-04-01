@@ -11,15 +11,21 @@ new class extends Component {
         'incomeCount' => 0,
         'expenseCount' => 0
     ];
+    
+    public $totalAccountBalance = 0;
 
     public function mount()
     {
+        $user = Auth::user();
+        
         $this->transactions = [
-            'totalIncome' => Auth::user()->transactions()->where('type_id', 1)->where('name', '!=', 'Initial Account Balance')->sum('amount'),
-            'totalExpense' => Auth::user()->transactions()->where('type_id', 2)->sum('amount'),
-            'incomeCount' => count(Auth::user()->transactions()->where('type_id', 1)->where('name', 'not like', 'Initial Account Balance')->get()),
-            'expenseCount' => count(Auth::user()->transactions()->where('type_id', 2)->get()),
+            'totalIncome' => Transaction::where('user_id', $user->id)->where('type_id', 1)->where('name', '!=', 'Initial Account Balance')->sum('amount'),
+            'totalExpense' => Transaction::where('user_id', $user->id)->where('type_id', 2)->sum('amount'),
+            'incomeCount' => Transaction::where('user_id', $user->id)->where('type_id', 1)->where('name', 'not like', 'Initial Account Balance')->count(),
+            'expenseCount' => Transaction::where('user_id', $user->id)->where('type_id', 2)->count(),
         ];
+        
+        $this->totalAccountBalance = $user->accounts->sum('balance');
     }
 }; ?>
 
@@ -70,7 +76,7 @@ new class extends Component {
                 <div class="stat bg-base-200/50 rounded-xl p-4">
                     <div class="stat-title text-base-content/70">Net Balance</div>
                     <div class="stat-value text-lg text-base-content">
-                        ₱{{ number_format($transactions['totalIncome'] - $transactions['totalExpense']) }}
+                        ₱{{ number_format($totalAccountBalance) }}
                     </div>
                 </div>
                 
