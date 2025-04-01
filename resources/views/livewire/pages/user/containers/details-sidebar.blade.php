@@ -29,26 +29,55 @@ new #[Layout('layouts.app')] class extends Component {
         x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
         x-transition:leave="transition-transform duration-300 ease-in-out" x-transition:leave-start="translate-x-0"
         x-transition:leave-end="translate-x-full"
-        class="fixed right-0 top-0 h-full w-full top-15 md:top-0 md:max-w-md z-30 bg-base-100 border-l border-base-200 shadow-lg"
+        class="fixed right-0 top-0 h-full w-full top-15 md:top-0 md:max-w-md z-30 bg-gradient-to-b from-base-100 to-base-100/95 border-l border-base-200 shadow-lg"
         x-cloak>
         <div class="flex flex-col h-full">
             <!-- Header -->
-            <div class="flex items-center justify-between p-4 border-b border-base-200">
-                <h2 class="text-xl font-semibold capitalize">
-                    {{ ucfirst($operation) }} {{ $page }}
-                </h2>
-                <button class="btn btn-ghost btn-sm" @click="detailSidebarOpen = false">
-                    ✕
-                </button>
+            <div class="bg-gradient-to-r from-primary/10 to-primary/5 p-4 border-b border-base-200 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-primary/20 p-2 rounded-lg">
+                            @if($operation == 'edit' || $operation == 'details')
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                    stroke="currentColor" class="size-5 text-primary">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                </svg>
+                            @elseif($operation == 'create')
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                    stroke="currentColor" class="size-5 text-primary">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                            @else
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                    stroke="currentColor" class="size-5 text-primary">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                                </svg>
+                            @endif
+                        </div>
+                        <h2 class="text-xl font-bold text-base-content capitalize">
+                            {{ ucfirst($operation) }} {{ $page }}
+                        </h2>
+                    </div>
+                    <button class="btn btn-ghost btn-sm bg-base-100 hover:bg-base-200 border border-base-300 shadow-sm rounded-lg" 
+                        @click="detailSidebarOpen = false">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <!-- Content -->
-            <div class="flex-1 overflow-y-auto p-4">
+            <div class="flex-1 overflow-y-auto p-5">
                 @if ($component)
                     @livewire($component, $operation === 'create' ? [] : ['modelId' => $modelId], key($operation . '-' . $component . '-' . $modelId . \Str::random(4)))
                 @else
-                    <div class="h-full flex items-center justify-center">
-                        <span class="loading loading-dots loading-xl"></span>
+                    <div class="h-full flex flex-col items-center justify-center gap-4">
+                        <span class="loading loading-spinner loading-lg text-primary"></span>
+                        <p class="text-base-content/60">Loading content...</p>
                     </div>
                 @endif
             </div>

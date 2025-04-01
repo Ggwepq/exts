@@ -33,6 +33,11 @@ class Transaction extends Model
         return $this->hasMany(TransactionTags::class);
     }
 
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'transaction_tags', 'transaction_id', 'tag_id');
+    }
+
     public function transactionCategories()
     {
         return $this->hasMany(TransactionCategory::class);
