@@ -12,8 +12,7 @@ new class extends Component {
     }
 }; ?>
 
-<div class="navbar sticky top-0 bg-base-100 z-40 shadow-md border-b border-base-200">
-    @livewire('pages.user.components.sidebar-button')
+<div class="navbar sticky z-40">
     <!-- Content -->
     <div class="flex-1">
         @if ($component)
