@@ -246,17 +246,27 @@ new #[Layout('layouts.app')] class extends Component {
         <div class="form-control">
             <label class="label mb-2" for="image">
                 <span class="label-text text-sm">Attach Image</span>
+                <span class="loading loading-spinner loading-xs" wire:loading wire:target="image"></span>
             </label>
             <input id="image" type="file" wire:model="image" class="file-input file-input-bordered w-full"
                 accept="image/*" />
             @error('image')
                 <span class="text-error">{{ $message }}</span>
             @enderror
+
+            @if ($image)
+                <div class="avatar mt-2" @click="$dispatch('open-image-viewer', '{{ $image->temporaryUrl() }}')">
+                    <div class="w-10 rounded">
+                        <img src="{{ $image->temporaryUrl() }}" alt="Transaction Image" />
+                    </div>
+                </div>
+            @endif
+
         </div>
 
         <!-- Tags -->
         <div class="form-control">
-            <livewire:components.tag-manager :initialSelectedTags="$selectedTags" wire:key="tag-manager" />
+            <livewire:components.tag-manager :initialSelectedTags="$selectedTags" wire:key="tag-manager" wire:model="selectedTags" />
         </div>
 
 

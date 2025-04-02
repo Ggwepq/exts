@@ -84,9 +84,10 @@ new #[Layout('layouts.app')] class extends Component {
         $account = Account::find($this->transaction->account_id);
         $type_id = $this->transaction->type_id;
         $amount = $this->transaction->amount;
-        
+
         // Update the account balance before deleting the transaction
-        if ($type_id == 1) { // Income
+        if ($type_id == 1) {
+            // Income
             // Check if removing this income would cause a negative balance
             if ($account->balance >= $amount) {
                 $account->balance -= $amount;
@@ -95,18 +96,19 @@ new #[Layout('layouts.app')] class extends Component {
                 $account->balance = 0;
                 session()->flash('warning', 'Account balance was set to 0 as it would have gone negative.');
             }
-        } else { // Expense - add the amount back
+        } else {
+            // Expense - add the amount back
             $account->balance += $amount;
         }
         $account->save();
-        
+
         // Delete the transaction
         $this->transaction->delete();
-        
+
         // Dispatch events
         $this->dispatch('transactionUpdate');
         $this->dispatch('accountUpdate');
-        
+
         session()->flash('message', 'Transaction deleted successfully!');
     }
 
@@ -129,14 +131,15 @@ new #[Layout('layouts.app')] class extends Component {
         }
 
         // Check for sufficient balance if it's an expense transaction
-        if ($this->type_id == 2) { // Expense type
+        if ($this->type_id == 2) {
+            // Expense type
             $accountBalance = $currentAccount->balance;
-            
+
             // If this is an update of an existing expense, add back the old amount to the balance check
             if ($this->oldTransaction->type_id == 2 && $this->account_id == $this->oldTransaction->account_id) {
                 $accountBalance += $this->oldTransaction->amount;
             }
-            
+
             if ($accountBalance < $this->amount) {
                 session()->flash('error', 'Insufficient Balance');
                 return;
@@ -166,33 +169,41 @@ new #[Layout('layouts.app')] class extends Component {
             if ($this->account_id != $this->oldTransaction->account_id) {
                 $previousAccount = Account::find($this->oldTransaction->account_id);
                 // Revert the effect of the old transaction on the previous account
-                if ($this->oldTransaction->type_id == 1) { // Income
+                if ($this->oldTransaction->type_id == 1) {
+                    // Income
                     $previousAccount->balance -= $this->oldTransaction->amount;
-                } else { // Expense
+                } else {
+                    // Expense
                     $previousAccount->balance += $this->oldTransaction->amount;
                 }
                 $previousAccount->save();
-                
+
                 // Add the effect of the transaction to the new account
-                if ($this->type_id == 1) { // Income
+                if ($this->type_id == 1) {
+                    // Income
                     $currentAccount->balance += $this->amount;
-                } else { // Expense
+                } else {
+                    // Expense
                     $currentAccount->balance -= $this->amount;
                 }
                 $currentAccount->save();
             } else {
                 // Same account, but possibly different type or amount
                 // First, revert the old transaction
-                if ($this->oldTransaction->type_id == 1) { // Old was Income
+                if ($this->oldTransaction->type_id == 1) {
+                    // Old was Income
                     $currentAccount->balance -= $this->oldTransaction->amount;
-                } else { // Old was Expense
+                } else {
+                    // Old was Expense
                     $currentAccount->balance += $this->oldTransaction->amount;
                 }
-                
+
                 // Then add the new transaction
-                if ($this->type_id == 1) { // New is Income
+                if ($this->type_id == 1) {
+                    // New is Income
                     $currentAccount->balance += $this->amount;
-                } else { // New is Expense
+                } else {
+                    // New is Expense
                     $currentAccount->balance -= $this->amount;
                 }
                 $currentAccount->save();
@@ -235,23 +246,89 @@ new #[Layout('layouts.app')] class extends Component {
     @endif
 
     <!-- Form -->
-    <form wire:submit.prevent="save" class="space-y-5">
+    <form wire:submit="save" class="space-y-5" x-data="{ expense: $wire.type_id == 1 ? false : true }">
         <!-- Name -->
-        <div class="form-control">
-            <label class="label" for="name">
-                <span class="label-text">Name</span>
-            </label>
-            <input id="name" type="text" wire:model="name" placeholder="Name"
-                class="input input-bordered w-full" required />
-            @error('name')
-                <span class="text-error">{{ $message }}</span>
-            @enderror
+        <div class="flex flex-row items-end mb-5 gap-x-4">
+            <div class="flex flex-col gap-3">
+                <div class="flex items-center gap-2 mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="size-4 text-base-content/70">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                    </svg>
+                    <span class="text-sm font-semibold">
+                        {{ \Carbon\Carbon::now()->format('F j, Y') }}
+                    </span>
+                </div>
+
+                <input id="name" type="text" wire:model="name" placeholder="Name"
+                    :class="expense ? 'text-secondary' : 'text-primary'"
+                    class="input input-ghost input-xl font-bold text-4xl" required autocomplete="name" />
+            </div>
+            <div class="flex flex-col gap-3">
+                <div>
+                    <input type="checkbox"{{ $type_id == 1 ? "checked='checked'" : '' }} wire:model.live="type_id"
+                        class="toggle border-secondary bg-secondary checked:bg-primary checked:text-primary checked:border-primary"
+                        @click="expense = !expense; console.log(expense)" />
+                    <span x-text="expense ? 'Expense' : 'Income'"
+                        :class="expense ? 'text-secondary' : 'text-primary'"></span>
+                </div>
+
+                <label class="input input-ghost font-semibold text-2xl"
+                    :class="expense ? 'text-secondary' : 'text-primary'">
+                    <span class="label">₱</span>
+                    <input id="amount" type="text" wire:model="amount" placeholder="0.00"step="0.01" required
+                        autocomplete="amount" />
+                </label>
+            </div>
+        </div>
+
+        <div class="flex flex-row gap-4">
+
+            <div class="grow">
+                <select id="account_id" wire:model="account_id" class="select select-ghost w-full"
+                    autocomplete="account">
+                    <option value="">Account</option>
+                    @foreach ($accounts as $account)
+                        <option value="{{ $account->id }}">{{ $account->name }}</option>
+                    @endforeach
+                </select>
+                @error('account_id')
+                    <span class="text-error">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="grow">
+                <select id="category_id" wire:model="category_id" class="select select-ghost w-full">
+                    <option value="1">Category</option>
+                    @if ($type_id == 1)
+                        @if ($incomes)
+                            @foreach ($incomes as $income)
+                                @if ($income->name !== 'None')
+                                    <option value="{{ $income->id }}">{{ $income->name }}</option>
+                                @endif
+                            @endforeach
+                        @endif
+                    @else
+                        @if ($expenses)
+                            @foreach ($expenses as $expense)
+                                @if ($expense->name !== 'None')
+                                    <option value="{{ $expense->id }}">{{ $expense->name }}</option>
+                                @endif
+                            @endforeach
+                        @endif
+                    @endif
+                </select>
+                @error('category_id')
+                    <span class="text-error">{{ $message . ' ' . $category_id }}</span>
+                @enderror
+            </div>
         </div>
 
         <!-- Description -->
         <div class="form-control">
-            <label class="label" for="description">
-                <span class="label-text">Description (Optional)</span>
+            <label class="label mb-2" for="description">
+                <span class="label-text text-sm">Description</span>
             </label>
             <textarea id="description" wire:model="description" placeholder="..." class="textarea textarea-bordered w-full"
                 autocomplete="description"></textarea>
@@ -260,126 +337,48 @@ new #[Layout('layouts.app')] class extends Component {
             @enderror
         </div>
 
-        <!-- Amount -->
-        <div class="form-control">
-            <label class="input w-full">
-                <span class="label">₱</span>
-                <input id="amount" type="number" wire:model="amount" placeholder="0.00"step="0.01" required
-                    autocomplete="amount" />
-            </label>
-            @error('amount')
-                <span class="text-error">{{ $message }}</span>
-            @enderror
-        </div>
-
-        <!-- Account -->
-        <div class="form-control">
-            <label class="label" for="account_id">
-                <span class="label-text">Account</span>
-            </label>
-            <select id="account_id" wire:model="account_id" class="select select-bordered w-full"
-                autocomplete="account">
-                <option value="">Select an account</option>
-                @foreach ($accounts as $account)
-                    <option value="{{ $account->id }}">{{ $account->name }}</option>
-                @endforeach
-            </select>
-            @error('account_id')
-                <span class="text-error">{{ $message }}</span>
-            @enderror
-        </div>
-
-        <!-- Type -->
-        <div class="form-control">
-
-            <div class="filter">
-                <input class="btn filter-reset" type="radio" name="metaframeworks" aria-label="All" />
-                <input class="btn checked:bg-secondary " type="radio" wire:model.live="type_id" value="2"
-                    name="metaframeworks" aria-label="Expense" />
-                <input class="btn checked:bg-primary " type="radio" wire:model.live="type_id" value="1"
-                    name="metaframeworks" aria-label="Income" />
-            </div>
-            @error('type_id')
-                <span class="text-error">{{ $message }}</span>
-            @enderror
-        </div>
-
-        <!-- Category -->
-        <div class="form-control">
-            <label class="label" for="category_id">
-                <span class="label-text">Category</span>
-            </label>
-            <select id="category_id" wire:model="category_id" class="select select-bordered w-full">
-                <option>None</option>
-                @if ($type_id == 1)
-                    @if ($incomes)
-                        @foreach ($incomes as $income)
-                            @if ($income->name !== 'None')
-                                <option value="{{ $income->id }}">{{ $income->name }}</option>
-                            @endif
-                        @endforeach
-                    @endif
-                @else
-                    @if ($expenses)
-                        @foreach ($expenses as $expense)
-                            @if ($expense->name !== 'None')
-                                <option value="{{ $expense->id }}">{{ $expense->name }}</option>
-                            @endif
-                        @endforeach
-                    @endif
-                @endif
-            </select>
-            @error('category_id')
-                <span class="text-error">{{ $message . ' ' . $category_id }}</span>
-            @enderror
-        </div>
-
-        <div class="">
-            <div class="avatar">
-                <div class="w-24 rounded-xl">
-                    <img
-                        src="{{ $transaction->image_url ? asset('app/' . $transaction->image_url) : asset('img/default-img.png') }}" />
-                </div>
-            </div>
-        </div>
-
         <!-- Image Upload -->
         <div class="form-control">
-            <label class="label" for="image">
-                <span class="label-text">Receipt Image</span>
-            </label>
-            
-            @if($transaction->image_url)
-            <div class="mb-2">
-                <img 
-                    src="{{ asset('app/' . $transaction->image_url) }}" 
-                    alt="Transaction Receipt" 
-                    class="max-w-full h-auto rounded-lg cursor-pointer border border-base-300 hover:border-primary transition-colors" 
-                    style="max-height: 200px;" 
-                    @click="$dispatch('open-image-viewer', '{{ asset('app/' . $transaction->image_url) }}')"
-                />
-                <div class="text-xs text-base-content/70 mt-1">Click the image to view in full size</div>
+            <div class="label mb-2 flex items-end justify-between" for="image">
+                <div>
+                    <span class="label-text text-sm">Attach Image</span>
+                    <span class="loading loading-spinner loading-xs" wire:loading wire:target="image"></span>
+                </div>
+                @if ($transaction->image_url)
+                    <div class="avatar"
+                        @click="$dispatch('open-image-viewer', '{{ asset('app/' . $transaction->image_url) }}')">
+                        <div class="w-10 rounded">
+                            <img src="{{ asset('app/' . $transaction->image_url) }}" alt="Transaction Receipt" />
+                        </div>
+                    </div>
+                @endif
             </div>
-            @endif
-            
-            <input id="image" type="file" wire:model="image" class="file-input file-input-bordered w-full" />
+            <input id="image" type="file" wire:model="image" class="file-input file-input-bordered w-full"
+                accept="image/*" />
             @error('image')
                 <span class="text-error">{{ $message }}</span>
             @enderror
+
+            @if ($image)
+                <div class="avatar mt-2" @click="$dispatch('open-image-viewer', '{{ $image->temporaryUrl() }}')">
+                    <div class="w-10 rounded">
+                        <img src="{{ $image->temporaryUrl() }}" alt="Transaction Image" />
+                    </div>
+                </div>
+            @endif
+
         </div>
 
         <!-- Tags -->
         <div class="form-control">
-            <livewire:components.tag-manager 
-                :initial-selected-tags="$selectedTags" 
-                :key="'tag-manager-' . $transaction->id" />
+            <livewire:components.tag-manager :initialSelectedTags="$selectedTags" wire:key="tag-manager" wire:model="selectedTags" />
         </div>
 
+
         <!-- Submit Button -->
-        <button type="submit" class="btn btn-primary w-full">
-            Save Transaction
-            <span wire:loading.class="loading loading-bars loading-lg" wire:target="save"></span>
-        </button>
+        <div class="form-control">
+            <button type="submit" class="btn btn-primary w-full" @click="$wire.type_id = expense">Save</button>
+        </div>
     </form>
 
     <div x-data="{ isDelete: false }" class="mt-4">
@@ -392,7 +391,7 @@ new #[Layout('layouts.app')] class extends Component {
                 <button @click="isDelete = false" class="flex-1 btn btn-neutral">Cancel</button>
                 <button class="btn btn-error flex-1" wire:click="delete"
                     @click="setTimeout(() => detailSidebarOpen = false, 1000)">Delete<span
-                        wire:loading.class="loading loading-bars loading-lg" wire:target="delete"></span></button>
+                        class="loading loading-bars loading-lg" wire:loading></span></button>
             </div>
         </template>
     </div>
