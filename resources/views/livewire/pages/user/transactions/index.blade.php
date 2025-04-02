@@ -28,7 +28,8 @@ new #[Layout('layouts.app')] class extends Component {
     #[On('transactionUpdate')]
     public function loadTransactions()
     {
-        $query = Transaction::where('user_id', Auth::id())
+        $query = Transaction::with(['tags', 'accounts', 'types'])
+            ->where('user_id', Auth::id())
             ->where('name', 'not like', 'Initial Account Balance');
         
         // Apply type filter
@@ -57,6 +58,9 @@ new #[Layout('layouts.app')] class extends Component {
                 return $date->format('F j, Y');
             })
             ->all();
+        
+        // Dispatch account update to make sure account balances are refreshed
+        $this->dispatch('accountUpdate');
     }
     
     /**
@@ -98,16 +102,16 @@ new #[Layout('layouts.app')] class extends Component {
     }
 }; ?>
 
-<div>
+<section x-data="{ detailSidebarOpen: false }" x-cloak>
     <!-- Main Content with Animated Margin -->
     <div class="transition-all duration-300 ease-in-out" :class="{ 'md:mr-[28rem]': detailSidebarOpen }">
         @livewire('pages.user.containers.main-header', ['component' => 'pages.user.transactions.header'])
 
-        <div class="flex-1 overflow-y-auto md:pt-4 pt-4 px-6  bg-base-200">
+        <div class="flex-1 overflow-y-auto md:pt-4 pt-4 px-6 bg-base-200">
             <div class="card w-full p-6 bg-base-100 shadow-xl mt-2">
                 <!-- Active Filters Banner -->
                 @if (!empty($filters['types']) || !empty($filters['account_id']) || !empty($filters['date_from']) || !empty($filters['date_to']))
-                    <div class="badge badge-info gap-2 mb-4 p-3">
+                    <div class="badge badge-info gap-2 mb-4 p-3 shadow-sm">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" 
                             stroke="currentColor" class="size-4">
                             <path stroke-linecap="round" stroke-linejoin="round" 
@@ -119,41 +123,69 @@ new #[Layout('layouts.app')] class extends Component {
                 @endif
                 
                 @if (count($transactions))
-                    <ul class="list bg-base-100 rounded-box shadow-md">
+                    <ul class="list bg-base-100 rounded-box space-y-4">
                         @foreach ($transactions as $date => $record)
-                            <li class="p-4 pb-2 text-xs opacity-60 tracking-wide">{{ $date }}</li>
+                            <li class="bg-base-200/50 text-sm font-medium py-2 px-4 rounded-lg mb-2 sticky top-0 z-10 backdrop-blur-sm shadow-sm">
+                                <div class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" 
+                                        stroke="currentColor" class="size-4 text-base-content/70">
+                                        <path stroke-linecap="round" stroke-linejoin="round" 
+                                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                                    </svg>
+                                    {{ $date }}
+                                </div>
+                            </li>
 
                             @foreach ($record as $transaction)
-                                <li class="list-row hover:bg-base-200"
+                                <li class="group list-row hover:bg-base-200 flex items-center justify-between w-full px-5 py-4 border border-base-200 rounded-xl mb-3 mx-0.5 transition-all duration-200 hover:shadow-md cursor-pointer"
                                     @click="$dispatch('showSidebar', {operation: 'edit', page: 'Transaction', component: 'pages.user.transactions.edit', modelId: {{ $transaction->id }}}); detailSidebarOpen = true;">
-                                    <div>
-                                        @if($transaction->image_url)
-                                            <img class="size-10 rounded-box cursor-pointer"
-                                                src="{{ asset('app/' . $transaction->image_url) }}"
-                                                @click.stop="$dispatch('open-image-viewer', '{{ asset('app/' . $transaction->image_url) }}')" 
-                                                alt="Receipt for {{ $transaction->name }}" />
-                                        @else
-                                            <img class="size-10 rounded-box"
-                                                src="{{ asset('img/default-img.png') }}" 
-                                                alt="No receipt" />
-                                        @endif
-                                    </div>
-                                    <div>
-                                        <div class="font-bold text-md mb-2">{{ $transaction->name }}</div>
-                                        <div
-                                            class="text-[0.70rem] uppercase font-semibold badge badge-outline {{ $transaction->types->name == 'Expense' ? 'badge-secondary' : 'badge-primary' }}">
-                                            {{ $transaction->types->name }}</div>
+                                    <div class="flex items-center gap-4 min-w-0">
+                                        <div class="flex-shrink-0 relative">
+                                            @if($transaction->image_url)
+                                                <div class="size-12 rounded-lg overflow-hidden shadow-md border border-base-200 bg-base-100">
+                                                    <img class="w-full h-full object-cover cursor-pointer hover:scale-110 transition-transform duration-300"
+                                                        src="{{ asset('app/' . $transaction->image_url) }}"
+                                                        @click.stop="$dispatch('open-image-viewer', '{{ asset('app/' . $transaction->image_url) }}')" 
+                                                        alt="Receipt for {{ $transaction->name }}" />
+                                                </div>
+                                                <div class="absolute -bottom-1 -right-1 size-4 rounded-full bg-primary shadow-sm border border-base-100"></div>
+                                            @else
+                                                <div class="size-12 rounded-lg flex items-center justify-center bg-base-200/70 border border-base-300">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" 
+                                                        stroke="currentColor" class="size-6 text-base-content/40">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" 
+                                                            d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                                                    </svg>
+                                                </div>
+                                            @endif
+                                        </div>
+                                        
+                                        <div class="min-w-0 flex-1">
+                                            <div class="font-bold text-md mb-1.5 truncate group-hover:text-primary transition-colors duration-200">{{ $transaction->name }}</div>
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                <div
+                                                    class="text-[0.70rem] uppercase font-semibold badge badge-outline {{ $transaction->types->name == 'Expense' ? 'badge-secondary' : 'badge-primary' }}">
+                                                    {{ $transaction->types->name }}</div>
+                                            </div>
+                                            
+                                            <!-- Tags -->
+                                            @if(count($transaction->tags) > 0)
+                                            <div class="flex flex-wrap gap-1 mt-2">
+                                                @foreach($transaction->tags as $tag)
+                                                <span class="badge badge-sm badge-ghost">{{ $tag->name }}</span>
+                                                @endforeach
+                                            </div>
+                                            @endif
+                                        </div>
                                     </div>
 
-                                    <div>
+                                    <div class="flex-shrink-0 flex items-center gap-2">
                                         <div
                                             class="text-[0.70rem] uppercase font-semibold badge badge-outline {{ $transaction->types->name == 'Expense' ? 'badge-secondary' : 'badge-primary' }}">
-                                            {{ $transaction->accounts->name }}</div>
-                                    </div>
-
-                                    <div>
+                                            {{ $transaction->accounts->name }}
+                                        </div>
                                         <div
-                                            class="text-sm uppercase font-semibold badge {{ $transaction->types->name == 'Expense' ? 'badge-secondary' : 'badge-primary' }}">
+                                            class="text-sm uppercase font-semibold badge badge-lg whitespace-nowrap {{ $transaction->types->name == 'Expense' ? 'badge-secondary text-white' : 'badge-primary text-white' }}">
                                             {{ $transaction->types->name == 'Expense' ? '-₱' : '+₱' }}{{ $transaction->amount }}
                                         </div>
                                     </div>
@@ -162,16 +194,26 @@ new #[Layout('layouts.app')] class extends Component {
                         @endforeach
                     </ul>
                 @else
-                    <div class="flex flex-col items-center justify-center p-6">
+                    <div class="flex flex-col items-center justify-center p-10 bg-base-200/30 rounded-xl">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" 
-                            stroke="currentColor" class="size-12 text-base-300 mb-2">
+                            stroke="currentColor" class="size-16 text-base-300 mb-3">
                             <path stroke-linecap="round" stroke-linejoin="round" 
                                 d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                         </svg>
-                        <span class="text-base-300">No transactions found</span>
+                        <span class="text-base-content/60 text-lg font-medium mb-1">No transactions found</span>
+                        <p class="text-base-content/40 text-sm mb-4">Start adding your transactions to track your finances</p>
                         @if (!empty($filters['types']) || !empty($filters['account_id']) || !empty($filters['date_from']) || !empty($filters['date_to']))
-                            <button class="btn btn-sm btn-ghost mt-2" wire:click="resetFilters">
+                            <button class="btn btn-sm btn-outline btn-primary mt-2" wire:click="resetFilters">
                                 Clear filters
+                            </button>
+                        @else
+                            <button class="btn btn-sm btn-primary" 
+                                @click="detailSidebarOpen = true; $dispatch('showSidebar', {operation: 'create', page: 'Transaction', component: 'pages.user.transactions.add', modelId: 12})">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                    stroke="currentColor" class="size-5 mr-1">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                                Add Your First Transaction
                             </button>
                         @endif
                     </div>
@@ -183,4 +225,4 @@ new #[Layout('layouts.app')] class extends Component {
     
     <!-- Add the Image Viewer Component -->
     <x-image-viewer imageUrl="" />
-</div>
+</section>
