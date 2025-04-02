@@ -286,8 +286,8 @@ new #[Layout('layouts.app')] class extends Component {
         <div class="flex flex-row gap-4">
 
             <div class="grow">
-                <select id="account_id" wire:model="account_id" class="select select-ghost w-full"
-                    autocomplete="account">
+                <select id="account_id" wire:model="account_id" class="select select-ghost w-full text-primary"
+                    :class="expense ? 'text-secondary' : 'text-primary'" autocomplete="account">
                     <option value="">Account</option>
                     @foreach ($accounts as $account)
                         <option value="{{ $account->id }}">{{ $account->name }}</option>
@@ -299,7 +299,8 @@ new #[Layout('layouts.app')] class extends Component {
             </div>
 
             <div class="grow">
-                <select id="category_id" wire:model="category_id" class="select select-ghost w-full">
+                <select id="category_id" wire:model="category_id" class="select select-ghost w-full"
+                    :class="expense ? 'text-secondary' : 'text-primary'">
                     <option value="1">Category</option>
                     @if ($type_id == 1)
                         @if ($incomes)
@@ -326,7 +327,7 @@ new #[Layout('layouts.app')] class extends Component {
         </div>
 
         <!-- Description -->
-        <div class="form-control">
+        <div class="form-control" :class="expense ? 'text-secondary' : 'text-primary'">
             <label class="label mb-2" for="description">
                 <span class="label-text text-sm">Description</span>
             </label>
@@ -338,7 +339,7 @@ new #[Layout('layouts.app')] class extends Component {
         </div>
 
         <!-- Image Upload -->
-        <div class="form-control">
+        <div class="form-control" :class="expense ? 'text-secondary' : 'text-primary'">
             <div class="label mb-2 flex items-end justify-between" for="image">
                 <div>
                     <span class="label-text text-sm">Attach Image</span>
@@ -354,7 +355,7 @@ new #[Layout('layouts.app')] class extends Component {
                 @endif
             </div>
             <input id="image" type="file" wire:model="image" class="file-input file-input-bordered w-full"
-                accept="image/*" />
+                :class="expense ? 'file-input-secondary' : 'file-input-primary'" accept="image/*" />
             @error('image')
                 <span class="text-error">{{ $message }}</span>
             @enderror
@@ -370,14 +371,15 @@ new #[Layout('layouts.app')] class extends Component {
         </div>
 
         <!-- Tags -->
-        <div class="form-control">
+        <div class="form-control" :class="expense ? 'text-secondary' : 'text-primary'">
             <livewire:components.tag-manager :initialSelectedTags="$selectedTags" wire:key="tag-manager" wire:model="selectedTags" />
         </div>
 
 
         <!-- Submit Button -->
         <div class="form-control">
-            <button type="submit" class="btn btn-primary w-full" @click="$wire.type_id = expense">Save</button>
+            <button type="submit" class="btn w-full" @click="$wire.type_id = expense"
+                :class="expense ? 'btn-secondary' : 'btn-primary'">Save Transaction</button>
         </div>
     </form>
 
