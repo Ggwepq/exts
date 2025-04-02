@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="light">
 
 <head>
     <meta charset="utf-8">
@@ -19,7 +19,18 @@
 
 <body class="font-roboto antialiased">
 
-    <div class="drawer lg:drawer-open" x-data="{ detailSidebarOpen: false }">
+    <div class="drawer lg:drawer-open" x-data="{
+        detailSidebarOpen: false,
+        init() {
+            // Restore sidebar state from localStorage if exists
+            this.detailSidebarOpen = localStorage.getItem('detailSidebarOpen') === 'true';
+
+            // Save state to localStorage when it changes
+            this.$watch('detailSidebarOpen', (value) => {
+                localStorage.setItem('detailSidebarOpen', value);
+            });
+        }
+    }">
         <input id="left-sidebar-drawer" type="checkbox" class="drawer-toggle" />
 
         <!-- Page Content -->

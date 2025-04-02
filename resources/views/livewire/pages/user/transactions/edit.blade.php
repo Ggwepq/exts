@@ -3,12 +3,14 @@
 use Livewire\Volt\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
+use Livewire\Attributes\On;
 use Livewire\WithFileUploads;
 use App\Models\Transaction;
 use App\Models\Account;
 use App\Models\TransactionCategory;
 use App\Models\Type;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Livewire\Actions\User\Balance;
 
 new #[Layout('layouts.app')] class extends Component {
@@ -17,6 +19,7 @@ new #[Layout('layouts.app')] class extends Component {
     public Transaction $transaction;
     public Transaction $oldTransaction;
     public Balance $balance;
+    public $selectedTags = [];
 
     #[Validate('required|string|max:255')]
     public $name;
@@ -48,7 +51,7 @@ new #[Layout('layouts.app')] class extends Component {
 
     public function mount(?int $modelId = null)
     {
-        $transaction = Transaction::findOrFail($modelId);
+        $transaction = Transaction::with('tags')->findOrFail($modelId);
         $this->transaction = $transaction;
         $this->oldTransaction = $transaction;
         $this->name = $transaction->name;
@@ -58,6 +61,7 @@ new #[Layout('layouts.app')] class extends Component {
         $this->category_id = $transaction->category_id;
         $this->type_id = $transaction->type_id;
         $this->image = $transaction->image;
+        $this->selectedTags = $transaction->tags->pluck('id')->toArray();
 
         $this->dropdowns();
     }
@@ -76,9 +80,41 @@ new #[Layout('layouts.app')] class extends Component {
 
     public function delete()
     {
+        // Get the transaction details before deleting
+        $account = Account::find($this->transaction->account_id);
+        $type_id = $this->transaction->type_id;
+        $amount = $this->transaction->amount;
+        
+        // Update the account balance before deleting the transaction
+        if ($type_id == 1) { // Income
+            // Check if removing this income would cause a negative balance
+            if ($account->balance >= $amount) {
+                $account->balance -= $amount;
+            } else {
+                // Handle the edge case - set to zero or minimum allowed balance
+                $account->balance = 0;
+                session()->flash('warning', 'Account balance was set to 0 as it would have gone negative.');
+            }
+        } else { // Expense - add the amount back
+            $account->balance += $amount;
+        }
+        $account->save();
+        
+        // Delete the transaction
         $this->transaction->delete();
-        $this->balance->update($this->transaction->account_id);
+        
+        // Dispatch events
         $this->dispatch('transactionUpdate');
+        $this->dispatch('accountUpdate');
+        
+        session()->flash('message', 'Transaction deleted successfully!');
+    }
+
+    #[On('update-selected-tags')]
+    public function handleTagUpdate($tags)
+    {
+        // Just update the selected tags without saving
+        $this->selectedTags = $tags;
     }
 
     public function save()
@@ -109,40 +145,59 @@ new #[Layout('layouts.app')] class extends Component {
 
         $imagePath = $this->image == null ? $this->transaction->image_url : $this->image->store('img/transactions', 'local');
 
-        $transaction = $this->transaction->update([
-            'user_id' => Auth::id(),
-            'account_id' => $currentAccount->id,
-            'category_id' => $this->category_id == null ? 1 : $this->category_id,
-            'recurring_id' => $this->recurring_id,
-            'type_id' => $this->type_id,
-            'name' => $this->name,
-            'description' => $this->description,
-            'amount' => $this->amount,
-            'image_url' => $imagePath,
-            'updated_at' => Carbon\Carbon::now(),
-        ]);
+        DB::transaction(function () use ($imagePath, $currentAccount) {
+            $this->transaction->update([
+                'user_id' => Auth::id(),
+                'account_id' => $currentAccount->id,
+                'category_id' => $this->category_id == null ? 1 : $this->category_id,
+                'recurring_id' => $this->recurring_id,
+                'type_id' => $this->type_id,
+                'name' => $this->name,
+                'description' => $this->description,
+                'amount' => $this->amount,
+                'image_url' => $imagePath,
+                'updated_at' => now(),
+            ]);
 
-        $previousAccount = Account::find($this->oldTransaction->account_id);
+            // Sync tags only when explicitly saving
+            $this->transaction->tags()->sync($this->selectedTags);
 
-        // If user updated the transaction account
-        $prev = $this->balance->get($this->oldTransaction->account_id);
-        $current = $this->balance->get($this->account_id);
-
-        if ($this->type_id != $this->oldTransaction->type_id) {
-            if ($this->type_id == 1) {
-                $current += $this->amount;
+            // If the transaction is being moved to a different account, update both accounts
+            if ($this->account_id != $this->oldTransaction->account_id) {
+                $previousAccount = Account::find($this->oldTransaction->account_id);
+                // Revert the effect of the old transaction on the previous account
+                if ($this->oldTransaction->type_id == 1) { // Income
+                    $previousAccount->balance -= $this->oldTransaction->amount;
+                } else { // Expense
+                    $previousAccount->balance += $this->oldTransaction->amount;
+                }
+                $previousAccount->save();
+                
+                // Add the effect of the transaction to the new account
+                if ($this->type_id == 1) { // Income
+                    $currentAccount->balance += $this->amount;
+                } else { // Expense
+                    $currentAccount->balance -= $this->amount;
+                }
+                $currentAccount->save();
             } else {
-                $current -= $this->amount;
+                // Same account, but possibly different type or amount
+                // First, revert the old transaction
+                if ($this->oldTransaction->type_id == 1) { // Old was Income
+                    $currentAccount->balance -= $this->oldTransaction->amount;
+                } else { // Old was Expense
+                    $currentAccount->balance += $this->oldTransaction->amount;
+                }
+                
+                // Then add the new transaction
+                if ($this->type_id == 1) { // New is Income
+                    $currentAccount->balance += $this->amount;
+                } else { // New is Expense
+                    $currentAccount->balance -= $this->amount;
+                }
+                $currentAccount->save();
             }
-        }
-
-        if ($this->account_id != $this->oldTransaction->account_id) {
-            $previousAccount->balance = $prev;
-            $previousAccount->save();
-        }
-
-        $currentAccount->balance = $current;
-        $currentAccount->save();
+        });
 
         $this->oldTransaction = $this->transaction;
         $this->dispatch('transactionUpdate');
@@ -180,7 +235,7 @@ new #[Layout('layouts.app')] class extends Component {
     @endif
 
     <!-- Form -->
-    <form wire:submit="save" class="space-y-5">
+    <form wire:submit.prevent="save" class="space-y-5">
         <!-- Name -->
         <div class="form-control">
             <label class="label" for="name">
@@ -313,27 +368,32 @@ new #[Layout('layouts.app')] class extends Component {
             @enderror
         </div>
 
+        <!-- Tags -->
+        <div class="form-control">
+            <livewire:components.tag-manager 
+                :initial-selected-tags="$selectedTags" 
+                :key="'tag-manager-' . $transaction->id" />
+        </div>
+
         <!-- Submit Button -->
-        <button type="submit" class="btn btn-primary w-full">Save Transaction<span
-                wire:loading.class="loading loading-bars loading-lg" wire:target="save"></span></button>
+        <button type="submit" class="btn btn-primary w-full">
+            Save Transaction
+            <span wire:loading.class="loading loading-bars loading-lg" wire:target="save"></span>
+        </button>
     </form>
 
     <div x-data="{ isDelete: false }" class="mt-4">
-
         <template x-if="!isDelete">
             <button @click="isDelete = true" class="btn btn-error w-full">Delete Transaction<span
                     wire:loading.class="loading loading-bars loading-lg"></span></button>
         </template>
         <template x-if="isDelete">
             <div class="flex flex-row gap-x-2">
-                <button @click="isDelete = false" class="flex-1 btn btn-neutral">Cancel
-                </button>
-
+                <button @click="isDelete = false" class="flex-1 btn btn-neutral">Cancel</button>
                 <button class="btn btn-error flex-1" wire:click="delete"
                     @click="setTimeout(() => detailSidebarOpen = false, 1000)">Delete<span
                         wire:loading.class="loading loading-bars loading-lg" wire:target="delete"></span></button>
             </div>
         </template>
-
     </div>
 </section>

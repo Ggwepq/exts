@@ -7,7 +7,11 @@ use App\Models\Account;
 use App\Models\TransactionCategory;
 use App\Models\Type;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
+use Livewire\Attributes\On;
+use Carbon\Carbon;
 
 new #[Layout('layouts.app')] class extends Component {
     use WithFileUploads;
@@ -15,6 +19,7 @@ new #[Layout('layouts.app')] class extends Component {
     public $accounts;
     public $expenses;
     public $incomes;
+    public $selectedTags = [];
 
     #[Validate('required|string|max:255')]
     public $name;
@@ -40,6 +45,11 @@ new #[Layout('layouts.app')] class extends Component {
     #[Validate('required|exists:types,id')]
     public $type_id;
 
+    public function updateTags($tagIds)
+    {
+        $this->selectedTags = $tagIds;
+    }
+
     public function save()
     {
         $this->validate();
@@ -49,38 +59,51 @@ new #[Layout('layouts.app')] class extends Component {
             // Expense type
             $account = Account::find($this->account_id);
             if ($account->balance < $this->amount) {
-                session()->flash('error', 'Insufficient Balance');
+                session()->flash('error', 'Insufficient Balance. Available balance: ₱' . number_format($account->balance, 2));
                 return;
             }
         }
 
-        // Handle file upload if an image is provided
-        $imagePath = $this->image ? $this->image->store('img/transactions', 'local') : null;
+        // Use database transaction to ensure data integrity
+        DB::transaction(function () {
+            // Handle file upload if an image is provided
+            $imagePath = $this->image ? $this->image->store('img/transactions', 'local') : null;
 
-        $transaction = Transaction::create([
-            'user_id' => Auth::id(),
-            'account_id' => $this->account_id,
-            'category_id' => $this->category_id == null ? 1 : $this->category_id,
-            'recurring_id' => $this->recurring_id,
-            'type_id' => $this->type_id,
-            'name' => $this->name,
-            'description' => $this->description,
-            'amount' => $this->amount,
-            'image_url' => $imagePath,
-            'created_at' => Carbon\Carbon::now(),
-            'updated_at' => Carbon\Carbon::now(),
-        ]);
+            $transaction = Transaction::create([
+                'user_id' => Auth::id(),
+                'account_id' => $this->account_id,
+                'category_id' => $this->category_id == null ? 1 : $this->category_id,
+                'recurring_id' => $this->recurring_id,
+                'type_id' => $this->type_id,
+                'name' => $this->name,
+                'description' => $this->description,
+                'amount' => $this->amount,
+                'image_url' => $imagePath,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ]);
 
-        // Updates the Account
-        $account = Account::find($transaction->account_id);
-        $account->balance = $transaction->types->name == 'Expense' ? $account->balance - $transaction->amount : $account->balance + $transaction->amount;
-        $account->save();
+            // Sync tags
+            if (!empty($this->selectedTags)) {
+                $transaction->tags()->sync($this->selectedTags);
+            }
+
+            // Updates the Account
+            $account = Account::find($transaction->account_id);
+            if ($transaction->types->name == 'Expense') {
+                $account->balance -= $transaction->amount;
+            } else {
+                $account->balance += $transaction->amount;
+            }
+            $account->save();
+        });
 
         // Reset form fields
-        $this->reset(['name', 'description', 'amount', 'image', 'account_id', 'category_id', 'recurring_id', 'type_id']);
+        $this->reset(['name', 'description', 'amount', 'image', 'account_id', 'category_id', 'recurring_id', 'type_id', 'selectedTags']);
 
         // Emit event to refresh transaction list
         $this->dispatch('transactionUpdate');
+        $this->dispatch('accountUpdate');
 
         session()->flash('message', 'Transaction created successfully!');
     }
@@ -91,7 +114,14 @@ new #[Layout('layouts.app')] class extends Component {
         $this->incomes = TransactionCategory::where('user_id', Auth::id())->where('type_id', 1)->get();
         $this->expenses = TransactionCategory::where('user_id', Auth::id())->where('type_id', 2)->get();
 
-        // dd($accounts);
+        // Initialize with empty tags array
+        $this->selectedTags = [];
+    }
+
+    #[On('tagsUpdated')]
+    public function updateSelectedTags($tagIds)
+    {
+        $this->selectedTags = $tagIds;
     }
 
     public function placeholder()
@@ -206,6 +236,11 @@ new #[Layout('layouts.app')] class extends Component {
             @error('description')
                 <span class="text-error">{{ $message }}</span>
             @enderror
+        </div>
+
+        <!-- Tags -->
+        <div class="form-control">
+            <livewire:components.tag-manager :initialSelectedTags="$selectedTags" wire:key="tag-manager" />
         </div>
 
         <!-- Image Upload -->

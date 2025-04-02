@@ -25,13 +25,15 @@ class Balance extends Form
 
     public function get($account_id)
     {
-        return Auth::user()->transactions->where('account_id', $account_id)->where('type_id', 1)->sum('amount');
+        $income = Auth::user()->transactions->where('account_id', $account_id)->where('type_id', 1)->sum('amount');
+        $expense = Auth::user()->transactions->where('account_id', $account_id)->where('type_id', 2)->sum('amount');
+        return $income - $expense;
     }
 
     public function update($account_id)
     {
         $account = Account::find($account_id);
-
+        
         $account->balance = $this->get($account_id);
         $account->save();
     }
