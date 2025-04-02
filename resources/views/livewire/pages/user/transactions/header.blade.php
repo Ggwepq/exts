@@ -63,7 +63,8 @@ new class extends Component {
             <div class="flex gap-2 items-center">
                 <!-- Filter Button -->
                 <div class="dropdown"
-                    :class="detailSidebarOpen ? 'dropdown-end md:dropdown-end' : 'dropdown-end md:dropdown-center'">
+                    :class="detailSidebarOpen ? 'dropdown-end md:dropdown-end' : 'dropdown-end md:dropdown-center'"
+                    x-data="{ expense: false, income: false }">
                     <label tabindex="0"
                         class="btn btn-ghost btn-sm bg-base-100 hover:bg-base-200 border border-base-300 shadow-sm"
                         aria-label="Filter">
@@ -82,32 +83,29 @@ new class extends Component {
                     <div tabindex="0"
                         class="dropdown-content z-[1] menu p-4 mt-4 shadow-lg bg-base-100 rounded-xl w-80 border border-base-200">
                         <h3 class="font-bold text-lg mb-2">Filter Transactions</h3>
-                        <div class="divider my-1"></div>
 
                         <!-- Type Filter -->
                         <div class="form-control mb-3">
-                            <label class="label">
-                                <span class="label-text font-medium">Transaction Type</span>
-                            </label>
                             <div class="flex flex-row gap-1">
                                 <label class="flex-1 cursor-pointer">
-                                    <input type="checkbox" class="hidden" wire:model="filters.types" value="1">
-                                    <div class="btn btn-sm btn-outline btn-primary w-full">Income</div>
+                                    <input type="checkbox" class="hidden" wire:model.live="filters.types"
+                                        value="1">
+                                    <div class="btn btn-sm btn-primary w-full" @click="income = !income"
+                                        :class="!income ? 'btn-outline' : ''">Income</div>
                                 </label>
                                 <label class="flex-1 cursor-pointer">
-                                    <input type="checkbox" class="hidden" wire:model="filters.types" value="2">
-                                    <div class="btn btn-sm btn-outline btn-secondary w-full">Expense</div>
+                                    <input type="checkbox" class="hidden" wire:model.live="filters.types"
+                                        value="2">
+                                    <div class="btn btn-sm btn-secondary w-full" @click="expense = !expense"
+                                        :class="!expense ? 'btn-outline' : ''">Expense</div>
                                 </label>
                             </div>
                         </div>
 
                         <!-- Account Filter -->
                         <div class="form-control mb-3">
-                            <label class="label">
-                                <span class="label-text font-medium">Account</span>
-                            </label>
                             <select class="select select-bordered select-sm w-full bg-base-100"
-                                wire:model="filters.account_id">
+                                wire:model.live="filters.account_id">
                                 <option value="">All Accounts</option>
                                 @foreach ($accounts as $account)
                                     <option value="{{ $account->id }}">{{ $account->name }}</option>
@@ -117,20 +115,18 @@ new class extends Component {
 
                         <!-- Date Filter -->
                         <div class="form-control mb-3">
-                            <label class="label">
-                                <span class="label-text font-medium">Date Range</span>
-                            </label>
                             <div class="flex flex-col gap-2">
                                 <input type="date" class="input input-bordered input-sm w-full bg-base-100"
-                                    wire:model="filters.date_from">
+                                    wire:model.live="filters.date_from">
                                 <input type="date" class="input input-bordered input-sm w-full bg-base-100"
-                                    wire:model="filters.date_to">
+                                    wire:model.live="filters.date_to">
                             </div>
                         </div>
 
                         <div class="divider my-1"></div>
                         <div class="flex justify-center">
-                            <button class="btn btn-sm btn-outline btn-primary px-6" wire:click="resetFilters">
+                            <button class="btn btn-sm btn-outline btn-primary px-6" wire:click="resetFilters"
+                                @click="expense = false; income = false">
                                 Reset Filters
                             </button>
                         </div>
