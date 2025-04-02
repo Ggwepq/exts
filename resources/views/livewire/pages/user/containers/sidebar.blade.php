@@ -26,23 +26,29 @@ new class extends Component {
                 $query->select('created_at')->from('account_categories')->whereColumn('account_categories.id', 'accounts.category_id')->limit(1);
             })
             ->get();
-        
+
         // Handle categorized accounts
-        $this->categorizedAccounts = $accounts->filter(function ($account) {
-            return $account->accountCategories !== null;
-        })->groupBy(function ($account) {
-            return $account->accountCategories->name;
-        })->toArray();
-        
+        $this->categorizedAccounts = $accounts
+            ->filter(function ($account) {
+                return $account->accountCategories !== null;
+            })
+            ->groupBy(function ($account) {
+                return $account->accountCategories->name;
+            })
+            ->toArray();
+
         // Get uncategorized accounts
-        $this->uncategorizedAccounts = $accounts->filter(function ($account) {
-            return $account->accountCategories === null;
-        })->toArray();
+        $this->uncategorizedAccounts = $accounts
+            ->filter(function ($account) {
+                return $account->accountCategories === null;
+            })
+            ->toArray();
     }
 }; ?>
 <div class="drawer-side z-50">
     <label for="left-sidebar-drawer" class="drawer-overlay"></label>
-    <div class="menu pt-2 w-64 bg-gradient-to-b from-base-100 to-base-100/95 min-h-full text-base-content flex flex-col border-r border-base-200 shadow-md">
+    <div
+        class="menu pt-2 w-64 bg-gradient-to-b from-base-100 to-base-100/95 min-h-full text-base-content flex flex-col border-r border-base-200 shadow-md">
         <button class="btn btn-ghost bg-base-300 btn-circle z-50 top-0 right-0 mt-4 mr-2 absolute lg:hidden">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                 stroke="currentColor" aria-hidden="true" class="h-5 inline-block w-5">
@@ -149,69 +155,63 @@ new class extends Component {
         <div class="grow overflow-y-auto px-3">
             <div class="bg-primary/5 rounded-lg px-4 py-2 mb-2 flex items-center justify-between">
                 <span class="text-sm font-medium text-primary">ACCOUNTS</span>
-                <span class="badge badge-sm badge-primary text-xs">{{ count($uncategorizedAccounts) + array_sum(array_map('count', $categorizedAccounts)) }}</span>
+                <span
+                    class="badge badge-sm badge-primary text-xs">{{ count($uncategorizedAccounts) + array_sum(array_map('count', $categorizedAccounts)) }}</span>
             </div>
             <ul class="mt-1 space-y-1.5">
-                <li class="bg-base-200/30 rounded-lg">
-                    <details open>
-                        <summary class="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-base-200 transition-all duration-200">
-                            <div class="bg-primary/10 p-1.5 rounded-md">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="currentColor" class="h-4 w-4 text-primary">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
-                                </svg>
-                            </div>
-                            <span class="font-medium">Account</span>
-                        </summary>
-                        <ul class="ml-3 mt-2 space-y-1">
-                            <!-- Display uncategorized accounts first, directly without a nested dropdown -->
-                            @if(count($uncategorizedAccounts) > 0)
-                                @foreach($uncategorizedAccounts as $account)
-                                    <li>
-                                        <a class="flex items-center justify-between px-3 py-2 text-sm rounded-md hover:bg-base-200 transition-all duration-200 group">
-                                            <span class="truncate group-hover:text-primary">{{ $account['name'] }}</span>
-                                            <span class="badge badge-sm badge-primary text-xs">₱{{ number_format($account['balance'], 0) }}</span>
-                                        </a>
-                                    </li>
-                                @endforeach
-                                
-                                @if(count($categorizedAccounts) > 0)
-                                    <div class="divider my-1 h-px"></div>
-                                @endif
-                            @endif
-                            
-                            <!-- Display categorized accounts -->
-                            @foreach ($categorizedAccounts as $categoryName => $records)
-                                <li>
-                                    <details open>
-                                        <summary class="px-3 py-2 text-xs font-medium flex items-center justify-between cursor-pointer rounded hover:bg-base-200 transition-all duration-200 bg-base-200/50">
-                                            <div class="flex items-center gap-2">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" 
-                                                    stroke="currentColor" class="w-3.5 h-3.5 text-primary/70">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" 
-                                                        d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                                                </svg>
-                                                <span>{{ $categoryName }}</span>
-                                            </div>
-                                            <span class="badge badge-xs badge-ghost">{{ count($records) }}</span>
-                                        </summary>
-                                        <ul class="ml-2 mt-1.5 space-y-1">
-                                            @foreach ($records as $account)
-                                                <li>
-                                                    <a class="flex items-center justify-between px-3 py-2 text-sm rounded-md hover:bg-base-200 transition-all duration-200 group">
-                                                        <span class="truncate group-hover:text-primary">{{ $account['name'] }}</span>
-                                                        <span class="badge badge-sm badge-primary text-xs">₱{{ number_format($account['balance'], 0) }}</span>
-                                                    </a>
-                                                </li>
-                                            @endforeach
-                                        </ul>
-                                    </details>
-                                </li>
-                            @endforeach
-                        </ul>
-                    </details>
-                </li>
+                <ul class="ml-3 mt-2 space-y-1">
+                    <!-- Display uncategorized accounts first, directly without a nested dropdown -->
+                    @if (count($uncategorizedAccounts) > 0)
+                        @foreach ($uncategorizedAccounts as $account)
+                            <li>
+                                <a
+                                    class="flex items-center justify-between px-3 py-2 text-sm rounded-md hover:bg-base-200 transition-all duration-200 group">
+                                    <span class="truncate group-hover:text-primary">{{ $account['name'] }}</span>
+                                    <span
+                                        class="badge badge-sm badge-primary text-xs">₱{{ number_format($account['balance'], 0) }}</span>
+                                </a>
+                            </li>
+                        @endforeach
+
+                        @if (count($categorizedAccounts) > 0)
+                            <div class="divider my-1 h-px"></div>
+                        @endif
+                    @endif
+
+                    <!-- Display categorized accounts -->
+                    @foreach ($categorizedAccounts as $categoryName => $records)
+                        <li>
+                            <details open>
+                                <summary
+                                    class="px-3 py-2 text-xs font-medium flex items-center justify-between cursor-pointer rounded hover:bg-base-200 transition-all duration-200 bg-base-200/50">
+                                    <div class="flex items-center gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor"
+                                            class="w-3.5 h-3.5 text-primary/70">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                                        </svg>
+                                        <span>{{ $categoryName }}</span>
+                                    </div>
+                                    <span class="badge badge-xs badge-ghost">{{ count($records) }}</span>
+                                </summary>
+                                <ul class="ml-2 mt-1.5 space-y-1">
+                                    @foreach ($records as $account)
+                                        <li>
+                                            <a
+                                                class="flex items-center justify-between px-3 py-2 text-sm rounded-md hover:bg-base-200 transition-all duration-200 group">
+                                                <span
+                                                    class="truncate group-hover:text-primary">{{ $account['name'] }}</span>
+                                                <span
+                                                    class="badge badge-sm badge-primary text-xs">₱{{ number_format($account['balance'], 0) }}</span>
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </details>
+                        </li>
+                    @endforeach
+                </ul>
             </ul>
         </div>
 
@@ -220,7 +220,7 @@ new class extends Component {
             <div class="divider my-0 h-px"></div>
             <div class="dropdown dropdown-top w-full">
                 <div tabindex="0" role="button"
-                    class="flex items-center gap-3 p-3 m-2 rounded-lg hover:bg-base-200 cursor-pointer transition-all border border-base-200">
+                    class="flex items-center gap-3 p-3 m-2 rounded-lg hover:bg-base-200 cursor-pointer transition-all border bg-gradient-to-t from-primary/20 to-primary/10 border-base-200">
                     <div class="avatar">
                         <div class="mask mask-squircle w-10 h-10 shadow-sm border border-base-200">
                             <img src="{{ auth()->user()->profile_image_url ? asset('app/' . auth()->user()->profile_image_url) : asset('img/user-img.jpg') }}"
@@ -241,7 +241,8 @@ new class extends Component {
                 <ul tabindex="0"
                     class="dropdown-content menu bg-base-100 rounded-lg w-56 p-2 shadow-lg mb-2 border border-base-200">
                     <li>
-                        <a href="{{ route('profile') }}" wire:navigate class="flex items-center gap-2 px-4 py-2 hover:bg-base-200 rounded-lg transition-all duration-200">
+                        <a href="{{ route('profile') }}" wire:navigate
+                            class="flex items-center gap-2 px-4 py-2 hover:bg-base-200 rounded-lg transition-all duration-200">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -251,7 +252,8 @@ new class extends Component {
                         </a>
                     </li>
                     <li>
-                        <a class="flex items-center gap-2 px-4 py-2 hover:bg-base-200 rounded-lg transition-all duration-200">
+                        <a
+                            class="flex items-center gap-2 px-4 py-2 hover:bg-base-200 rounded-lg transition-all duration-200">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                 <path stroke-linecap="round" stroke-linejoin="round"
