@@ -42,7 +42,7 @@ new #[Layout('layouts.app')] class extends Component {
     #[Validate('nullable|exists:transaction_categories,id')]
     public $recurring_id;
 
-    #[Validate('required|exists:types,id')]
+    #[Validate('required')]
     public $type_id;
 
     public function updateTags($tagIds)
@@ -54,9 +54,7 @@ new #[Layout('layouts.app')] class extends Component {
     {
         $this->validate();
 
-        // Check for sufficient balance if it's an expense transaction
         if ($this->type_id == 2) {
-            // Expense type
             $account = Account::find($this->account_id);
             if ($account->balance < $this->amount) {
                 session()->flash('error', 'Insufficient Balance. Available balance: ₱' . number_format($account->balance, 2));
@@ -64,9 +62,7 @@ new #[Layout('layouts.app')] class extends Component {
             }
         }
 
-        // Use database transaction to ensure data integrity
         DB::transaction(function () {
-            // Handle file upload if an image is provided
             $imagePath = $this->image ? $this->image->store('img/transactions', 'local') : null;
 
             $transaction = Transaction::create([
@@ -74,7 +70,7 @@ new #[Layout('layouts.app')] class extends Component {
                 'account_id' => $this->account_id,
                 'category_id' => $this->category_id == null ? 1 : $this->category_id,
                 'recurring_id' => $this->recurring_id,
-                'type_id' => $this->type_id,
+                'type_id' => $this->type_id ? 2 : 1,
                 'name' => $this->name,
                 'description' => $this->description,
                 'amount' => $this->amount,
@@ -83,12 +79,11 @@ new #[Layout('layouts.app')] class extends Component {
                 'updated_at' => Carbon::now(),
             ]);
 
-            // Sync tags
+            // Attach selected tags to the transaction
             if (!empty($this->selectedTags)) {
                 $transaction->tags()->sync($this->selectedTags);
             }
 
-            // Updates the Account
             $account = Account::find($transaction->account_id);
             if ($transaction->types->name == 'Expense') {
                 $account->balance -= $transaction->amount;
@@ -156,12 +151,23 @@ new #[Layout('layouts.app')] class extends Component {
     @endif
 
     <!-- Form -->
-    <form wire:submit="save" class="space-y-10">
+    <form wire:submit="save" class="space-y-5" x-data="{ expense: true }">
         <!-- Name -->
-        <div class="flex flex-row items-end mb-5 gap-x-4" x-data="{ expense: false }">
-            <div class="">
+        <div class="flex flex-row items-end mb-5 gap-x-4">
+            <div class="flex flex-col gap-3">
+                <div class="flex items-center gap-2 mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="size-4 text-base-content/70">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                    </svg>
+                    <span class="text-sm font-semibold">
+                        {{ Carbon::now()->format('F j, Y') }}
+                    </span>
+                </div>
+
                 <input id="name" type="text" wire:model="name" placeholder="Name"
-                    :class="expense ? 'text-primary' : 'text-secondary'"
+                    :class="expense ? 'text-secondary' : 'text-primary'"
                     class="input input-ghost input-xl font-bold text-4xl" required autocomplete="name" />
             </div>
             <div class="flex flex-col gap-3">
@@ -170,26 +176,24 @@ new #[Layout('layouts.app')] class extends Component {
                         class="toggle border-secondary bg-secondary checked:bg-primary checked:text-primary checked:border-primary"
                         @click="expense = !expense; console.log(expense)" />
                     <span x-text="expense ? 'Expense' : 'Income'"
-                        :class="expense ? 'text-primary' : 'text-secondary'"></span>
+                        :class="expense ? 'text-secondary' : 'text-primary'"></span>
                 </div>
 
                 <label class="input input-ghost font-semibold text-2xl"
-                    :class="expense ? 'text-primary' : 'text-secondary'">
+                    :class="expense ? 'text-secondary' : 'text-primary'">
                     <span class="label">₱</span>
                     <input id="amount" type="text" wire:model="amount" placeholder="0.00"step="0.01" required
                         autocomplete="amount" />
                 </label>
             </div>
-            <div class="">
-            </div>
         </div>
 
-        <div class="flex flex-row gap-4 mt-5">
+        <div class="flex flex-row gap-4">
 
             <div class="grow">
-                <select id="account_id" wire:model="account_id" class="select select-bordered w-full"
+                <select id="account_id" wire:model="account_id" class="select select-ghost w-full"
                     autocomplete="account">
-                    <option value="">Select an account</option>
+                    <option value="">Account</option>
                     @foreach ($accounts as $account)
                         <option value="{{ $account->id }}">{{ $account->name }}</option>
                     @endforeach
@@ -200,8 +204,8 @@ new #[Layout('layouts.app')] class extends Component {
             </div>
 
             <div class="grow">
-                <select id="category_id" wire:model="category_id" class="select select-bordered w-full">
-                    <option value="1">Select a category</option>
+                <select id="category_id" wire:model="category_id" class="select select-ghost w-full">
+                    <option value="1">Category</option>
                     @if ($type_id == 1)
                         @if ($incomes)
                             @foreach ($incomes as $income)
@@ -228,12 +232,24 @@ new #[Layout('layouts.app')] class extends Component {
 
         <!-- Description -->
         <div class="form-control">
-            <label class="label" for="description">
-                <span class="label-text">Note</span>
+            <label class="label mb-2" for="description">
+                <span class="label-text text-sm">Description</span>
             </label>
             <textarea id="description" wire:model="description" placeholder="..." class="textarea textarea-bordered w-full"
                 autocomplete="description"></textarea>
             @error('description')
+                <span class="text-error">{{ $message }}</span>
+            @enderror
+        </div>
+
+        <!-- Image Upload -->
+        <div class="form-control">
+            <label class="label mb-2" for="image">
+                <span class="label-text text-sm">Attach Image</span>
+            </label>
+            <input id="image" type="file" wire:model="image" class="file-input file-input-bordered w-full"
+                accept="image/*" />
+            @error('image')
                 <span class="text-error">{{ $message }}</span>
             @enderror
         </div>
@@ -243,23 +259,10 @@ new #[Layout('layouts.app')] class extends Component {
             <livewire:components.tag-manager :initialSelectedTags="$selectedTags" wire:key="tag-manager" />
         </div>
 
-        <!-- Image Upload -->
-        <div class="form-control">
-            <label class="label" for="image">
-                <span class="label-text">Receipt Image (Optional)</span>
-                <span class="label-text-alt">Max 2MB</span>
-            </label>
-            <input id="image" type="file" wire:model="image" class="file-input file-input-bordered w-full"
-                accept="image/*" />
-            <div class="text-xs text-base-content/70 mt-1">Upload a photo of your receipt for this transaction</div>
-            @error('image')
-                <span class="text-error">{{ $message }}</span>
-            @enderror
-        </div>
 
         <!-- Submit Button -->
         <div class="form-control">
-            <button type="submit" class="btn btn-primary w-full">Save</button>
+            <button type="submit" class="btn btn-primary w-full" @click="$wire.type_id = expense">Save</button>
         </div>
     </form>
 </section>
