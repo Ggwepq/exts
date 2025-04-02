@@ -62,7 +62,7 @@ new #[Layout('layouts.app')] class extends Component {
                 } elseif ($date->isYesterday()) {
                     return 'Yesterday';
                 } else {
-                    return $date->format('F j, Y'); // Example: March 30, 2025
+                    return $date->format('F j, Y');
                 }
             })
             ->all();
@@ -166,7 +166,7 @@ new #[Layout('layouts.app')] class extends Component {
                                     <div class="flex flex-row md:items-center w-full">
                                         <!-- Transaction Name -->
                                         <div
-                                            class="w-1/3 truncate font-bold text-md mb-1.5 mr-2 group-hover:text-primary transition-colors duration-200">
+                                            class="w-1/3 truncate font-bold text-md mb-1.5 mr-2  transition-colors duration-200 {{ $transaction->types->name == 'Expense' ? 'group-hover:text-secondary' : 'group-hover:text-primary' }}">
                                             {{ $transaction->name }}
                                         </div>
 
