@@ -3,19 +3,18 @@
 namespace App\Livewire\Components;
 
 use App\Models\Tag;
-use Livewire\Component;
-use Livewire\Attributes\Validate;
 use Illuminate\Support\Collection;
+use Livewire\Component;
 
 class TagManager extends Component
 {
     public $selectedTags = [];
-    public $availableTags;
-    public $searchQuery = '';
-    public $isEditing = false;
 
-    #[Validate('required|string|min:2|max:50')]
-    public $newTagName = '';
+    public $availableTags;
+
+    public $searchQuery = '';
+
+    public $isEditing = false;
 
     public function mount($initialSelectedTags = [], $isEditing = false)
     {
@@ -63,43 +62,36 @@ class TagManager extends Component
 
     protected function updateParentTags()
     {
-        // Only update the parent's tag selection state
         $this->dispatch('update-selected-tags', tags: $this->selectedTags);
     }
 
     public function createTag()
     {
-        $this->validate();
+        $this->validate([
+            'searchQuery' => 'required|string|min:2|max:50',
+        ]);
 
-        // First check if tag already exists
-        $tag = Tag::firstOrCreate(
-            ['name' => trim($this->newTagName)]
-        );
+        $tagName = trim($this->searchQuery);
 
-        if (!in_array($tag->id, $this->selectedTags)) {
+        $tag = Tag::firstOrCreate(['name' => $tagName]);
+
+        if (! in_array($tag->id, $this->selectedTags)) {
             $this->selectedTags[] = $tag->id;
             $this->updateParentTags();
         }
 
+        $this->searchQuery = '';
         $this->loadAvailableTags();
-        $this->newTagName = ''; // Reset input field
-        $this->searchQuery = ''; // Reset search query
     }
 
     public function deleteTag($tagId)
     {
-        // First remove it from selected tags if it's there
         if (in_array($tagId, $this->selectedTags)) {
             $this->removeTag($tagId);
         }
-        
-        // First delete all transaction_tags relationships
+
         \App\Models\TransactionTags::where('tag_id', $tagId)->delete();
-        
-        // Delete the tag from database
         Tag::where('id', $tagId)->delete();
-        
-        // Reload available tags
         $this->loadAvailableTags();
     }
 

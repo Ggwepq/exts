@@ -19,12 +19,12 @@
 
 <body class="font-roboto antialiased">
 
-    <div class="drawer lg:drawer-open" x-data="{ 
+    <div class="drawer lg:drawer-open" x-data="{
         detailSidebarOpen: false,
         init() {
             // Restore sidebar state from localStorage if exists
             this.detailSidebarOpen = localStorage.getItem('detailSidebarOpen') === 'true';
-            
+
             // Save state to localStorage when it changes
             this.$watch('detailSidebarOpen', (value) => {
                 localStorage.setItem('detailSidebarOpen', value);
