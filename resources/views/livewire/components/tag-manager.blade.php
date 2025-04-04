@@ -7,9 +7,10 @@
     <div class="form-control">
         <div class="relative w-full">
             <input type="text" wire:model.live.debounce.300ms="searchQuery" placeholder="Search or create tags..."
-                class="input input-bordered input-sm w-full pr-12" wire:keydown.enter.prevent="createTag" />
-            <button type="button" class="btn btn-primary btn-sm absolute right-0 top-0 h-full rounded-l-none"
-                wire:click.prevent="createTag">
+                :class="expense ? 'input-secondary' : 'input-primary'" class="input input-bordered input-sm w-full pr-12"
+                wire:keydown.enter.prevent="createTag" />
+            <button type="button" class="btn btn-sm absolute right-0 top-0 h-full rounded-l-none"
+                :class="expense ? 'btn-secondary' : 'btn-primary'" wire:click.prevent="createTag">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -52,9 +53,13 @@
                 @foreach ($filteredTags as $tag)
                     <div class="flex items-center gap-0.5 group">
                         <button type="button" wire:click.prevent="toggleTag({{ $tag->id }})"
-                            class="badge badge-sm h-6 border {{ in_array($tag->id, $selectedTags)
-                                ? 'bg-primary hover:bg-primary-focus text-primary-content border-primary-focus'
-                                : 'bg-base-200 hover:bg-base-300 text-base-content border-base-300' }}">
+                            x-data="{ selectedTags: @js($selectedTags), tagId: {{ $tag->id }} }"
+                            class="badge badge-sm h-6 border {{ !in_array($tag->id, $selectedTags) ? 'bg-base-200 hover:bg-base-300 text-base-content border-base-300' : '' }}"
+                            :class="selectedTags.includes(tagId) ?
+                                (expense ?
+                                    'bg-secondary hover:bg-secondary-focus text-secondary-content border-secondary-focus' :
+                                    'bg-primary hover:bg-primary-focus text-primary-content border-primary-focus') :
+                                ''">
                             {{ $tag->name }}
                         </button>
                         <button type="button" wire:click="deleteTag({{ $tag->id }})"

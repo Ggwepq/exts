@@ -252,11 +252,12 @@ new #[Layout('layouts.app')] class extends Component {
             <div class="flex flex-col gap-3">
                 <div class="flex items-center gap-2 mb-2">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor" class="size-4 text-base-content/70">
+                        :class="expense ? 'text-secondary' : 'text-primary'" stroke="currentColor"
+                        class="size-4 text-base-content/70">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                     </svg>
-                    <span class="text-sm font-semibold">
+                    <span class="text-sm font-semibold " :class="expense ? 'text-secondary' : 'text-primary'">
                         {{ \Carbon\Carbon::parse($transaction->created_at)->format('F j, Y') }}
                     </span>
                 </div>
@@ -332,7 +333,7 @@ new #[Layout('layouts.app')] class extends Component {
                 <span class="label-text text-sm">Description</span>
             </label>
             <textarea id="description" wire:model="description" placeholder="..." class="textarea textarea-bordered w-full"
-                autocomplete="description"></textarea>
+                :class="expense ? 'textarea-secondary' : 'textarea-primary'" autocomplete="description"></textarea>
             @error('description')
                 <span class="text-error">{{ $message }}</span>
             @enderror
