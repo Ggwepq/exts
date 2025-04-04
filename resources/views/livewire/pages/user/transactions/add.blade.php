@@ -47,7 +47,6 @@ new #[Layout('layouts.app')] class extends Component {
 
     public function save()
     {
-        dd($this);
         $this->validate();
 
         if ($this->type_id == 2) {
@@ -270,7 +269,7 @@ new #[Layout('layouts.app')] class extends Component {
 
         <!-- Submit Button -->
         <div class="form-control">
-            <button type="submit" class="btn w-full" @click="$wire.type_id = expense"
+            <button type="submit" class="btn w-full" @click="$wire.type_id = expense; expense = true"
                 :class="expense ? 'btn-secondary' : 'btn-primary'">Save</button>
         </div>
     </form>

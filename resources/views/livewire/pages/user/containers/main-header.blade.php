@@ -15,12 +15,15 @@ new class extends Component {
 <div class="navbar sticky z-40">
     <!-- Content -->
     <div class="flex-1">
-        @if ($component)
-            @livewire($component)
-        @else
-            <div class="h-full flex items-center justify-center">
-                <span class="loading loading-spinner loading-md text-primary"></span>
-            </div>
-        @endif
+
+        <div class="bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-5 shadow-md">
+            @if ($component)
+                @livewire($component)
+            @else
+                <div class="h-full flex items-center justify-center">
+                    <span class="loading loading-spinner loading-md text-primary"></span>
+                </div>
+            @endif
+        </div>
     </div>
 </div>

@@ -113,7 +113,7 @@ new #[Layout('layouts.app')] class extends Component {
 <section x-data="{ detailSidebarOpen: false }" x-cloak>
     <!-- Main Content with Animated Margin -->
     <div class="transition-all duration-300 ease-in-out" :class="{ 'md:mr-[23rem]': detailSidebarOpen }">
-        @livewire('pages.user.containers.main-header', ['component' => 'pages.user.transactions.header'])
+        @livewire('pages.user.containers.main-header', ['component' => 'pages.user.transactions.header', 'header' => 'Transactions'])
 
         <div class="flex-1 overflow-y-auto md:pt-4 pt-4 px-6 bg-base-200">
             <div class="card w-full p-6 bg-base-100 shadow-xl mt-2">
@@ -147,7 +147,7 @@ new #[Layout('layouts.app')] class extends Component {
                                     @click="$dispatch('showSidebar', {operation: 'edit', page: 'Transaction', component: 'pages.user.transactions.edit', modelId: {{ $transaction->id }}}); detailSidebarOpen = true;">
                                     <!-- Red for Expense, Green for Income -->
 
-                                    <div class="flex flex-row md:items-center w-full">
+                                    <div class="flex flex-row md:items-center w-full grow">
                                         <!-- Transaction Name -->
                                         <div
                                             class="w-1/3 truncate font-bold text-md mb-1.5 mr-2  transition-colors duration-200 {{ $transaction->types->name == 'Expense' ? 'group-hover:text-secondary' : 'group-hover:text-primary' }}">
@@ -155,7 +155,7 @@ new #[Layout('layouts.app')] class extends Component {
                                         </div>
 
                                         <!-- Account Name -->
-                                        <div class="w-1/3 truncate uppercase font-semibold ">
+                                        <div class="w-1/3 truncate uppercase font-semibold hidden md:flex">
                                             <span
                                                 class="text-xs badge badge-lg badge-outline {{ $transaction->types->name == 'Expense' ? 'badge-secondary text-white' : 'badge-primary text-white' }}">
                                                 {{ $transaction->accounts->name }}
@@ -163,10 +163,10 @@ new #[Layout('layouts.app')] class extends Component {
                                         </div>
 
                                         <!-- Amount -->
-                                        <div class="w-1/3 flex-shrink-0 text-right">
+                                        <div class="w-1/3 flex-shrink-0 text-right grow">
                                             <span
                                                 class="text-xs uppercase font-semibold badge badge-lg {{ $transaction->types->name == 'Expense' ? 'badge-secondary text-white' : 'badge-primary text-white' }}">
-                                                {{ $transaction->types->name == 'Expense' ? '-₱' : '+₱' }}{{ number_format($transaction->amount, 3) }}
+                                                {{ $transaction->types->name == 'Expense' ? '-₱' : '+₱' }}{{ number_format($transaction->amount, 2) }}
                                             </span>
                                         </div>
                                     </div>

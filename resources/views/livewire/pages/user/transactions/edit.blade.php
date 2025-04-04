@@ -268,14 +268,14 @@ new #[Layout('layouts.app')] class extends Component {
             </div>
             <div class="flex flex-col gap-3">
                 <div>
-                    <input type="checkbox"{{ $type_id == 1 ? "checked='checked'" : '' }} wire:model.live="type_id"
+                    <input type="checkbox" {{ $type_id == 1 ? "checked='checked'" : '' }} wire:model.live="type_id"
                         class="toggle border-secondary bg-secondary checked:bg-primary checked:text-primary checked:border-primary"
                         @click="expense = !expense; console.log(expense)" />
                     <span x-text="expense ? 'Expense' : 'Income'"
                         :class="expense ? 'text-secondary' : 'text-primary'"></span>
                 </div>
 
-                <label class="input input-ghost font-semibold text-2xl"
+                <label class="input input-ghost font-semibold text-xl"
                     :class="expense ? 'text-secondary' : 'text-primary'">
                     <span class="label">₱</span>
                     <input id="amount" type="text" wire:model="amount" placeholder="0.00"step="0.01" required
