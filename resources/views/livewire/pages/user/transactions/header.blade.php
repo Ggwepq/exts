@@ -62,7 +62,7 @@ new class extends Component {
             <div class="flex gap-2 items-center">
                 <!-- Filter Button -->
                 <div class="dropdown"
-                    :class="detailSidebarOpen ? 'dropdown-end md:dropdown-end' : 'dropdown-end md:dropdown-center'"
+                    :class="detailSidebarOpen ? 'dropdown-start md:dropdown-end' : 'dropdown-start md:dropdown-center'"
                     x-data="{ expense: false, income: false }">
                     <label tabindex="0"
                         class="btn btn-ghost btn-sm bg-base-100 hover:bg-base-200 border border-base-300 shadow-sm"
