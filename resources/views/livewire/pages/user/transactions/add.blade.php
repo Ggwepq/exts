@@ -53,7 +53,7 @@ new #[Layout('layouts.app')] class extends Component {
         if ($this->type_id == 2) {
             $account = Account::find($this->account_id);
             if ($account->balance < $this->amount) {
-                session()->flash('error', 'Insufficient Balance. Available balance: ₱' . number_format($account->balance, 2));
+                Toaster::error('Insufficient Account Balance');
                 return;
             }
         }

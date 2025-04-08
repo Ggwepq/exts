@@ -101,7 +101,7 @@ new #[Layout('layouts.app')] class extends Component {
             } else {
                 // Handle the edge case - set to zero or minimum allowed balance
                 $account->balance = 0;
-                session()->flash('warning', 'Account balance was set to 0 as it would have gone negative.');
+                Toaster::warning('Account balance was set to 0 as it would have gone negative.');
             }
         } else {
             // Expense - add the amount back
@@ -149,7 +149,7 @@ new #[Layout('layouts.app')] class extends Component {
             }
 
             if ($accountBalance < $this->amount) {
-                session()->flash('error', 'Insufficient Balance');
+                Toaster::error('Insufficient Account Balance');
                 return;
             }
         }
