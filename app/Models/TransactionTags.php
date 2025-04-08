@@ -6,13 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class TransactionTags extends Model
 {
-    public function tags()
+    protected $fillable = ['transaction_id', 'tag_id'];
+    
+    public function tag()
     {
-        return $this->hasMany(Tag::class);
+        return $this->belongsTo(Tag::class);
     }
 
-    public function transactions()
+    public function transaction()
     {
-        return $this->hasOne(Transaction::class, 'transaction_id');
+        return $this->belongsTo(Transaction::class);
     }
 }

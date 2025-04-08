@@ -7,10 +7,20 @@ use App\Models\Account;
 use App\Models\TransactionCategory;
 use App\Models\Type;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
+use Livewire\Attributes\On;
+use Carbon\Carbon;
+use Masmerise\Toaster\Toaster;
 
 new #[Layout('layouts.app')] class extends Component {
     use WithFileUploads;
+
+    public $accounts;
+    public $expenses;
+    public $incomes;
+    public $selectedTags = [];
 
     #[Validate('required|string|max:255')]
     public $name;
@@ -33,55 +43,80 @@ new #[Layout('layouts.app')] class extends Component {
     #[Validate('nullable|exists:transaction_categories,id')]
     public $recurring_id;
 
-    #[Validate('required|exists:types,id')]
+    #[Validate('required')]
     public $type_id;
 
     public function save()
     {
         $this->validate();
 
-        // Handle file upload if an image is provided
-        $imagePath = $this->image ? $this->image->store('img/transactions', 'public') : null;
+        if ($this->type_id == 2) {
+            $account = Account::find($this->account_id);
+            if ($account->balance < $this->amount) {
+                Toaster::error('Insufficient Account Balance');
+                return;
+            }
+        }
 
-        $transaction = Transaction::create([
-            'user_id' => Auth::id(),
-            'account_id' => $this->account_id,
-            'category_id' => $this->category_id == null ? 1 : $this->category_id,
-            'recurring_id' => $this->recurring_id,
-            'type_id' => $this->type_id,
-            'name' => $this->name,
-            'description' => $this->description,
-            'amount' => $this->amount,
-            'image_url' => $imagePath,
-            'created_at' => Carbon\Carbon::now(),
-            'updated_at' => Carbon\Carbon::now(),
-        ]);
+        DB::transaction(function () {
+            $imagePath = $this->image ? $this->image->store('img/transactions', 'local') : null;
 
-        // Updates the Account
-        $account = Account::find($transaction->account_id);
-        $account->balance = $transaction->types->name == 'Expense' ? $account->balance - $transaction->amount : $account->balance + $transaction->amount;
-        $account->save();
+            $transaction = Transaction::create([
+                'user_id' => Auth::id(),
+                'account_id' => $this->account_id,
+                'category_id' => $this->category_id == null ? 1 : $this->category_id,
+                'recurring_id' => $this->recurring_id,
+                'type_id' => $this->type_id ? 2 : 1,
+                'name' => $this->name,
+                'description' => $this->description,
+                'amount' => $this->amount,
+                'image_url' => $imagePath,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ]);
+
+            // Attach selected tags to the transaction
+            if (!empty($this->selectedTags)) {
+                $this->transaction->tags()->sync($this->selectedTags);
+            }
+
+            $account = Account::find($transaction->account_id);
+            if ($transaction->types->name == 'Expense') {
+                $account->balance -= $transaction->amount;
+            } else {
+                $account->balance += $transaction->amount;
+            }
+            $account->save();
+        });
 
         // Reset form fields
-        $this->reset(['name', 'description', 'amount', 'image', 'account_id', 'category_id', 'recurring_id', 'type_id']);
+        $this->reset(['name', 'description', 'amount', 'image', 'account_id', 'category_id', 'recurring_id', 'type_id', 'selectedTags']);
 
         // Emit event to refresh transaction list
-        $this->dispatch('transactionCreated');
+        $this->dispatch('transactionUpdate');
+        $this->dispatch('accountUpdate');
 
-        session()->flash('message', 'Transaction created successfully!');
+        Toaster::success('Transaction Created!');
+    }
+
+    public function mount()
+    {
+        $this->accounts = Account::where('user_id', Auth::id())->get();
+        $this->incomes = TransactionCategory::where('user_id', Auth::id())->where('type_id', 1)->get();
+        $this->expenses = TransactionCategory::where('user_id', Auth::id())->where('type_id', 2)->get();
+
+        // Initialize with empty tags array
+        $this->selectedTags = [];
+    }
+
+    #[On('tagsUpdated')]
+    public function updateSelectedTags($tagIds)
+    {
+        $this->selectedTags = $tagIds;
     }
 }; ?>
 
 <section>
-
-    <!-- Close Button -->
-    <div class="flex mb-4">
-        <h3 class="flex-1 text-xl font-bold">New Transaction</h3>
-        <button @click="isOpen = false" class="btn btn-circle btn-ghost btn-sm flex-none">
-            ✕
-        </button>
-    </div>
-
     <!-- Success Message -->
     @if (session()->has('message'))
         <div class="alert alert-soft alert-success mb-4">
@@ -94,117 +129,144 @@ new #[Layout('layouts.app')] class extends Component {
         </div>
     @endif
 
+    <!-- Error Message -->
+    @if (session()->has('error'))
+        <div class="alert alert-soft alert-error mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span> {{ session('error') }}</span>
+        </div>
+    @endif
+
     <!-- Form -->
-    <form wire:submit="save" class="space-y-5">
+    <form wire:submit="save" class="space-y-5" x-data="{ expense: true }">
         <!-- Name -->
-        <div class="form-control">
-            <label class="label" for="name">
-                <span class="label-text">Name</span>
-            </label>
-            <input id="name" type="text" wire:model="name" placeholder="Name"
-                class="input input-bordered w-full" required autocomplete="name" />
-            @error('name')
-                <span class="text-error">{{ $message }}</span>
-            @enderror
+        <div class="flex flex-row items-end mb-5 gap-x-4">
+            <div class="flex flex-col gap-3">
+                <div class="flex items-center gap-2 mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        :class="expense ? 'text-secondary' : 'text-primary'" stroke="currentColor"
+                        class="size-4 text-base-content/70">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                    </svg>
+                    <span class="text-sm font-semibold" :class="expense ? 'text-secondary' : 'text-primary'">
+                        {{ Carbon::now()->format('F j, Y') }}
+                    </span>
+                </div>
+
+                <input id="name" type="text" wire:model="name" placeholder="Name"
+                    :class="expense ? 'text-secondary' : 'text-primary'"
+                    class="input input-ghost input-xl font-bold text-4xl" required autocomplete="name" />
+            </div>
+            <div class="flex flex-col gap-3">
+                <div>
+                    <input type="checkbox" checked="checked" wire:model.live="type_id"
+                        class="toggle border-secondary bg-secondary checked:bg-primary checked:text-primary checked:border-primary"
+                        @click="expense = !expense; console.log(expense)" />
+                    <span x-text="expense ? 'Expense' : 'Income'"
+                        :class="expense ? 'text-secondary' : 'text-primary'"></span>
+                </div>
+
+                <label class="input input-ghost font-semibold text-2xl"
+                    :class="expense ? 'text-secondary' : 'text-primary'">
+                    <span class="label">₱</span>
+                    <input id="amount" type="text" wire:model="amount" placeholder="0.00"step="0.01" required
+                        autocomplete="amount" />
+                </label>
+            </div>
+        </div>
+
+        <div class="flex flex-row gap-4">
+
+            <div class="grow">
+                <select id="account_id" wire:model="account_id" class="select select-ghost w-full text-primary"
+                    :class="expense ? 'text-secondary' : 'text-primary'" autocomplete="account">
+                    <option value="">Account</option>
+                    @foreach ($accounts as $account)
+                        <option value="{{ $account->id }}">{{ $account->name }}</option>
+                    @endforeach
+                </select>
+                @error('account_id')
+                    <span class="text-error">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="grow">
+                <select id="category_id" wire:model="category_id" class="select select-ghost w-full"
+                    :class="expense ? 'text-secondary' : 'text-primary'">
+                    <option value="1">Category</option>
+                    @if ($type_id == 1)
+                        @if ($incomes)
+                            @foreach ($incomes as $income)
+                                @if ($income->name !== 'None')
+                                    <option value="{{ $income->id }}">{{ $income->name }}</option>
+                                @endif
+                            @endforeach
+                        @endif
+                    @else
+                        @if ($expenses)
+                            @foreach ($expenses as $expense)
+                                @if ($expense->name !== 'None')
+                                    <option value="{{ $expense->id }}">{{ $expense->name }}</option>
+                                @endif
+                            @endforeach
+                        @endif
+                    @endif
+                </select>
+                @error('category_id')
+                    <span class="text-error">{{ $message . ' ' . $category_id }}</span>
+                @enderror
+            </div>
         </div>
 
         <!-- Description -->
-        <div class="form-control">
-            <label class="label" for="description">
-                <span class="label-text">Description (Optional)</span>
+        <div class="form-control" :class="expense ? 'text-secondary' : 'text-primary'">
+            <label class="label mb-2" for="description">
+                <span class="label-text text-sm">Description</span>
             </label>
             <textarea id="description" wire:model="description" placeholder="..." class="textarea textarea-bordered w-full"
-                autocomplete="description"></textarea>
+                :class="expense ? 'textarea-secondary' : 'textarea-primary'" autocomplete="description"></textarea>
             @error('description')
                 <span class="text-error">{{ $message }}</span>
             @enderror
         </div>
 
-        <!-- Amount -->
-        <div class="form-control">
-            <label class="input w-full">
-                <span class="label">₱</span>
-                <input id="amount" type="number" wire:model="amount" placeholder="0.00"step="0.01" required
-                    autocomplete="amount" />
-            </label>
-            @error('amount')
-                <span class="text-error">{{ $message }}</span>
-            @enderror
-        </div>
-
-        <!-- Account -->
-        <div class="form-control">
-            <label class="label" for="account_id">
-                <span class="label-text">Account</span>
-            </label>
-            <select id="account_id" wire:model="account_id" class="select select-bordered w-full"
-                autocomplete="account">
-                <option value="">Select an account</option>
-                @foreach (\App\Models\Account::all() as $account)
-                    <option value="{{ $account->id }}">{{ $account->name }}</option>
-                @endforeach
-            </select>
-            @error('account_id')
-                <span class="text-error">{{ $message }}</span>
-            @enderror
-        </div>
-
-        <!-- Type -->
-        <div class="form-control">
-
-            <div class="filter">
-                <input class="btn filter-reset" type="radio" name="metaframeworks" aria-label="All" />
-                <input class="btn checked:bg-secondary " type="radio" wire:model.live="type_id" value="2"
-                    name="metaframeworks" aria-label="Expense" />
-                <input class="btn checked:bg-primary " type="radio" wire:model.live="type_id" value="1"
-                    name="metaframeworks" aria-label="Income" />
-            </div>
-            @error('type_id')
-                <span class="text-error">{{ $message }}</span>
-            @enderror
-        </div>
-
-        <!-- Category -->
-        <div class="form-control">
-            <label class="label" for="category_id">
-                <span class="label-text">Category</span>
-            </label>
-            <select id="category_id" wire:model="category_id" class="select select-bordered w-full">
-                <option>None</option>
-                @if ($type_id == 1)
-                    @foreach (\App\Models\TransactionCategory::where('type_id', $type_id)->get() as $income)
-                        @if ($income->name !== 'None')
-                            <option value="{{ $income->id }}">{{ $income->name }}</option>
-                        @endif
-                    @endforeach
-                @else
-                    @foreach (\App\Models\TransactionCategory::where('type_id', $type_id)->get() as $expense)
-                        @if ($expense->name !== 'None')
-                            <option value="{{ $expense->id }}">{{ $expense->name }}</option>
-                        @endif
-                    @endforeach
-                @endif
-            </select>
-            @error('category_id')
-                <span class="text-error">{{ $message . ' ' . $category_id }}</span>
-            @enderror
-        </div>
-
-
-
-
         <!-- Image Upload -->
-        <div class="form-control">
-            <label class="label" for="image">
-                <span class="label-text">Image (Optional)</span>
+        <div class="form-control" :class="expense ? 'text-secondary' : 'text-primary'">
+            <label class="label mb-2" for="image">
+                <span class="label-text text-sm">Attach Image</span>
+                <span class="loading loading-spinner loading-xs" wire:loading wire:target="image"></span>
             </label>
-            <input id="image" type="file" wire:model="image" class="file-input file-input-bordered w-full" />
+            <input id="image" type="file" wire:model="image" class="file-input file-input-bordered w-full"
+                :class="expense ? 'file-input-secondary' : 'file-input-primary'" accept="image/*" />
             @error('image')
                 <span class="text-error">{{ $message }}</span>
             @enderror
+
+            @if ($image)
+                <div class="avatar mt-2" @click="$dispatch('open-image-viewer', '{{ $image->temporaryUrl() }}')">
+                    <div class="w-10 rounded">
+                        <img src="{{ $image->temporaryUrl() }}" alt="Transaction Image" />
+                    </div>
+                </div>
+            @endif
+
         </div>
 
+        <!-- Tags -->
+        <div class="form-control" :class="expense ? 'text-secondary' : 'text-primary'">
+            <livewire:components.tag-manager :initialSelectedTags="$selectedTags" wire:key="tag-manager" wire:model.live="selectedTags" />
+        </div>
+
+
         <!-- Submit Button -->
-        <button type="submit" class="btn btn-primary w-full">Save Transaction</button>
+        <div class="form-control">
+            <button type="submit" class="btn w-full" @click="$wire.type_id = expense; expense = true"
+                :class="expense ? 'btn-secondary' : 'btn-primary'">Save</button>
+        </div>
     </form>
 </section>

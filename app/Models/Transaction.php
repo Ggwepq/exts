@@ -13,6 +13,11 @@ class Transaction extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function accounts()
+    {
+        return $this->belongsTo(Account::class, 'account_id');
+    }
+
     public function types()
     {
         return $this->belongsTo(Type::class, 'type_id');
@@ -26,6 +31,11 @@ class Transaction extends Model
     public function transactionTags()
     {
         return $this->hasMany(TransactionTags::class);
+    }
+
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'transaction_tags', 'transaction_id', 'tag_id');
     }
 
     public function transactionCategories()

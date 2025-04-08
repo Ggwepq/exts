@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="light">
 
 <head>
     <meta charset="utf-8">
@@ -11,6 +11,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <link rel="icon" type="image/x-icon" href="{{ asset('img/sample-logo.png') }}">
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -18,23 +19,33 @@
 
 <body class="font-roboto antialiased">
 
-    <div class="drawer lg:drawer-open" x-data="{ isOpen: false }">
+    <div class="drawer lg:drawer-open" x-data="{
+        detailSidebarOpen: false,
+        init() {
+            // Restore sidebar state from localStorage if exists
+            this.detailSidebarOpen = localStorage.getItem('detailSidebarOpen') === 'true';
+
+            // Save state to localStorage when it changes
+            this.$watch('detailSidebarOpen', (value) => {
+                localStorage.setItem('detailSidebarOpen', value);
+            });
+        }
+    }">
         <input id="left-sidebar-drawer" type="checkbox" class="drawer-toggle" />
 
         <!-- Page Content -->
         <div class="drawer-content flex flex-col">
-            <livewire:pages.user.containers.main-header />
-
-            <main class="flex-1 overflow-y-auto  bg-base-200">
-
+            <main class="min-h-screen bg-base-200 relative overflow-x-hidden">
                 {{ $slot }}
-                <div class="h-16"></div>
             </main>
         </div>
 
         <!-- Left Sidebar -->
         <livewire:pages.user.containers.sidebar />
+
     </div>
+
+    <x-toaster-hub />
 </body>
 
 </html>
