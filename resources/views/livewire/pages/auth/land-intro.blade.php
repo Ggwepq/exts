@@ -12,8 +12,8 @@ new class extends Component {
             <h1 class='text-3xl text-center font-bold '><img src="{{ asset('img/sample-logo.png') }}"
                     class="w-12 inline-block mr-2 mask mask-circle" alt="dashwind-logo" />GastaBaby</h1>
 
-            <div class="text-center mt-12"><img src="{{ asset('img/ets-illustration.png') }}" alt="Expense Tracker System"
-                    class="w-54 inline-block"></img></div>
+            <div class="text-center mt-12 hidden md:flex"><img src="{{ asset('img/ets-illustration.png') }}"
+                    alt="Expense Tracker System" class="w-54 inline-block"></img></div>
 
         </div>
     </div>

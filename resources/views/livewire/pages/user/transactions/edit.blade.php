@@ -12,6 +12,7 @@ use App\Models\Type;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Livewire\Actions\User\Balance;
+use Masmerise\Toaster\Toaster;
 
 new #[Layout('layouts.app')] class extends Component {
     use WithFileUploads;
@@ -42,7 +43,7 @@ new #[Layout('layouts.app')] class extends Component {
     #[Validate('nullable|exists:transaction_categories,id')]
     public $recurring_id;
 
-    #[Validate('required|exists:types,id')]
+    #[Validate('required')]
     public $type_id;
 
     public $accounts;
@@ -54,14 +55,20 @@ new #[Layout('layouts.app')] class extends Component {
         $transaction = Transaction::with('tags')->findOrFail($modelId);
         $this->transaction = $transaction;
         $this->oldTransaction = $transaction;
-        $this->name = $transaction->name;
-        $this->description = $transaction->description;
-        $this->amount = $transaction->amount;
-        $this->account_id = $transaction->account_id;
-        $this->category_id = $transaction->category_id;
-        $this->type_id = $transaction->type_id;
-        $this->image = $transaction->image;
-        $this->selectedTags = $transaction->tags->pluck('id')->toArray();
+
+        $this->reloadTransaction();
+    }
+
+    public function reloadTransaction()
+    {
+        $this->name = $this->transaction->name;
+        $this->description = $this->transaction->description;
+        $this->amount = $this->transaction->amount;
+        $this->account_id = $this->transaction->account_id;
+        $this->category_id = $this->transaction->category_id;
+        $this->type_id = $this->transaction->type_id;
+        $this->image = $this->transaction->image;
+        $this->selectedTags = $this->transaction->tags->pluck('id')->toArray();
 
         $this->dropdowns();
     }
@@ -94,7 +101,7 @@ new #[Layout('layouts.app')] class extends Component {
             } else {
                 // Handle the edge case - set to zero or minimum allowed balance
                 $account->balance = 0;
-                session()->flash('warning', 'Account balance was set to 0 as it would have gone negative.');
+                Toaster::warning('Account balance was set to 0 as it would have gone negative.');
             }
         } else {
             // Expense - add the amount back
@@ -109,7 +116,7 @@ new #[Layout('layouts.app')] class extends Component {
         $this->dispatch('transactionUpdate');
         $this->dispatch('accountUpdate');
 
-        session()->flash('message', 'Transaction deleted successfully!');
+        Toaster::success('Transaction Deleted!');
     }
 
     #[On('update-selected-tags')]
@@ -122,6 +129,7 @@ new #[Layout('layouts.app')] class extends Component {
     public function save()
     {
         $oldTransaction = $this->transaction;
+
         $this->validate();
 
         if ($this->account_id != $this->oldTransaction->account_id) {
@@ -141,7 +149,7 @@ new #[Layout('layouts.app')] class extends Component {
             }
 
             if ($accountBalance < $this->amount) {
-                session()->flash('error', 'Insufficient Balance');
+                Toaster::error('Insufficient Account Balance');
                 return;
             }
         }
@@ -154,13 +162,15 @@ new #[Layout('layouts.app')] class extends Component {
                 'account_id' => $currentAccount->id,
                 'category_id' => $this->category_id == null ? 1 : $this->category_id,
                 'recurring_id' => $this->recurring_id,
-                'type_id' => $this->type_id,
+                'type_id' => $this->type_id ? 2 : 1,
                 'name' => $this->name,
                 'description' => $this->description,
                 'amount' => $this->amount,
                 'image_url' => $imagePath,
                 'updated_at' => now(),
             ]);
+
+            Toaster::success('Transaction Updated!');
 
             // Sync tags only when explicitly saving
             $this->transaction->tags()->sync($this->selectedTags);
@@ -210,11 +220,9 @@ new #[Layout('layouts.app')] class extends Component {
             }
         });
 
-        $this->oldTransaction = $this->transaction;
+        $this->reloadTransaction();
         $this->dispatch('transactionUpdate');
         $this->dispatch('accountUpdate');
-
-        session()->flash('message', 'Transaction Edited Successfully!');
     }
 };
 
@@ -252,11 +260,12 @@ new #[Layout('layouts.app')] class extends Component {
             <div class="flex flex-col gap-3">
                 <div class="flex items-center gap-2 mb-2">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor" class="size-4 text-base-content/70">
+                        :class="expense ? 'text-secondary' : 'text-primary'" stroke="currentColor"
+                        class="size-4 text-base-content/70">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                     </svg>
-                    <span class="text-sm font-semibold">
+                    <span class="text-sm font-semibold " :class="expense ? 'text-secondary' : 'text-primary'">
                         {{ \Carbon\Carbon::parse($transaction->created_at)->format('F j, Y') }}
                     </span>
                 </div>
@@ -267,14 +276,14 @@ new #[Layout('layouts.app')] class extends Component {
             </div>
             <div class="flex flex-col gap-3">
                 <div>
-                    <input type="checkbox"{{ $type_id == 1 ? "checked='checked'" : '' }} wire:model.live="type_id"
+                    <input type="checkbox" {{ $type_id == 1 ? "checked='checked'" : '' }} wire:model.live="type_id"
                         class="toggle border-secondary bg-secondary checked:bg-primary checked:text-primary checked:border-primary"
                         @click="expense = !expense; console.log(expense)" />
                     <span x-text="expense ? 'Expense' : 'Income'"
                         :class="expense ? 'text-secondary' : 'text-primary'"></span>
                 </div>
 
-                <label class="input input-ghost font-semibold text-2xl"
+                <label class="input input-ghost font-semibold text-xl"
                     :class="expense ? 'text-secondary' : 'text-primary'">
                     <span class="label">₱</span>
                     <input id="amount" type="text" wire:model="amount" placeholder="0.00"step="0.01" required
@@ -332,7 +341,7 @@ new #[Layout('layouts.app')] class extends Component {
                 <span class="label-text text-sm">Description</span>
             </label>
             <textarea id="description" wire:model="description" placeholder="..." class="textarea textarea-bordered w-full"
-                autocomplete="description"></textarea>
+                :class="expense ? 'textarea-secondary' : 'textarea-primary'" autocomplete="description"></textarea>
             @error('description')
                 <span class="text-error">{{ $message }}</span>
             @enderror
