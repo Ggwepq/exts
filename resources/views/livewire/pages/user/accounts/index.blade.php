@@ -80,7 +80,7 @@ new class extends Component {
 
                     <ul class="list bg-base-100 rounded-box space-y-4">
                         @foreach ($accounts as $categoryName => $records)
-                            <li
+                            <li @click="Toaster.success('CLiekceddasdf')"
                                 class="bg-base-200/50 text-sm font-medium py-2 px-4 rounded-lg mb-2 sticky top-0 z-10 backdrop-blur-sm shadow-sm">
                                 <div class="flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"

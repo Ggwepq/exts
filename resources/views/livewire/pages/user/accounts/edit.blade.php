@@ -10,6 +10,7 @@ use App\Models\Type;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Volt\Component;
+use Masmerise\Toaster\Toaster;
 
 new #[Layout('layouts.app')] class extends Component {
     use WithFileUploads;
@@ -70,7 +71,7 @@ new #[Layout('layouts.app')] class extends Component {
         // Emit event to refresh transaction list
         $this->dispatch('accountUpdate');
 
-        session()->flash('message', 'Account Edited Successfully!');
+        Toaster::success('Account Updated!');
     }
 
     public function delete()

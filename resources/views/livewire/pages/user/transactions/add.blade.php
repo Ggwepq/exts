@@ -12,6 +12,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 use Livewire\Attributes\On;
 use Carbon\Carbon;
+use Masmerise\Toaster\Toaster;
 
 new #[Layout('layouts.app')] class extends Component {
     use WithFileUploads;
@@ -95,7 +96,7 @@ new #[Layout('layouts.app')] class extends Component {
         $this->dispatch('transactionUpdate');
         $this->dispatch('accountUpdate');
 
-        session()->flash('message', 'Transaction created successfully!');
+        Toaster::success('Transaction Created!');
     }
 
     public function mount()

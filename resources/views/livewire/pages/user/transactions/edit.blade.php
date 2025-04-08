@@ -12,6 +12,7 @@ use App\Models\Type;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Livewire\Actions\User\Balance;
+use Masmerise\Toaster\Toaster;
 
 new #[Layout('layouts.app')] class extends Component {
     use WithFileUploads;
@@ -42,7 +43,7 @@ new #[Layout('layouts.app')] class extends Component {
     #[Validate('nullable|exists:transaction_categories,id')]
     public $recurring_id;
 
-    #[Validate('required|exists:types,id')]
+    #[Validate('required')]
     public $type_id;
 
     public $accounts;
@@ -54,14 +55,20 @@ new #[Layout('layouts.app')] class extends Component {
         $transaction = Transaction::with('tags')->findOrFail($modelId);
         $this->transaction = $transaction;
         $this->oldTransaction = $transaction;
-        $this->name = $transaction->name;
-        $this->description = $transaction->description;
-        $this->amount = $transaction->amount;
-        $this->account_id = $transaction->account_id;
-        $this->category_id = $transaction->category_id;
-        $this->type_id = $transaction->type_id;
-        $this->image = $transaction->image;
-        $this->selectedTags = $transaction->tags->pluck('id')->toArray();
+
+        $this->reloadTransaction();
+    }
+
+    public function reloadTransaction()
+    {
+        $this->name = $this->transaction->name;
+        $this->description = $this->transaction->description;
+        $this->amount = $this->transaction->amount;
+        $this->account_id = $this->transaction->account_id;
+        $this->category_id = $this->transaction->category_id;
+        $this->type_id = $this->transaction->type_id;
+        $this->image = $this->transaction->image;
+        $this->selectedTags = $this->transaction->tags->pluck('id')->toArray();
 
         $this->dropdowns();
     }
@@ -109,7 +116,7 @@ new #[Layout('layouts.app')] class extends Component {
         $this->dispatch('transactionUpdate');
         $this->dispatch('accountUpdate');
 
-        session()->flash('message', 'Transaction deleted successfully!');
+        Toaster::success('Transaction Deleted!');
     }
 
     #[On('update-selected-tags')]
@@ -122,6 +129,7 @@ new #[Layout('layouts.app')] class extends Component {
     public function save()
     {
         $oldTransaction = $this->transaction;
+
         $this->validate();
 
         if ($this->account_id != $this->oldTransaction->account_id) {
@@ -154,13 +162,15 @@ new #[Layout('layouts.app')] class extends Component {
                 'account_id' => $currentAccount->id,
                 'category_id' => $this->category_id == null ? 1 : $this->category_id,
                 'recurring_id' => $this->recurring_id,
-                'type_id' => $this->type_id,
+                'type_id' => $this->type_id ? 2 : 1,
                 'name' => $this->name,
                 'description' => $this->description,
                 'amount' => $this->amount,
                 'image_url' => $imagePath,
                 'updated_at' => now(),
             ]);
+
+            Toaster::success('Transaction Updated!');
 
             // Sync tags only when explicitly saving
             $this->transaction->tags()->sync($this->selectedTags);
@@ -210,11 +220,9 @@ new #[Layout('layouts.app')] class extends Component {
             }
         });
 
-        $this->oldTransaction = $this->transaction;
+        $this->reloadTransaction();
         $this->dispatch('transactionUpdate');
         $this->dispatch('accountUpdate');
-
-        session()->flash('message', 'Transaction Edited Successfully!');
     }
 };
 

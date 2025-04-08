@@ -82,10 +82,10 @@ new #[Layout('layouts.app')] class extends Component {
             // Emit event to refresh transaction list
             $this->dispatch('accountUpdate');
 
-            session()->flash('message', 'Account created successfully!');
+            Toaster::success('Account Created!');
         } catch (\Exception $e) {
             DB::rollBack();
-            session()->flash('error', 'Failed to create account: ' . $e->getMessage());
+            Toaster::error('Account Creation Failed!');
         }
     }
 
