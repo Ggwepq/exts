@@ -93,11 +93,6 @@ new #[Layout('layouts.app')] class extends Component {
     {
         $this->categories = AccountCategory::where('user_id', Auth::id())->get();
     }
-
-    public function placeholder()
-    {
-        return view('livewire.pages.user.components.placeholders.details-placeholder');
-    }
 }; ?>
 
 <section>

@@ -20,6 +20,9 @@ new #[Layout('layouts.app')] class extends Component {
     public Transaction $transaction;
     public Transaction $oldTransaction;
     public Balance $balance;
+    public $accounts;
+    public $incomes;
+    public $expenses;
     public $selectedTags = [];
 
     #[Validate('required|string|max:255')]
@@ -45,10 +48,6 @@ new #[Layout('layouts.app')] class extends Component {
 
     #[Validate('required')]
     public $type_id;
-
-    public $accounts;
-    public $incomes;
-    public $expenses;
 
     public function mount(?int $modelId = null)
     {
@@ -78,11 +77,6 @@ new #[Layout('layouts.app')] class extends Component {
         $this->accounts = Account::where('user_id', Auth::id())->get();
         $this->incomes = TransactionCategory::where('user_id', Auth::id())->where('type_id', 1)->get();
         $this->expenses = TransactionCategory::where('user_id', Auth::id())->where('type_id', 2)->get();
-    }
-
-    public function placeholder()
-    {
-        return view('livewire.pages.user.components.placeholders.details-placeholder');
     }
 
     public function delete()
@@ -222,7 +216,6 @@ new #[Layout('layouts.app')] class extends Component {
 
         $this->reloadTransaction();
         $this->dispatch('transactionUpdate');
-        $this->dispatch('accountUpdate');
     }
 };
 

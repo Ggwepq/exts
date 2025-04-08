@@ -103,11 +103,6 @@ new #[Layout('layouts.app')] class extends Component {
 
         $this->loadTransactions();
     }
-
-    public function placeholder()
-    {
-        return view('livewire.pages.user.components.placeholders.placeholder');
-    }
 }; ?>
 
 <section x-data="{ detailSidebarOpen: false }" x-cloak>
