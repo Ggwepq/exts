@@ -43,6 +43,8 @@
         <!-- Left Sidebar -->
         <livewire:pages.user.containers.sidebar />
     </div>
+
+    <x-toaster-hub />
 </body>
 
 </html>
