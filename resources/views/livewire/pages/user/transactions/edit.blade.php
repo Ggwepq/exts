@@ -80,11 +80,6 @@ new #[Layout('layouts.app')] class extends Component {
         $this->expenses = TransactionCategory::where('user_id', Auth::id())->where('type_id', 2)->get();
     }
 
-    public function placeholder()
-    {
-        return view('livewire.pages.user.components.placeholders.details-placeholder');
-    }
-
     public function delete()
     {
         // Get the transaction details before deleting

@@ -114,11 +114,6 @@ new #[Layout('layouts.app')] class extends Component {
     {
         $this->selectedTags = $tagIds;
     }
-
-    public function placeholder()
-    {
-        return view('livewire.pages.user.components.details-placeholder');
-    }
 }; ?>
 
 <section>

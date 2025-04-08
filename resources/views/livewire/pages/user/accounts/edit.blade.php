@@ -79,11 +79,6 @@ new #[Layout('layouts.app')] class extends Component {
         $this->account->delete();
         $this->dispatch('accountUpdate');
     }
-
-    public function placeholder()
-    {
-        return view('livewire.pages.user.components.placeholders.details-placeholder');
-    }
 }; ?>
 <section>
     <!-- Success Message -->

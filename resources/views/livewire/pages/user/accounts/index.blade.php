@@ -47,11 +47,6 @@ new class extends Component {
         $income = Auth::user()->transactions->where('type_id', 1)->sum('amount');
         $total = $expense . '/' . $income;
     }
-
-    public function placeholder()
-    {
-        return view('livewire.pages.user.components.placeholders.placeholder');
-    }
 }; ?>
 
 <section>
