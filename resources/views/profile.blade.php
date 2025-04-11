@@ -18,7 +18,12 @@
                                 <path d="M1799 349l242 241-1017 1017L7 590l242-241 775 775 775-775z"></path>
                             </svg>
                         </div>
-                        <ul tabindex="0" class="dropdown-content bg-base-300 rounded-box z-1 w-52 p-2 shadow-2xl">
+                        <ul tabindex="0" class="dropdown-content bg-base-300 rounded-box z-1 w-52 p-2 shadow-2xl max-h-80 overflow-y-auto">
+                            <li>
+                                <input type="radio" name="theme-dropdown"
+                                    class="theme-controller w-full btn btn-sm btn-block btn-ghost justify-start"
+                                    aria-label="Dark" value="dark" />
+                            </li>
                             <li>
                                 <input type="radio" name="theme-dropdown"
                                     class="theme-controller w-full btn btn-sm btn-block btn-ghost justify-start"
@@ -43,6 +48,31 @@
                                 <input type="radio" name="theme-dropdown"
                                     class="theme-controller w-full btn btn-sm btn-block btn-ghost justify-start"
                                     aria-label="Aqua" value="aqua" />
+                            </li>
+                            <li>
+                                <input type="radio" name="theme-dropdown"
+                                    class="theme-controller w-full btn btn-sm btn-block btn-ghost justify-start"
+                                    aria-label="Night" value="night" />
+                            </li>
+                            <li>
+                                <input type="radio" name="theme-dropdown"
+                                    class="theme-controller w-full btn btn-sm btn-block btn-ghost justify-start"
+                                    aria-label="Coffee" value="coffee" />
+                            </li>
+                            <li>
+                                <input type="radio" name="theme-dropdown"
+                                    class="theme-controller w-full btn btn-sm btn-block btn-ghost justify-start"
+                                    aria-label="Synthwave" value="synthwave" />
+                            </li>
+                            <li>
+                                <input type="radio" name="theme-dropdown"
+                                    class="theme-controller w-full btn btn-sm btn-block btn-ghost justify-start"
+                                    aria-label="Forest" value="forest" />
+                            </li>
+                            <li>
+                                <input type="radio" name="theme-dropdown"
+                                    class="theme-controller w-full btn btn-sm btn-block btn-ghost justify-start"
+                                    aria-label="Luxury" value="luxury" />
                             </li>
                         </ul>
                     </div>
