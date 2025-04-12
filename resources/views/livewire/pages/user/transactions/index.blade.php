@@ -13,6 +13,7 @@ new #[Layout('layouts.app')] class extends Component {
         'account_id' => '',
         'date_from' => '',
         'date_to' => '',
+        'search' => '',
     ];
     public $accounts;
 
@@ -49,6 +50,18 @@ new #[Layout('layouts.app')] class extends Component {
 
         if (!empty($this->filters['date_to'])) {
             $query->whereDate('created_at', '<=', $this->filters['date_to']);
+        }
+
+        // Apply search filter
+        if (!empty($this->filters['search'])) {
+            $searchTerm = '%' . $this->filters['search'] . '%';
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('name', 'like', $searchTerm)
+                  ->orWhere('description', 'like', $searchTerm)
+                  ->orWhereHas('tags', function($tagQuery) use ($searchTerm) {
+                      $tagQuery->where('name', 'like', $searchTerm);
+                  });
+            });
         }
 
         $this->transactions = $query
@@ -99,6 +112,7 @@ new #[Layout('layouts.app')] class extends Component {
             'account_id' => '',
             'date_from' => '',
             'date_to' => '',
+            'search' => '',
         ];
 
         $this->loadTransactions();
@@ -176,14 +190,32 @@ new #[Layout('layouts.app')] class extends Component {
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                         </svg>
-                        <span class="text-base-content/60 text-lg font-medium mb-1">No transactions found</span>
-                        <p class="text-base-content/40 text-sm mb-4">Start adding your transactions to track your
-                            finances</p>
+                        <span class="text-base-content/60 text-lg font-medium mb-1">
+                            @if (!empty($filters['search']))
+                                No transactions found matching your search.
+                            @else
+                                No transactions found
+                            @endif
+                        </span>
+                        <p class="text-base-content/40 text-sm mb-4">
+                            @if (!empty($filters['search']) || !empty($filters['types']) || !empty($filters['account_id']) || !empty($filters['date_from']) || !empty($filters['date_to']))
+                                Try adjusting your filters or search criteria
+                            @else
+                                Start adding your transactions to track your finances
+                            @endif
+                        </p>
                         @if (
+                            (!empty($filters['search']) && (empty($filters['types']) && 
+                                empty($filters['account_id']) && 
+                                empty($filters['date_from']) && 
+                                empty($filters['date_to']))))
+                            <!-- No button for search-only filtering -->
+                        @elseif (
                             !empty($filters['types']) ||
                                 !empty($filters['account_id']) ||
                                 !empty($filters['date_from']) ||
-                                !empty($filters['date_to']))
+                                !empty($filters['date_to']) ||
+                                !empty($filters['search']))
                             <button class="btn btn-sm btn-outline btn-primary mt-2" wire:click="resetFilters">
                                 Clear filters
                             </button>

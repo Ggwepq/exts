@@ -11,6 +11,7 @@ new class extends Component {
         'account_id' => '',
         'date_from' => '',
         'date_to' => '',
+        'search' => '',
     ];
 
     public function mount($filters = null)
@@ -33,6 +34,7 @@ new class extends Component {
             'account_id' => '',
             'date_from' => '',
             'date_to' => '',
+            'search' => '',
         ];
         $this->dispatch('filters-updated', $this->filters);
     }
@@ -59,6 +61,21 @@ new class extends Component {
 
     <div class="flex-none">
         <div class="flex gap-2 items-center">
+            <!-- Search Bar -->
+            <div class="form-control mr-2 relative">
+                <input 
+                    type="text" 
+                    placeholder="Search transactions..." 
+                    class="input input-sm input-bordered w-full md:w-48 lg:w-64 pr-10"
+                    wire:model.live.debounce.300ms="filters.search" 
+                />
+                <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+            </div>
+            
             <div class="flex gap-2 items-center">
                 <!-- Filter Button -->
                 <div class="dropdown"
@@ -75,7 +92,7 @@ new class extends Component {
                         <div :class="detailSidebarOpen ? 'hidden' : ''">
                             <span>Filters</span>
                             <span class="badge badge-primary badge-xs ml-1">
-                                {{ count($filters['types']) + ($filters['account_id'] ? 1 : 0) + ($filters['date_from'] ? 1 : 0) + ($filters['date_to'] ? 1 : 0) }}
+                                {{ count($filters['types']) + ($filters['account_id'] ? 1 : 0) + ($filters['date_from'] ? 1 : 0) + ($filters['date_to'] ? 1 : 0) + ($filters['search'] ? 1 : 0) }}
                             </span>
                         </div>
                     </label>
