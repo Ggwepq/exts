@@ -19,20 +19,4 @@ export default {
     },
 
     plugins: [require("daisyui"), forms],
-    daisyui: {
-        themes: [
-            "light", 
-            "dark", 
-            "default", 
-            "retro", 
-            "cyberpunk", 
-            "valentine", 
-            "aqua", 
-            "night", 
-            "coffee", 
-            "synthwave", 
-            "forest", 
-            "luxury"
-        ],
-    },
 };

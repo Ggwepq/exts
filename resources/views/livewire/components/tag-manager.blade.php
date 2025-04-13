@@ -32,7 +32,7 @@
                             'bg-secondary hover:bg-secondary-focus text-secondary-content border-secondary-focus'">
                         {{ $tag->name }}
                         <button type="button" wire:click.prevent="removeTag({{ $tag->id }})"
-                            class="hover:text-white">
+                            class="hover:text-base-content">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
