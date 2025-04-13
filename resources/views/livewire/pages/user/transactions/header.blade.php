@@ -60,23 +60,11 @@ new class extends Component {
     </div>
 
     <div class="flex-none">
-        <div class="flex gap-2 items-center">
-            <!-- Search Bar -->
-            <div class="form-control mr-2 relative">
-                <input 
-                    type="text" 
-                    placeholder="Search transactions..." 
-                    class="input input-sm input-bordered w-full md:w-48 lg:w-64 pr-10"
-                    wire:model.live.debounce.300ms="filters.search" 
-                />
-                <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                </div>
-            </div>
-            
-            <div class="flex gap-2 items-center">
+
+        <div class="flex gap-2 items-center" x-data="{ showSearchBar: false }">
+
+            <div class="gap-2 items-center"
+                :class="showSearchBar && (detailSidebarOpen && showSearchBar) ? 'hidden' : 'flex '">
                 <!-- Filter Button -->
                 <div class="dropdown"
                     :class="detailSidebarOpen ? 'dropdown-start md:dropdown-end' : 'dropdown-start md:dropdown-center'"
@@ -151,13 +139,40 @@ new class extends Component {
 
                 <!-- Add Button -->
                 <label class="btn btn-primary btn-sm shadow-md" x-transition
-                    @click="detailSidebarOpen = true; $dispatch('showSidebar', {operation: 'create', page: 'Transaction', component: 'pages.user.transactions.add', modelId: 12})">
+                    @click="detailSidebarOpen = true; $dispatch('showSidebar', {operation: 'create', page: 'Transaction', component: 'pages.user.transactions.add', modelId: 12}), showSearchBar = false">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-4 mr-1">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
                     <span :class="detailSidebarOpen ? 'hidden' : ''">New</span>
                 </label>
+            </div>
+
+            <div>
+                <!-- Search Bar -->
+                <label class="input" x-show="showSearchBar" @click.away="showSearchBar = false">
+                    <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none"
+                            stroke="currentColor">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.3-4.3"></path>
+                        </g>
+                    </svg>
+                    <input type="text" placeholder="Search transactions..."
+                        wire:model.live.debounce.300ms="filters.search" />
+                    <kbd class="kbd kbd-sm">⌘</kbd>
+                    <kbd class="kbd kbd-sm">K</kbd>
+                </label>
+
+                <div class="flex" @click="showSearchBar = true" x-show="!showSearchBar">
+                    <label class="btn btn-primary btn-sm shadow-md" x-transition>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-5">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                        </svg>
+                    </label>
+                </div>
             </div>
         </div>
     </div>
