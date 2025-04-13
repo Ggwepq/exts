@@ -55,12 +55,12 @@ new #[Layout('layouts.app')] class extends Component {
         // Apply search filter
         if (!empty($this->filters['search'])) {
             $searchTerm = '%' . $this->filters['search'] . '%';
-            $query->where(function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
                 $q->where('name', 'like', $searchTerm)
-                  ->orWhere('description', 'like', $searchTerm)
-                  ->orWhereHas('tags', function($tagQuery) use ($searchTerm) {
-                      $tagQuery->where('name', 'like', $searchTerm);
-                  });
+                    ->orWhere('description', 'like', $searchTerm)
+                    ->orWhereHas('tags', function ($tagQuery) use ($searchTerm) {
+                        $tagQuery->where('name', 'like', $searchTerm);
+                    });
             });
         }
 
@@ -159,14 +159,14 @@ new #[Layout('layouts.app')] class extends Component {
                                     <div class="flex flex-row md:items-center w-full grow">
                                         <!-- Transaction Name -->
                                         <div
-                                            class="w-1/3 truncate font-bold text-md mb-1.5 mr-2  transition-colors duration-200 {{ $transaction->types->name == 'Expense' ? 'group-hover:text-secondary' : 'group-hover:text-primary' }}">
+                                            class="w-1/3 truncate font-bold text-md mb-1.5 mr-2 text-base-content transition-colors duration-200 {{ $transaction->types->name == 'Expense' ? 'group-hover:text-secondary' : 'group-hover:text-primary' }}">
                                             {{ $transaction->name }}
                                         </div>
 
                                         <!-- Account Name -->
                                         <div class="w-1/3 truncate uppercase font-semibold hidden md:flex">
                                             <span
-                                                class="text-xs badge badge-lg badge-outline {{ $transaction->types->name == 'Expense' ? 'badge-secondary text-white' : 'badge-primary text-white' }}">
+                                                class="text-xs badge badge-lg badge-outline {{ $transaction->types->name == 'Expense' ? 'badge-secondary' : 'badge-primary' }}">
                                                 {{ $transaction->accounts->name }}
                                             </span>
                                         </div>
@@ -174,7 +174,7 @@ new #[Layout('layouts.app')] class extends Component {
                                         <!-- Amount -->
                                         <div class="w-1/3 flex-shrink-0 text-right grow">
                                             <span
-                                                class="text-xs uppercase font-semibold badge badge-lg {{ $transaction->types->name == 'Expense' ? 'badge-secondary text-white' : 'badge-primary text-white' }}">
+                                                class="text-xs uppercase font-semibold badge badge-lg {{ $transaction->types->name == 'Expense' ? 'badge-secondary ' : 'badge-primary ' }}">
                                                 {{ $transaction->types->name == 'Expense' ? '-₱' : '+₱' }}{{ number_format($transaction->amount, 2) }}
                                             </span>
                                         </div>
@@ -198,17 +198,23 @@ new #[Layout('layouts.app')] class extends Component {
                             @endif
                         </span>
                         <p class="text-base-content/40 text-sm mb-4">
-                            @if (!empty($filters['search']) || !empty($filters['types']) || !empty($filters['account_id']) || !empty($filters['date_from']) || !empty($filters['date_to']))
+                            @if (
+                                !empty($filters['search']) ||
+                                    !empty($filters['types']) ||
+                                    !empty($filters['account_id']) ||
+                                    !empty($filters['date_from']) ||
+                                    !empty($filters['date_to']))
                                 Try adjusting your filters or search criteria
                             @else
                                 Start adding your transactions to track your finances
                             @endif
                         </p>
                         @if (
-                            (!empty($filters['search']) && (empty($filters['types']) && 
-                                empty($filters['account_id']) && 
-                                empty($filters['date_from']) && 
-                                empty($filters['date_to']))))
+                            !empty($filters['search']) &&
+                                (empty($filters['types']) &&
+                                    empty($filters['account_id']) &&
+                                    empty($filters['date_from']) &&
+                                    empty($filters['date_to'])))
                             <!-- No button for search-only filtering -->
                         @elseif (
                             !empty($filters['types']) ||
