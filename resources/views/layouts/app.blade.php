@@ -11,6 +11,7 @@
     <!-- Apply theme immediately to prevent flash -->
     <script>
         (function() {
+            // This is not a guest page since we're using app.blade.php
             const savedTheme = localStorage.getItem('theme') || 'default';
             document.documentElement.setAttribute('data-theme', savedTheme);
             

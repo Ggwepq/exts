@@ -14,6 +14,10 @@ new #[Layout('layouts.app')] class extends Component {
         'date_from' => '',
         'date_to' => '',
         'search' => '',
+        'sort' => [
+            'field' => 'created_at',
+            'direction' => 'DESC'
+        ]
     ];
     public $accounts;
 
@@ -64,10 +68,25 @@ new #[Layout('layouts.app')] class extends Component {
             });
         }
 
-        $this->transactions = $query
-            ->orderBy('created_at', 'DESC')
-            ->get()
-            ->groupBy(function ($transaction) {
+        // Always apply database-level sorting
+        if (isset($this->filters['sort'])) {
+            $query->orderBy($this->filters['sort']['field'], $this->filters['sort']['direction']);
+        } else {
+            $query->orderBy('created_at', 'DESC');
+        }
+
+        // Get all transactions with proper sorting
+        $transactions = $query->get();
+
+        // If sorting by amount, create a flat list of transactions
+        if (isset($this->filters['sort']) && $this->filters['sort']['field'] === 'amount') {
+            // Just create a simple array with date keys for display
+            $this->transactions = [
+                'Transactions Sorted by Amount' => $transactions
+            ];
+        } else {
+            // Standard date grouping for other sorts
+            $this->transactions = $transactions->groupBy(function ($transaction) {
                 $date = \Carbon\Carbon::parse($transaction->created_at);
 
                 if ($date->isToday()) {
@@ -77,8 +96,8 @@ new #[Layout('layouts.app')] class extends Component {
                 } else {
                     return $date->format('F j, Y');
                 }
-            })
-            ->all();
+            })->all();
+        }
 
         // Dispatch account update to make sure account balances are refreshed
         $this->dispatch('accountUpdate');
@@ -91,6 +110,19 @@ new #[Layout('layouts.app')] class extends Component {
     public function updateFilters($filters)
     {
         $this->filters = $filters;
+        $this->loadTransactions();
+    }
+
+    /**
+     * Sort transactions by the given field and direction
+     */
+    #[On('sort-updated')]
+    public function updateSort($field, $direction)
+    {
+        $this->filters['sort'] = [
+            'field' => $field,
+            'direction' => $direction
+        ];
         $this->loadTransactions();
     }
 
@@ -113,6 +145,10 @@ new #[Layout('layouts.app')] class extends Component {
             'date_from' => '',
             'date_to' => '',
             'search' => '',
+            'sort' => [
+                'field' => 'created_at',
+                'direction' => 'DESC'
+            ]
         ];
 
         $this->loadTransactions();
@@ -131,19 +167,34 @@ new #[Layout('layouts.app')] class extends Component {
                     <ul class="list bg-base-100 rounded-box space-y-4">
                         @foreach ($transactions as $date => $record)
                             @php
-                                $totalIncome = $record->where('types.name', 'Income')->sum('amount');
-                                $totalExpense = $record->where('types.name', 'Expense')->sum('amount');
+                                // Calculate totals differently if we're looking at amount sorting special case
+                                if ($date === 'Transactions Sorted by Amount') {
+                                    $totalIncome = $record->where('types.name', 'Income')->sum('amount');
+                                    $totalExpense = $record->where('types.name', 'Expense')->sum('amount');
+                                } else {
+                                    $totalIncome = $record->where('types.name', 'Income')->sum('amount');
+                                    $totalExpense = $record->where('types.name', 'Expense')->sum('amount');
+                                }
                             @endphp
 
                             <li
                                 class="bg-base-300/50 text-sm font-medium py-2 px-4 rounded-lg mb-2 sticky top-0 z-10 backdrop-blur-sm shadow-sm flex justify-between">
                                 <div class="flex items-center gap-2">
+                                    @if ($date === 'Transactions Sorted by Amount')
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor" class="size-4 text-base-content/70">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Amount Sorted {{ isset($filters['sort']) && $filters['sort']['direction'] === 'ASC' ? '(Low to High)' : '(High to Low)' }}
+                                    @else
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                         stroke-width="1.5" stroke="currentColor" class="size-4 text-base-content/70">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                                     </svg>
                                     {{ $date }}
+                                    @endif
                                 </div>
                                 <div class="text-right text-xs font-semibold">
                                     <span class="text-primary">+₱{{ number_format($totalIncome, 2) }}</span>
