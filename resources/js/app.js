@@ -3,6 +3,13 @@ import "./livewire-toaster";
 
 // Apply theme immediately on page load
 function applyTheme() {
+    // Skip theme application on guest pages (login/register)
+    if (document.documentElement.hasAttribute('data-theme') && 
+        document.documentElement.getAttribute('data-theme') === 'default' &&
+        !document.querySelector('.drawer')) {
+        return; // Skip theming on login/register pages
+    }
+    
     const savedTheme = localStorage.getItem('theme') || 'default';
     document.documentElement.setAttribute('data-theme', savedTheme);
     
@@ -19,6 +26,13 @@ applyTheme();
 
 // Theme Controller Implementation
 function initializeTheme() {
+    // Skip theme application on guest pages (login/register)
+    if (document.documentElement.hasAttribute('data-theme') && 
+        document.documentElement.getAttribute('data-theme') === 'default' &&
+        !document.querySelector('.drawer')) {
+        return; // Skip theming on login/register pages
+    }
+    
     // Get theme from localStorage or use default
     const savedTheme = localStorage.getItem('theme') || 'default';
     
