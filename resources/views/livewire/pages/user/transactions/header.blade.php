@@ -105,10 +105,10 @@ new class extends Component {
     </div>
 
     <div class="flex-none">
-        <!-- Main action buttons container with search functionality -->
-        <div x-data="{ isSearchOpen: false }" class="flex items-center gap-2">
-            <!-- Dynamic button container that adjusts based on search state -->
-            <div class="flex items-center gap-2 transition-all duration-300" :class="{ 'hidden md:flex': isSearchOpen }">
+        <div class="flex gap-2 items-center" x-data="{ showSearchBar: false }">
+            <div class="gap-2 items-center"
+                :class="showSearchBar && (detailSidebarOpen && showSearchBar) ? 'hidden' : 'flex'">
+                
                 <!-- Sort Button -->
                 <div class="dropdown dropdown-start md:dropdown-center">
                     <label tabindex="0"
@@ -262,7 +262,7 @@ new class extends Component {
 
                 <!-- Add Button -->
                 <label class="btn btn-sm shadow-md bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0" x-transition
-                    @click="detailSidebarOpen = true; $dispatch('showSidebar', {operation: 'create', page: 'Transaction', component: 'pages.user.transactions.add', modelId: 12})">
+                    @click="detailSidebarOpen = true; $dispatch('showSidebar', {operation: 'create', page: 'Transaction', component: 'pages.user.transactions.add', modelId: 12}), showSearchBar = false">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-4 mr-1">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -272,46 +272,30 @@ new class extends Component {
             </div>
 
             <!-- Search Component -->
-            <div class="relative flex items-center gap-2">
-                <!-- Search Button (visible when search is closed) -->
-                <button 
-                    @click="isSearchOpen = !isSearchOpen" 
-                    class="btn btn-sm bg-sky-100 hover:bg-sky-200 text-sky-700 border border-sky-300 shadow-sm"
-                    :class="{ 'hidden': isSearchOpen }"
-                    aria-label="Search">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" 
-                        stroke="currentColor" class="size-5 text-sky-600">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+            <div>
+                <!-- Search Bar -->
+                <label class="input" x-show="showSearchBar" @click.away="showSearchBar = false">
+                    <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none"
+                            stroke="currentColor">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.3-4.3"></path>
+                        </g>
                     </svg>
-                </button>
-                
-                <!-- Expanded Search Container (visible when search is open) -->
-                <div 
-                    x-show="isSearchOpen" 
-                    x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 scale-95"
-                    x-transition:enter-end="opacity-100 scale-100"
-                    x-transition:leave="transition ease-in duration-150"
-                    x-transition:leave-start="opacity-100 scale-100"
-                    x-transition:leave-end="opacity-0 scale-95"
-                    class="flex items-center w-full">
-                    <input 
-                        type="text" 
-                        placeholder="Search transactions..." 
-                        class="input input-sm input-bordered rounded-r-none w-full border-sky-300 focus:border-sky-400 focus:ring focus:ring-sky-200"
-                        wire:model.live.debounce.300ms="filters.search" 
-                        @keydown.escape="isSearchOpen = false"
-                        x-ref="searchInput"
-                        x-init="$watch('isSearchOpen', value => { if(value) $nextTick(() => $refs.searchInput.focus()) })"
-                    />
-                    <button 
-                        @click="isSearchOpen = false" 
-                        class="btn btn-sm bg-sky-100 hover:bg-sky-200 text-sky-700 border border-l-0 border-sky-300 rounded-l-none">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" 
-                            stroke="currentColor" class="size-5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    <input type="text" placeholder="Search transactions..."
+                        wire:model.live.debounce.300ms="filters.search" />
+                    <kbd class="kbd kbd-sm">⌘</kbd>
+                    <kbd class="kbd kbd-sm">K</kbd>
+                </label>
+
+                <div class="flex" @click="showSearchBar = true" x-show="!showSearchBar">
+                    <label class="btn btn-sm bg-sky-100 hover:bg-sky-200 text-sky-700 border border-sky-300 shadow-sm" x-transition>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-5 text-sky-600">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                         </svg>
-                    </button>
+                    </label>
                 </div>
             </div>
         </div>

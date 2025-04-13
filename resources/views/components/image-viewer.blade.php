@@ -145,7 +145,7 @@
             <!-- Usage instructions (optional) -->
             @if ($withInstructions)
                 <div
-                    class="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-white text-xs bg-base-300 bg-opacity-50 px-3 py-1 rounded-full">
+                    class="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-base-content text-xs bg-base-300 bg-opacity-50 px-3 py-1 rounded-full">
                     Double-click to zoom • Click and drag to pan • Use buttons to control
                 </div>
             @endif

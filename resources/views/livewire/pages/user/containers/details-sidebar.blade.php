@@ -11,13 +11,25 @@ new #[Layout('layouts.app')] class extends Component {
     public string $component = '';
     public mixed $modelId = null;
 
+    public string $oldComponent = '';
+
     #[On('showSidebar')]
     public function open(string $operation, string $page, string $component = '', ?int $modelId = null): void
     {
+        $this->oldComponent = $component;
         $this->operation = $operation;
         $this->page = $page;
         $this->component = $component;
         $this->modelId = $modelId;
+    }
+
+    public function compare($component)
+    {
+        if ($this->oldComponent != $component) {
+            return true;
+        }
+
+        return false;
     }
 };
 

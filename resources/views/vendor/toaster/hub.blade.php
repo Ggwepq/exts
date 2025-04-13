@@ -23,7 +23,7 @@
                 'relative duration-300 transform transition ease-in-out max-w-xs w-full pointer-events-auto',
                 'text-center' => $position->is('center'),
             ])
-            :class="toast.select({ error: 'text-white', info: 'text-black', success: 'text-white', warning: 'text-white' })"
+            :class="toast.select({ error: 'text-base-content', info: 'text-black', success: 'text-base-content', warning: 'text-base-content' })"
             >
             <i class="inline-block select-none not-italic px-6 py-3 rounded shadow-lg text-sm w-full {{ $alignment->is('bottom') ? 'mt-3' : 'mb-3' }}"
                 :class="toast.select({
