@@ -190,7 +190,7 @@ new #[Layout('layouts.app')] class extends Component {
             <div class="card w-full p-6 bg-base-100 shadow-xl mt-2">
 
                 @if (count($transactions))
-                    <ul class="list bg-base-100 rounded-box space-y-4">
+                    <ul class="list bg-base-100 space-y-4">
                         @foreach ($transactions as $date => $record)
                             @php
                                 if ($date === 'Transactions Sorted by Amount') {
@@ -203,7 +203,7 @@ new #[Layout('layouts.app')] class extends Component {
                             @endphp
 
                             <li
-                                class="bg-base-200 text-sm font-medium py-2 px-4 rounded-lg mb-2 sticky top-0 z-10 backdrop-blur-sm shadow-sm flex justify-between">
+                                class="bg-base-200 text-sm font-medium py-2 px-4 mb-2 sticky top-0 z-10 backdrop-blur-sm shadow-sm flex justify-between">
                                 <div class="flex items-center gap-2">
                                     @if ($date === 'Transactions Sorted by Amount')
                                         @if ($filters['sort'] && $filters['sort']['direction'] == 'ASC')
@@ -238,7 +238,7 @@ new #[Layout('layouts.app')] class extends Component {
                             </li>
 
                             @foreach ($record as $transaction)
-                                <li class="group list-row hover:bg-base-200 flex items-center justify-between w-full px-5 py-4 border border-base-200 rounded-xl mb-3 mx-0.5 transition-all duration-200 hover:shadow-md cursor-pointer"
+                                <li class="group list-row hover:bg-base-200 flex items-center justify-between w-full px-5 py-4 border border-base-200 mb-3 mx-0.5 transition-all duration-200 hover:shadow-md cursor-pointer"
                                     @click="$dispatch('showSidebar', {operation: 'edit', page: 'Transaction', component: 'pages.user.transactions.edit', modelId: {{ $transaction->id }}}); detailSidebarOpen = true;">
                                     <!-- Red for Expense, Green for Income -->
 
@@ -270,7 +270,7 @@ new #[Layout('layouts.app')] class extends Component {
                         @endforeach
                     </ul>
                 @else
-                    <div class="flex flex-col items-center justify-center p-10 bg-base-200/30 rounded-xl">
+                    <div class="flex flex-col items-center justify-center p-10 bg-base-200/30 ">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-16 text-base-300 mb-3">
                             <path stroke-linecap="round" stroke-linejoin="round"

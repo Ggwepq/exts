@@ -120,7 +120,7 @@ new class extends Component {
 <div class="flex flex-col md:items-center justify-between gap-4 md:flex-row">
     <div class="flex items-center gap-3">
         @livewire('pages.user.components.sidebar-button')
-        <div class="bg-primary/20 p-3 rounded-lg hidden md:flex">
+        <div class="bg-primary/20 p-3 hidden md:flex">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                 stroke="currentColor" class="size-8 text-primary">
                 <path stroke-linecap="round" stroke-linejoin="round"
