@@ -84,6 +84,20 @@ new #[Layout('layouts.app')] class extends Component {
                         case 'monthly':
                             return $date->format('F Y'); // April 2025
 
+                        case 'weekly':
+                            $startOfWeek = $date->copy()->startOfWeek(); // Monday of that week
+                            $startOfYear = $startOfWeek->copy()->startOfYear();
+
+                            // dd($startOfWeek, $nextMonth, $startOfMonth);
+
+                            // Count week number from the month the week STARTS in
+                            $weekNumber = intval($startOfYear->diffInWeeks($startOfWeek)) + 1;
+
+                            $yearLabel = $startOfYear->format('Y');
+                            $weekLabel = $this->ordinal($weekNumber) . ' Week';
+
+                            return "{$weekLabel} of {$yearLabel} (" . $startOfWeek->format('M j') . ')';
+
                         case 'daily':
                         default:
                             if ($date->isToday()) {
@@ -99,6 +113,21 @@ new #[Layout('layouts.app')] class extends Component {
         }
 
         $this->dispatch('accountUpdate');
+    }
+
+    public function ordinal($number)
+    {
+        if (!in_array($number % 100, [11, 12, 13])) {
+            switch ($number % 10) {
+                case 1:
+                    return $number . 'st';
+                case 2:
+                    return $number . 'nd';
+                case 3:
+                    return $number . 'rd';
+            }
+        }
+        return $number . 'th';
     }
 
     /**
@@ -164,18 +193,17 @@ new #[Layout('layouts.app')] class extends Component {
                     <ul class="list bg-base-100 rounded-box space-y-4">
                         @foreach ($transactions as $date => $record)
                             @php
-                                // Calculate totals differently if we're looking at amount sorting special case
-if ($date === 'Transactions Sorted by Amount') {
-    $totalIncome = $record->where('types.name', 'Income')->sum('amount');
-    $totalExpense = $record->where('types.name', 'Expense')->sum('amount');
-} else {
-    $totalIncome = $record->where('types.name', 'Income')->sum('amount');
-    $totalExpense = $record->where('types.name', 'Expense')->sum('amount');
+                                if ($date === 'Transactions Sorted by Amount') {
+                                    $totalIncome = $record->where('types.name', 'Income')->sum('amount');
+                                    $totalExpense = $record->where('types.name', 'Expense')->sum('amount');
+                                } else {
+                                    $totalIncome = $record->where('types.name', 'Income')->sum('amount');
+                                    $totalExpense = $record->where('types.name', 'Expense')->sum('amount');
                                 }
                             @endphp
 
                             <li
-                                class="bg-base-300/50 text-sm font-medium py-2 px-4 rounded-lg mb-2 sticky top-0 z-10 backdrop-blur-sm shadow-sm flex justify-between">
+                                class="bg-base-200 text-sm font-medium py-2 px-4 rounded-lg mb-2 sticky top-0 z-10 backdrop-blur-sm shadow-sm flex justify-between">
                                 <div class="flex items-center gap-2">
                                     @if ($date === 'Transactions Sorted by Amount')
                                         @if ($filters['sort'] && $filters['sort']['direction'] == 'ASC')
