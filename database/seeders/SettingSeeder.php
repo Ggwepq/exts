@@ -45,7 +45,7 @@ class SettingSeeder extends Seeder
                 'name' => 'valentine',
             ],
             [
-                'name' => 'hallooween',
+                'name' => 'halloween',
             ],
             [
                 'name' => 'garden',

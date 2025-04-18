@@ -5,19 +5,19 @@ use Livewire\Attributes\Layout;
 use App\Models\Account;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 new #[Layout('layouts.app')] class extends Component {
     public $transactions;
     public $filters = [
         'types' => [],
-        'account_id' => '',
-        'date_from' => '',
-        'date_to' => '',
+        'account_id' => [],
+        'date_mode' => '',
         'search' => '',
         'sort' => [
             'field' => 'created_at',
-            'direction' => 'DESC'
-        ]
+            'direction' => 'DESC',
+        ],
     ];
     public $accounts;
 
@@ -44,19 +44,10 @@ new #[Layout('layouts.app')] class extends Component {
 
         // Apply account filter
         if (!empty($this->filters['account_id'])) {
-            $query->where('account_id', $this->filters['account_id']);
+            $query->whereIn('account_id', $this->filters['account_id']);
         }
 
-        // Apply date range filter
-        if (!empty($this->filters['date_from'])) {
-            $query->whereDate('created_at', '>=', $this->filters['date_from']);
-        }
-
-        if (!empty($this->filters['date_to'])) {
-            $query->whereDate('created_at', '<=', $this->filters['date_to']);
-        }
-
-        // Apply search filter
+        // Search
         if (!empty($this->filters['search'])) {
             $searchTerm = '%' . $this->filters['search'] . '%';
             $query->where(function ($q) use ($searchTerm) {
@@ -68,39 +59,75 @@ new #[Layout('layouts.app')] class extends Component {
             });
         }
 
-        // Always apply database-level sorting
+        // Sorting
         if (isset($this->filters['sort'])) {
             $query->orderBy($this->filters['sort']['field'], $this->filters['sort']['direction']);
         } else {
             $query->orderBy('created_at', 'DESC');
         }
 
-        // Get all transactions with proper sorting
         $transactions = $query->get();
 
-        // If sorting by amount, create a flat list of transactions
         if (isset($this->filters['sort']) && $this->filters['sort']['field'] === 'amount') {
-            // Just create a simple array with date keys for display
             $this->transactions = [
-                'Transactions Sorted by Amount' => $transactions
+                'Transactions Sorted by Amount' => $transactions,
             ];
         } else {
-            // Standard date grouping for other sorts
-            $this->transactions = $transactions->groupBy(function ($transaction) {
-                $date = \Carbon\Carbon::parse($transaction->created_at);
+            $this->transactions = $transactions
+                ->groupBy(function ($transaction) {
+                    $date = Carbon::parse($transaction->created_at);
 
-                if ($date->isToday()) {
-                    return 'Today';
-                } elseif ($date->isYesterday()) {
-                    return 'Yesterday';
-                } else {
-                    return $date->format('F j, Y');
-                }
-            })->all();
+                    switch ($this->filters['date_mode']) {
+                        case 'yearly':
+                            return $date->format('Y'); // 2025
+
+                        case 'monthly':
+                            return $date->format('F Y'); // April 2025
+
+                        case 'weekly':
+                            $startOfWeek = $date->copy()->startOfWeek(); // Monday of that week
+                            $startOfYear = $startOfWeek->copy()->startOfYear();
+
+                            // dd($startOfWeek, $nextMonth, $startOfMonth);
+
+                            // Count week number from the month the week STARTS in
+                            $weekNumber = intval($startOfYear->diffInWeeks($startOfWeek)) + 1;
+
+                            $yearLabel = $startOfYear->format('Y');
+                            $weekLabel = $this->ordinal($weekNumber) . ' Week';
+
+                            return "{$weekLabel} of {$yearLabel} (" . $startOfWeek->format('M j') . ')';
+
+                        case 'daily':
+                        default:
+                            if ($date->isToday()) {
+                                return 'Today';
+                            } elseif ($date->isYesterday()) {
+                                return 'Yesterday';
+                            } else {
+                                return $date->format('F j, Y'); // April 14, 2025
+                            }
+                    }
+                })
+                ->all();
         }
 
-        // Dispatch account update to make sure account balances are refreshed
         $this->dispatch('accountUpdate');
+    }
+
+    public function ordinal($number)
+    {
+        if (!in_array($number % 100, [11, 12, 13])) {
+            switch ($number % 10) {
+                case 1:
+                    return $number . 'st';
+                case 2:
+                    return $number . 'nd';
+                case 3:
+                    return $number . 'rd';
+            }
+        }
+        return $number . 'th';
     }
 
     /**
@@ -121,7 +148,7 @@ new #[Layout('layouts.app')] class extends Component {
     {
         $this->filters['sort'] = [
             'field' => $field,
-            'direction' => $direction
+            'direction' => $direction,
         ];
         $this->loadTransactions();
     }
@@ -142,13 +169,12 @@ new #[Layout('layouts.app')] class extends Component {
         $this->filters = [
             'types' => [],
             'account_id' => '',
-            'date_from' => '',
-            'date_to' => '',
+            'date_mode' => '',
             'search' => '',
             'sort' => [
                 'field' => 'created_at',
-                'direction' => 'DESC'
-            ]
+                'direction' => 'DESC',
+            ],
         ];
 
         $this->loadTransactions();
@@ -164,10 +190,9 @@ new #[Layout('layouts.app')] class extends Component {
             <div class="card w-full p-6 bg-base-100 shadow-xl mt-2">
 
                 @if (count($transactions))
-                    <ul class="list bg-base-100 rounded-box space-y-4">
+                    <ul class="list bg-base-100 space-y-4">
                         @foreach ($transactions as $date => $record)
                             @php
-                                // Calculate totals differently if we're looking at amount sorting special case
                                 if ($date === 'Transactions Sorted by Amount') {
                                     $totalIncome = $record->where('types.name', 'Income')->sum('amount');
                                     $totalExpense = $record->where('types.name', 'Expense')->sum('amount');
@@ -178,22 +203,32 @@ new #[Layout('layouts.app')] class extends Component {
                             @endphp
 
                             <li
-                                class="bg-base-300/50 text-sm font-medium py-2 px-4 rounded-lg mb-2 sticky top-0 z-10 backdrop-blur-sm shadow-sm flex justify-between">
+                                class="bg-base-200 text-sm font-medium py-2 px-4 mb-2 sticky top-0 z-10 backdrop-blur-sm shadow-sm flex justify-between">
                                 <div class="flex items-center gap-2">
                                     @if ($date === 'Transactions Sorted by Amount')
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                        stroke-width="1.5" stroke="currentColor" class="size-4 text-base-content/70">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    Amount Sorted {{ isset($filters['sort']) && $filters['sort']['direction'] === 'ASC' ? '(Low to High)' : '(High to Low)' }}
+                                        @if ($filters['sort'] && $filters['sort']['direction'] == 'ASC')
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                stroke-width="1.5" stroke="currentColor" class="size-6">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+                                            </svg>
+                                            Amount (Low to High)
+                                        @else
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                stroke-width="1.5" stroke="currentColor" class="size-6">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                            </svg>
+                                            Amount (High to Low)
+                                        @endif
                                     @else
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                        stroke-width="1.5" stroke="currentColor" class="size-4 text-base-content/70">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                                    </svg>
-                                    {{ $date }}
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor"
+                                            class="size-4 text-base-content/70">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                                        </svg>
+                                        {{ $date }}
                                     @endif
                                 </div>
                                 <div class="text-right text-xs font-semibold">
@@ -203,7 +238,7 @@ new #[Layout('layouts.app')] class extends Component {
                             </li>
 
                             @foreach ($record as $transaction)
-                                <li class="group list-row hover:bg-base-200 flex items-center justify-between w-full px-5 py-4 border border-base-200 rounded-xl mb-3 mx-0.5 transition-all duration-200 hover:shadow-md cursor-pointer"
+                                <li class="group list-row hover:bg-base-200 flex items-center justify-between w-full px-5 py-4 border border-base-200 mb-3 mx-0.5 transition-all duration-200 hover:shadow-md cursor-pointer"
                                     @click="$dispatch('showSidebar', {operation: 'edit', page: 'Transaction', component: 'pages.user.transactions.edit', modelId: {{ $transaction->id }}}); detailSidebarOpen = true;">
                                     <!-- Red for Expense, Green for Income -->
 
@@ -235,7 +270,7 @@ new #[Layout('layouts.app')] class extends Component {
                         @endforeach
                     </ul>
                 @else
-                    <div class="flex flex-col items-center justify-center p-10 bg-base-200/30 rounded-xl">
+                    <div class="flex flex-col items-center justify-center p-10 bg-base-200/30 ">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-16 text-base-300 mb-3">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -253,8 +288,7 @@ new #[Layout('layouts.app')] class extends Component {
                                 !empty($filters['search']) ||
                                     !empty($filters['types']) ||
                                     !empty($filters['account_id']) ||
-                                    !empty($filters['date_from']) ||
-                                    !empty($filters['date_to']))
+                                    !empty($filters['date_mode']))
                                 Try adjusting your filters or search criteria
                             @else
                                 Start adding your transactions to track your finances
@@ -262,16 +296,12 @@ new #[Layout('layouts.app')] class extends Component {
                         </p>
                         @if (
                             !empty($filters['search']) &&
-                                (empty($filters['types']) &&
-                                    empty($filters['account_id']) &&
-                                    empty($filters['date_from']) &&
-                                    empty($filters['date_to'])))
+                                (empty($filters['types']) && empty($filters['account_id']) && empty($filters['date_mode'])))
                             <!-- No button for search-only filtering -->
                         @elseif (
                             !empty($filters['types']) ||
                                 !empty($filters['account_id']) ||
-                                !empty($filters['date_from']) ||
-                                !empty($filters['date_to']) ||
+                                !empty($filters['date_mode']) ||
                                 !empty($filters['search']))
                             <button class="btn btn-sm btn-outline btn-primary mt-2" wire:click="resetFilters">
                                 Clear filters

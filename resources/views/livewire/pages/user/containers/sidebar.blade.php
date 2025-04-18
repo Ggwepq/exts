@@ -70,7 +70,7 @@ new class extends Component {
                 <!-- Dashboard -->
                 <li>
                     <a aria-current="page"
-                        class="{{ request()->routeIs('dashboard') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200"
+                        class="{{ request()->routeIs('dashboard') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 transition-all duration-200"
                         href="{{ route('dashboard') }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="h-5 w-5">
@@ -83,7 +83,7 @@ new class extends Component {
 
                 <!-- Transactions -->
                 <li>
-                    <a class="{{ request()->routeIs('user.transactions') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200"
+                    <a class="{{ request()->routeIs('user.transactions') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 transition-all duration-200"
                         href="{{ route('user.transactions') }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="h-5 w-5">
@@ -96,7 +96,7 @@ new class extends Component {
 
                 <!-- Accounts -->
                 <li>
-                    <a class="{{ request()->routeIs('user.accounts') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200"
+                    <a class="{{ request()->routeIs('user.accounts') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 transition-all duration-200"
                         href="{{ route('user.accounts') }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="h-5 w-5">
@@ -109,7 +109,7 @@ new class extends Component {
 
                 <!-- Save Goals -->
                 <li>
-                    <a class="{{ request()->routeIs('user.goals') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200"
+                    <a class="{{ request()->routeIs('user.goals') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 transition-all duration-200"
                         href="/app/leads">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="h-5 w-5">
@@ -123,7 +123,7 @@ new class extends Component {
 
                 <!-- Categories -->
                 <li>
-                    <a class="{{ request()->routeIs('user.categories') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200"
+                    <a class="{{ request()->routeIs('user.categories') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 transition-all duration-200"
                         href="/app/leads">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="h-5 w-5">
@@ -136,7 +136,7 @@ new class extends Component {
 
                 <!-- Recurring -->
                 <li>
-                    <a class="{{ request()->routeIs('user.recurring') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200"
+                    <a class="{{ request()->routeIs('user.recurring') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 transition-all duration-200"
                         href="/app/leads">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="h-5 w-5">
@@ -153,7 +153,7 @@ new class extends Component {
 
         <!-- Account Wallets -->
         <div class="grow overflow-y-auto px-3">
-            <div class="bg-primary/5 rounded-lg px-4 py-2 mb-2 flex items-center justify-between">
+            <div class="bg-primary/5 px-4 py-2 mb-2 flex items-center justify-between">
                 <span class="text-sm font-medium text-primary">ACCOUNTS</span>
                 <span
                     class="badge badge-sm badge-primary text-xs">{{ count($uncategorizedAccounts) + array_sum(array_map('count', $categorizedAccounts)) }}</span>
@@ -165,7 +165,7 @@ new class extends Component {
                         @foreach ($uncategorizedAccounts as $account)
                             <li>
                                 <a
-                                    class="flex items-center justify-between px-3 py-2 text-sm rounded-md hover:bg-base-200 transition-all duration-200 group">
+                                    class="flex items-center justify-between px-3 py-2 text-sm hover:bg-base-200 transition-all duration-200 group">
                                     <span class="truncate group-hover:text-primary">{{ $account['name'] }}</span>
                                     <span
                                         class="badge badge-sm badge-primary text-xs">₱{{ number_format($account['balance'], 0) }}</span>
@@ -183,7 +183,7 @@ new class extends Component {
                         <li>
                             <details open>
                                 <summary
-                                    class="px-3 py-2 text-xs font-medium flex items-center justify-between cursor-pointer rounded hover:bg-base-200 transition-all duration-200 bg-base-200/50">
+                                    class="px-3 py-2 text-xs font-medium flex items-center justify-between cursor-pointer hover:bg-base-200 transition-all duration-200 bg-base-200/50">
                                     <div class="flex items-center gap-2">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor"
@@ -199,7 +199,7 @@ new class extends Component {
                                     @foreach ($records as $account)
                                         <li>
                                             <a
-                                                class="flex items-center justify-between px-3 py-2 text-sm rounded-md hover:bg-base-200 transition-all duration-200 group">
+                                                class="flex items-center justify-between px-3 py-2 text-sm hover:bg-base-200 transition-all duration-200 group">
                                                 <span
                                                     class="truncate group-hover:text-primary">{{ $account['name'] }}</span>
                                                 <span
@@ -220,7 +220,7 @@ new class extends Component {
             <div class="divider my-0 h-px"></div>
             <div class="dropdown dropdown-top w-full">
                 <div tabindex="0" role="button"
-                    class="flex items-center gap-3 p-3 m-2 rounded-lg hover:bg-base-200 cursor-pointer transition-all border bg-gradient-to-t from-primary/20 to-primary/10 border-base-200">
+                    class="flex items-center gap-3 p-3 m-2  hover:bg-base-200 cursor-pointer transition-all border bg-gradient-to-t from-primary/20 to-primary/10 border-base-200">
                     <div class="avatar">
                         <div class="mask mask-squircle w-10 h-10 shadow-sm border border-base-200">
                             <img src="{{ auth()->user()->profile_image_url ? asset('app/' . auth()->user()->profile_image_url) : asset('img/user-img.jpg') }}"
@@ -239,10 +239,10 @@ new class extends Component {
                     </svg>
                 </div>
                 <ul tabindex="0"
-                    class="dropdown-content menu bg-base-100 rounded-lg w-56 p-2 shadow-lg mb-2 border border-base-200">
+                    class="dropdown-content menu bg-base-100  w-56 p-2 shadow-lg mb-2 border border-base-200">
                     <li>
                         <a href="{{ route('profile') }}" wire:navigate
-                            class="flex items-center gap-2 px-4 py-2 hover:bg-base-200 rounded-lg transition-all duration-200">
+                            class="flex items-center gap-2 px-4 py-2 hover:bg-base-200 transition-all duration-200">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -252,8 +252,7 @@ new class extends Component {
                         </a>
                     </li>
                     <li>
-                        <a
-                            class="flex items-center gap-2 px-4 py-2 hover:bg-base-200 rounded-lg transition-all duration-200">
+                        <a class="flex items-center gap-2 px-4 py-2 hover:bg-base-200 transition-all duration-200">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                 <path stroke-linecap="round" stroke-linejoin="round"
