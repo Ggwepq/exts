@@ -181,10 +181,10 @@ new #[Layout('layouts.app')] class extends Component {
     }
 }; ?>
 
-<section x-data="{ detailSidebarOpen: false }" x-cloak>
+<section x-data="{ detailSidebarOpen: false }" x-cloak class="h-screen">
     <!-- Main Content with Animated Margin -->
     <div class="transition-all duration-300 ease-in-out"
-        :class="{ 'md:mr-[17rem] lg:mr-[23rem] xl:mr-[27rem] 2xl:mr-[41rem]': detailSidebarOpen }"">
+        :class="{ 'md:mr-[17rem] lg:mr-[23rem] xl:mr-[27rem] 2xl:mr-[41rem]': detailSidebarOpen }">
         @livewire('pages.user.containers.main-header', ['component' => 'pages.user.transactions.header', 'header' => 'Transactions'])
 
         <div class="flex-1 overflow-y-auto md:pt-4 pt-4 px-6 bg-base-200">
@@ -233,8 +233,10 @@ new #[Layout('layouts.app')] class extends Component {
                                     @endif
                                 </div>
                                 <div class="text-right text-xs font-semibold">
-                                    <span class="text-primary">+₱{{ number_format($totalIncome, 2) }}</span>
-                                    <span class="text-secondary">-₱{{ number_format($totalExpense, 2) }}</span>
+                                    <span
+                                        class="text-primary truncate inline-block md:w-auto w-1/2">+₱{{ number_format($totalIncome, 2) }}</span>
+                                    <span
+                                        class="text-secondary truncate inline-block md:w-auto w-1/2">-₱{{ number_format($totalExpense, 2) }}</span>
                                 </div>
                             </li>
 
@@ -261,7 +263,7 @@ new #[Layout('layouts.app')] class extends Component {
                                         <!-- Amount -->
                                         <div class="w-1/3 flex-shrink-0 text-right grow">
                                             <span
-                                                class="text-xs uppercase font-semibold badge badge-lg {{ $transaction->types->name == 'Expense' ? 'badge-secondary ' : 'badge-primary ' }}">
+                                                class="text-xs uppercase font-semibold badge badge-lg truncate w-3/4 md:w-auto  {{ $transaction->types->name == 'Expense' ? 'badge-secondary ' : 'badge-primary ' }}">
                                                 {{ $transaction->types->name == 'Expense' ? '-₱' : '+₱' }}{{ number_format($transaction->amount, 2) }}
                                             </span>
                                         </div>

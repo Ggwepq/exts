@@ -19,7 +19,7 @@
 
         <div class="flex gap-3">
             <label
-                class="btn btn-sm shadow-md bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0"
+                class="btn btn-sm shadow-md bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-700 hover:to-accent border-0"
                 @click="open = !open">
                 <svg :class="{ 'rotate-90': open }" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="transition-transform size-6">
@@ -30,7 +30,7 @@
             </label>
             <!-- Add Button -->
             <label
-                class="btn btn-sm shadow-md bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0"
+                class="btn btn-sm shadow-md bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-700 hover:to-accent border-0"
                 @click="detailSidebarOpen = true; $dispatch('showSidebar', {operation: 'create', page: 'Transaction', component: 'pages.user.transactions.add', modelId: 12}), open = false">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                     stroke="currentColor" class="size-6 mr-1">
