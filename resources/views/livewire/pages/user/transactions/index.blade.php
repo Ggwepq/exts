@@ -181,9 +181,10 @@ new #[Layout('layouts.app')] class extends Component {
     }
 }; ?>
 
-<section x-data="{ detailSidebarOpen: false }" x-cloak>
+<section x-data="{ detailSidebarOpen: false }" x-cloak class="h-screen">
     <!-- Main Content with Animated Margin -->
-    <div class="transition-all duration-300 ease-in-out" :class="{ 'md:mr-[23rem]': detailSidebarOpen }">
+    <div class="transition-all duration-300 ease-in-out"
+        :class="{ 'md:mr-[17rem] lg:mr-[23rem] xl:mr-[27rem] 2xl:mr-[41rem]': detailSidebarOpen }">
         @livewire('pages.user.containers.main-header', ['component' => 'pages.user.transactions.header', 'header' => 'Transactions'])
 
         <div class="flex-1 overflow-y-auto md:pt-4 pt-4 px-6 bg-base-200">
@@ -232,8 +233,10 @@ new #[Layout('layouts.app')] class extends Component {
                                     @endif
                                 </div>
                                 <div class="text-right text-xs font-semibold">
-                                    <span class="text-primary">+₱{{ number_format($totalIncome, 2) }}</span>
-                                    <span class="text-secondary">-₱{{ number_format($totalExpense, 2) }}</span>
+                                    <span
+                                        class="text-primary truncate inline-block md:w-auto w-1/2">+₱{{ number_format($totalIncome, 2) }}</span>
+                                    <span
+                                        class="text-secondary truncate inline-block md:w-auto w-1/2">-₱{{ number_format($totalExpense, 2) }}</span>
                                 </div>
                             </li>
 
@@ -260,7 +263,7 @@ new #[Layout('layouts.app')] class extends Component {
                                         <!-- Amount -->
                                         <div class="w-1/3 flex-shrink-0 text-right grow">
                                             <span
-                                                class="text-xs uppercase font-semibold badge badge-lg {{ $transaction->types->name == 'Expense' ? 'badge-secondary ' : 'badge-primary ' }}">
+                                                class="text-xs uppercase font-semibold badge badge-lg truncate w-3/4 md:w-auto  {{ $transaction->types->name == 'Expense' ? 'badge-secondary ' : 'badge-primary ' }}">
                                                 {{ $transaction->types->name == 'Expense' ? '-₱' : '+₱' }}{{ number_format($transaction->amount, 2) }}
                                             </span>
                                         </div>
@@ -271,17 +274,8 @@ new #[Layout('layouts.app')] class extends Component {
                     </ul>
                 @else
                     <div class="flex flex-col items-center justify-center p-10 bg-base-200/30 ">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="size-16 text-base-300 mb-3">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                        </svg>
-                        <span class="text-base-content/60 text-lg font-medium mb-1">
-                            @if (!empty($filters['search']))
-                                No transactions found matching your search.
-                            @else
-                                No transactions found
-                            @endif
+                        <span class="text-base-content text-lg font-medium mb-1">
+                            😴 No transactions found
                         </span>
                         <p class="text-base-content/40 text-sm mb-4">
                             @if (
@@ -289,9 +283,6 @@ new #[Layout('layouts.app')] class extends Component {
                                     !empty($filters['types']) ||
                                     !empty($filters['account_id']) ||
                                     !empty($filters['date_mode']))
-                                Try adjusting your filters or search criteria
-                            @else
-                                Start adding your transactions to track your finances
                             @endif
                         </p>
                         @if (
@@ -313,7 +304,7 @@ new #[Layout('layouts.app')] class extends Component {
                                     stroke-width="1.5" stroke="currentColor" class="size-5 mr-1">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                                 </svg>
-                                Add Your First Transaction
+                                Add Transaction
                             </button>
                         @endif
                     </div>

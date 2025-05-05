@@ -50,7 +50,8 @@ new class extends Component {
 }; ?>
 
 <section>
-    <div class="transition-all duration-300 ease-in-out" :class="{ 'md:mr-[23rem]': detailSidebarOpen }">
+    <div class="transition-all duration-300 ease-in-out"
+        :class="{ 'md:mr-[17rem] lg:mr-[23rem] xl:mr-[27rem] 2xl:mr-[41rem]': detailSidebarOpen }">
         @livewire('pages.user.containers.main-header', ['component' => 'pages.user.accounts.header'])
         <div class="flex-1 overflow-y-auto md:pt-4 pt-4 px-6 bg-base-200">
             <div class="card w-full p-6 bg-base-100 shadow-xl mt-2">
