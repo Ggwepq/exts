@@ -134,30 +134,6 @@ new #[Layout('layouts.app')] class extends Component {
 }; ?>
 
 <section>
-    <!-- Success Message -->
-    @if (session()->has('message'))
-        <div class="alert alert-soft alert-success mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none"
-                viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span> {{ session('message') }}</span>
-        </div>
-    @endif
-
-    <!-- Error Message -->
-    @if (session()->has('error'))
-        <div class="alert alert-soft alert-error mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none"
-                viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span> {{ session('error') }}</span>
-        </div>
-    @endif
-
     <!-- Form -->
     <form wire:submit="save" class="space-y-5" x-data="{ expense: true }">
         <!-- Name -->
@@ -239,7 +215,7 @@ new #[Layout('layouts.app')] class extends Component {
         <div class="flex flex-row gap-4 ">
 
             <div class="w-1/2">
-                <div class="dropdown dropdown-start md:dropdown-center w-full">
+                <div class="dropdown dropdown-start w-full">
                     <label tabindex="0" class="btn btn-md border shadow-sm w-full" aria-label="Select Account"
                         :class="expense ? 'text-secondary border-secondary hover:bg-secondary/50' :
                             'text-primary border-primary hover:bg-primary/50'">
@@ -291,8 +267,8 @@ new #[Layout('layouts.app')] class extends Component {
                     <label tabindex="0" class="btn btn-md border shadow-sm w-full"
                         :class="expense ? 'text-secondary border-secondary hover:bg-secondary/50' :
                             'text-primary border-primary hover:bg-primary/50'">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                            stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="h-5 w-5">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 0 0 3.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008Z" />
                         </svg>
