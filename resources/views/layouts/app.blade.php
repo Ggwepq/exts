@@ -14,9 +14,10 @@
             // This is not a guest page since we're using app.blade.php
             const savedTheme = localStorage.getItem('theme') || 'default';
             document.documentElement.setAttribute('data-theme', savedTheme);
-            
+
             // Handle dark mode class for themes that might need it
-            if (savedTheme === 'dark' || savedTheme === 'night' || savedTheme === 'coffee' || savedTheme === 'forest' || savedTheme === 'luxury' || savedTheme === 'synthwave') {
+            if (savedTheme === 'dark' || savedTheme === 'night' || savedTheme === 'coffee' || savedTheme === 'forest' ||
+                savedTheme === 'luxury' || savedTheme === 'synthwave') {
                 document.documentElement.classList.add('dark');
             } else {
                 document.documentElement.classList.remove('dark');
@@ -37,15 +38,6 @@
 
     <div class="drawer lg:drawer-open" x-data="{
         detailSidebarOpen: false,
-        init() {
-            // Restore sidebar state from localStorage if exists
-            this.detailSidebarOpen = localStorage.getItem('detailSidebarOpen') === 'true';
-
-            // Save state to localStorage when it changes
-            this.$watch('detailSidebarOpen', (value) => {
-                localStorage.setItem('detailSidebarOpen', value);
-            });
-        }
     }">
         <input id="left-sidebar-drawer" type="checkbox" class="drawer-toggle" />
 

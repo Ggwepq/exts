@@ -88,5 +88,6 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call(TransactionAccountSeeder::class);
+        $this->call(SettingSeeder::class);
     }
 }
