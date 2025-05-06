@@ -113,6 +113,22 @@ new #[Layout('layouts.app')] class extends Component {
 
         $this->validate();
 
+        $noChanges = $this->transaction->account_id == $this->account_id && $this->transaction->category_id == $this->category_id && $this->transaction->type_id == $this->type_id && $this->transaction->amount == $this->amount && $this->transaction->name === $this->name && $this->transaction->description === $this->description;
+
+        if ($noChanges) {
+            Toaster::error('No changes detected');
+            return;
+        }
+
+        if ($this->type_id == 2) {
+            $account = Account::find($this->account_id);
+            if ($account->balance < $this->amount) {
+                Toaster::error('Insufficient Account Balance');
+                $this->amount = $this->oldTransaction->amount;
+                return;
+            }
+        }
+
         if ($this->account_id != $this->oldTransaction->account_id) {
             $currentAccount = Account::find($this->account_id);
         } else {
@@ -188,6 +204,12 @@ new #[Layout('layouts.app')] class extends Component {
                 }
 
                 // Apply new type
+                if ($this->type_id == 1) {
+                    $currentAccount->balance += $this->amount;
+                } else {
+                    $currentAccount->balance -= $this->amount;
+                }
+            } else {
                 if ($this->type_id == 1) {
                     $currentAccount->balance += $this->amount;
                 } else {
