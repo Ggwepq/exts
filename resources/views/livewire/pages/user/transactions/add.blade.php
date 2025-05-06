@@ -96,19 +96,25 @@ new #[Layout('layouts.app')] class extends Component {
 
         // Emit event to refresh transaction list
         $this->dispatch('transactionUpdate');
-        $this->dispatch('accountUpdate');
+        $this->dispatch('reloadDropdowns');
 
         Toaster::success('Transaction Created!');
     }
 
     public function mount()
     {
-        $this->accounts = Account::where('user_id', Auth::id())->get();
-        $this->incomes = TransactionCategory::where('user_id', Auth::id())->where('type_id', 1)->get();
-        $this->expenses = TransactionCategory::where('user_id', Auth::id())->where('type_id', 2)->get();
+        $this->loadDropdowns();
 
         // Initialize with empty tags array
         $this->selectedTags = [];
+    }
+
+    #[On('reloadDropdowns')]
+    public function loadDropdowns()
+    {
+        $this->accounts = Account::where('user_id', Auth::id())->get();
+        $this->incomes = TransactionCategory::where('user_id', Auth::id())->where('type_id', 1)->get();
+        $this->expenses = TransactionCategory::where('user_id', Auth::id())->where('type_id', 2)->get();
     }
 
     #[On('tagsUpdated')]

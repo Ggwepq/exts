@@ -82,35 +82,20 @@ new #[Layout('layouts.app')] class extends Component {
 
     public function delete()
     {
-        // Get the transaction details before deleting
-        $account = Account::find($this->transaction->account_id);
-        $type_id = $this->transaction->type_id;
-        $amount = $this->transaction->amount;
+        $account = $this->transaction->accounts;
 
-        // Update the account balance before deleting the transaction
-        if ($type_id == 1) {
-            // Income
-            // Check if removing this income would cause a negative balance
-            if ($account->balance >= $amount) {
-                $account->balance -= $amount;
-            } else {
-                // Handle the edge case - set to zero or minimum allowed balance
-                $account->balance = 0;
-                Toaster::warning('Account balance was set to 0 as it would have gone negative.');
-            }
+        if ($this->transaction->type_id == 1) {
+            // Income → subtract from balance
+            $account->balance -= $this->transaction->amount;
         } else {
-            // Expense - add the amount back
-            $account->balance += $amount;
+            // Expense → add back to balance
+            $account->balance += $this->transaction->amount;
         }
-        $account->save();
 
-        // Delete the transaction
+        $account->save();
         $this->transaction->delete();
 
-        // Dispatch events
         $this->dispatch('transactionUpdate');
-        $this->dispatch('accountUpdate');
-
         Toaster::success('Transaction Deleted!');
     }
 
@@ -124,6 +109,7 @@ new #[Layout('layouts.app')] class extends Component {
     public function save()
     {
         $oldTransaction = $this->transaction;
+        $this->type_id = $this->type_id ? 2 : 1;
 
         $this->validate();
 
@@ -157,7 +143,7 @@ new #[Layout('layouts.app')] class extends Component {
                 'account_id' => $currentAccount->id,
                 'category_id' => $this->category_id == null ? 1 : $this->category_id,
                 'recurring_id' => $this->recurring_id,
-                'type_id' => $this->type_id ? 2 : 1,
+                'type_id' => $this->type_id,
                 'name' => $this->name,
                 'description' => $this->description,
                 'amount' => $this->amount,
@@ -170,51 +156,50 @@ new #[Layout('layouts.app')] class extends Component {
             // Sync tags only when explicitly saving
             $this->transaction->tags()->sync($this->selectedTags);
 
-            // If the transaction is being moved to a different account, update both accounts
+            $previousAccount = $this->oldTransaction->accounts;
+            $currentAccount = Account::find($this->account_id);
+
+            // DO NOT ANYTHING HERE FOR THE LOVE OF GOD
+            // Case 1: Account has changed
             if ($this->account_id != $this->oldTransaction->account_id) {
-                $previousAccount = Account::find($this->oldTransaction->account_id);
-                // Revert the effect of the old transaction on the previous account
+                // Reverse old transaction from old account
                 if ($this->oldTransaction->type_id == 1) {
-                    // Income
                     $previousAccount->balance -= $this->oldTransaction->amount;
                 } else {
-                    // Expense
                     $previousAccount->balance += $this->oldTransaction->amount;
                 }
-                $previousAccount->save();
 
-                // Add the effect of the transaction to the new account
+                // Apply new transaction to new account
                 if ($this->type_id == 1) {
-                    // Income
                     $currentAccount->balance += $this->amount;
                 } else {
-                    // Expense
                     $currentAccount->balance -= $this->amount;
                 }
-                $currentAccount->save();
-            } else {
-                // Same account, but possibly different type or amount
-                // First, revert the old transaction
+            }
+            // Case 2: Same account, but type changed
+            elseif ($this->type_id != $this->oldTransaction->type_id) {
+                // Reverse old type
                 if ($this->oldTransaction->type_id == 1) {
-                    // Old was Income
+                    // Was income → remove it
                     $currentAccount->balance -= $this->oldTransaction->amount;
                 } else {
-                    // Old was Expense
+                    // Was expense → add it back
                     $currentAccount->balance += $this->oldTransaction->amount;
                 }
 
-                // Then add the new transaction
+                // Apply new type
                 if ($this->type_id == 1) {
-                    // New is Income
                     $currentAccount->balance += $this->amount;
                 } else {
-                    // New is Expense
                     $currentAccount->balance -= $this->amount;
                 }
-                $currentAccount->save();
             }
-        });
 
+            // Save accounts
+            $previousAccount->save();
+            $currentAccount->save();
+        });
+        $this->oldTransaction = $this->transaction;
         $this->reloadTransaction();
         $this->dispatch('transactionUpdate');
         $this->dispatch('refreshTransaction');
