@@ -15,7 +15,7 @@ class TransactionCategory extends Model
 
     public function categories()
     {
-        return $this->belongsTo(CategoryGroup::class);
+        return $this->belongsTo(CategoryGroup::class, 'group_id');
     }
 
     public function budgets()
