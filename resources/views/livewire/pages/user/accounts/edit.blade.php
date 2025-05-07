@@ -78,6 +78,7 @@ new #[Layout('layouts.app')] class extends Component {
     {
         $this->account->delete();
         $this->dispatch('accountUpdate');
+        Toaster::success('Account Deleted!');
     }
 }; ?>
 <section>

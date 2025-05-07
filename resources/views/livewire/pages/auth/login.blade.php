@@ -44,16 +44,16 @@ new #[Layout('layouts.guest')] class extends Component {
                             <!-- Email -->
                             <div class="form-control w-full mt-4">
                                 <x-input-label for="email" :value="__('Email')" />
-                                <input type="email" wire:model="form.email"
+                                <input type="email" wire:model.live="form.email"
                                     class="input input-bordered validator w-full" name="email" required
                                     autocomplete="username" />
-                                <x-input-error :messages="$errors->get('form.email')" class="mt-2" />
+                                <x-input-error :messages="$errors->first('form.email')" class="mt-2" />
                             </div>
 
                             <!-- Password -->
                             <div class="form-control w-full mt-4">
                                 <x-input-label for="password" :value="__('Password')" />
-                                <input wire:model="form.password" id="password"
+                                <input wire:model.live="form.password" id="password"
                                     class="input input-bordered validator w-full" type="password" name="password"
                                     required autocomplete="new-password" />
                                 <x-input-error :messages="$errors->get('form.password')" class="mt-2" />

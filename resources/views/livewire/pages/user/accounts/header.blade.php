@@ -23,7 +23,8 @@ new class extends Component {
 
     <div class="flex gap-2 items-center">
         <!-- Add Button -->
-        <label class="btn btn-primary btn-sm shadow-md"
+        <label
+            class="btn btn-sm shadow-md bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-700 hover:to-accent border-0"
             @click="detailSidebarOpen = true; $dispatch('showSidebar', {operation: 'create', page: 'Accounts', component: 'pages.user.accounts.add', modelId: null})">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                 stroke="currentColor" class="size-4 mr-1">
