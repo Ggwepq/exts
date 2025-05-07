@@ -179,6 +179,16 @@ new #[Layout('layouts.app')] class extends Component {
 
         $this->loadTransactions();
     }
+
+    public function formatShortAmount($amount)
+    {
+        if ($amount >= 1_000_000) {
+            return number_format($amount / 1_000_000, 1) . 'M';
+        } elseif ($amount >= 1_000) {
+            return number_format($amount / 1_000, 1) . 'K';
+        }
+        return number_format($amount, 2);
+    }
 }; ?>
 
 <section x-data="{ detailSidebarOpen: false }" x-cloak class="h-screen">
@@ -201,8 +211,8 @@ new #[Layout('layouts.app')] class extends Component {
                                     $totalIncome = $record->where('types.name', 'Income')->sum('amount');
                                     $totalExpense = $record->where('types.name', 'Expense')->sum('amount');
                                 }
-                            @endphp
 
+                            @endphp
                             <li
                                 class="bg-base-200 text-sm font-medium py-2 px-4 mb-2 sticky top-0 z-10 backdrop-blur-sm shadow-sm flex justify-between">
                                 <div class="flex items-center gap-2">
@@ -233,10 +243,19 @@ new #[Layout('layouts.app')] class extends Component {
                                     @endif
                                 </div>
                                 <div class="text-right text-xs font-semibold">
-                                    <span
-                                        class="text-primary truncate inline-block md:w-auto w-1/2">+₱{{ number_format($totalIncome, 2) }}</span>
-                                    <span
-                                        class="text-secondary truncate inline-block md:w-auto w-1/2">-₱{{ number_format($totalExpense, 2) }}</span>
+                                    <span class="text-primary truncate inline-block md:hidden w-1/2">
+                                        +₱{{ $this->formatShortAmount($totalIncome) }}
+                                    </span>
+                                    <span class="text-primary truncate hidden md:inline-block w-auto">
+                                        +₱{{ number_format($totalIncome, 2) }}
+                                    </span>
+
+                                    <span class="text-secondary truncate inline-block md:hidden w-1/2">
+                                        -₱{{ $this->formatShortAmount($totalExpense) }}
+                                    </span>
+                                    <span class="text-secondary truncate hidden md:inline-block w-auto">
+                                        -₱{{ number_format($totalExpense, 2) }}
+                                    </span>
                                 </div>
                             </li>
 
@@ -264,7 +283,12 @@ new #[Layout('layouts.app')] class extends Component {
                                         <div class="w-1/3 flex-shrink-0 text-right grow">
                                             <span
                                                 class="text-xs uppercase font-semibold badge badge-lg truncate w-3/4 md:w-auto  {{ $transaction->types->name == 'Expense' ? 'badge-secondary ' : 'badge-primary ' }}">
-                                                {{ $transaction->types->name == 'Expense' ? '-₱' : '+₱' }}{{ number_format($transaction->amount, 2) }}
+                                                <span class="md:hidden">
+                                                    {{ $transaction->types->name == 'Expense' ? '-₱' : '+₱' }}{{ $this->formatShortAmount($transaction->amount) }}
+                                                </span>
+                                                <span class="hidden md:inline">
+                                                    {{ $transaction->types->name == 'Expense' ? '-₱' : '+₱' }}{{ number_format($transaction->amount, 2) }}
+                                                </span>
                                             </span>
                                         </div>
                                     </div>
