@@ -197,7 +197,7 @@ new #[Layout('layouts.app')] class extends Component {
         :class="{ 'md:mr-[17rem] lg:mr-[23rem] xl:mr-[27rem] 2xl:mr-[41rem]': detailSidebarOpen }">
         @livewire('pages.user.containers.main-header', ['component' => 'pages.user.transactions.header', 'header' => 'Transactions'])
 
-        <div class="flex-1 overflow-y-auto md:pt-4 pt-4 px-6 bg-base-200">
+        <div class="flex-1 overflow-y-auto md:pt-4 pt-4 px-6 bg-base-200 h-screen">
             <div class="card w-full p-6 bg-base-100 shadow-xl mt-2">
 
                 @if (count($transactions))
@@ -216,34 +216,41 @@ new #[Layout('layouts.app')] class extends Component {
                             <li
                                 class="bg-base-200 text-sm font-medium py-2 px-4 mb-2 sticky top-0 z-10 backdrop-blur-sm shadow-sm flex justify-between">
                                 <div class="flex items-center gap-2">
-                                    @if ($date === 'Transactions Sorted by Amount')
-                                        @if ($filters['sort'] && $filters['sort']['direction'] == 'ASC')
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" class="size-6">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="m4.5 15.75 7.5-7.5 7.5 7.5" />
-                                            </svg>
-                                            Amount (Low to High)
+                                    <!-- <input type="checkbox" class="checkbox " /> -->
+                                    <div class="flex items-center gap-2"
+                                        @click="$dispatch('showRightSidebar', {operation: 'create', page: 'Transaction', component: 'pages.user.transactions.create'}); rightSidebarOpen = true;">
+
+                                        @if ($date === 'Transactions Sorted by Amount')
+                                            @if ($filters['sort'] && $filters['sort']['direction'] == 'ASC')
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                                    class="size-6">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+                                                </svg>
+                                                Amount (Low to High)
+                                            @else
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                                    class="size-6">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                                </svg>
+                                                Amount (High to Low)
+                                            @endif
                                         @else
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" class="size-6">
+                                                stroke-width="1.5" stroke="currentColor"
+                                                class="size-4 text-base-content/70">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                                    d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                                             </svg>
-                                            Amount (High to Low)
+                                            {{ $date }}
                                         @endif
-                                    @else
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                            stroke-width="1.5" stroke="currentColor"
-                                            class="size-4 text-base-content/70">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                                        </svg>
-                                        {{ $date }}
-                                    @endif
+                                    </div>
                                 </div>
                                 <div class="text-right text-xs font-semibold">
-                                    <span class="text-primary truncate inline-block md:hidden w-1/2">
+                                    <span class="text-primary block md:hidden w-1/2">
                                         +₱{{ $this->formatShortAmount($totalIncome) }}
                                     </span>
                                     <span class="text-primary truncate hidden md:inline-block w-auto">
@@ -260,11 +267,16 @@ new #[Layout('layouts.app')] class extends Component {
                             </li>
 
                             @foreach ($record as $transaction)
-                                <li class="group list-row hover:bg-base-200 flex items-center justify-between w-full px-5 py-4 border border-base-200 mb-3 mx-0.5 transition-all duration-200 hover:shadow-md cursor-pointer"
-                                    @click="$dispatch('showSidebar', {operation: 'edit', page: 'Transaction', component: 'pages.user.transactions.edit', modelId: {{ $transaction->id }}}); detailSidebarOpen = true;">
+                                <li
+                                    class="group list-row hover:bg-base-200 flex items-center justify-between w-full p2-5 py-4 border border-base-200 mb-3 mx-0.5 transition-all duration-200 hover:shadow-md cursor-pointer">
                                     <!-- Red for Expense, Green for Income -->
+                                    <div class="opacity-0 hover:opacity-100 transition-all duration-100 ease-in-out">
 
-                                    <div class="flex flex-row md:items-center w-full grow">
+                                        <input type="checkbox" class="checkbox " />
+                                    </div>
+
+                                    <div class="flex flex-row md:items-center w-full grow"
+                                        @click="$dispatch('showSidebar', {operation: 'edit', page: 'Transaction', component: 'pages.user.transactions.edit', modelId: {{ $transaction->id }}}); detailSidebarOpen = true;">
                                         <!-- Transaction Name -->
                                         <div
                                             class="w-1/3 truncate font-bold text-md mb-1.5 mr-2 text-base-content transition-colors duration-200 {{ $transaction->types->name == 'Expense' ? 'group-hover:text-secondary' : 'group-hover:text-primary' }}">
@@ -337,6 +349,7 @@ new #[Layout('layouts.app')] class extends Component {
         </div>
     </div>
     @livewire('pages.user.containers.details-sidebar', ['lazy' => true])
+    @livewire('pages.user.containers.right-sidebar', ['lazy' => true])
 
     <!-- Add the Image Viewer Component -->
     <x-image-viewer imageUrl="" />

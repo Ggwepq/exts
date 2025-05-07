@@ -78,9 +78,7 @@ new #[Layout('layouts.app')] class extends Component {
             ]);
 
             // Attach selected tags to the transaction
-            if (!empty($this->selectedTags)) {
-                $this->transaction->tags()->sync($this->selectedTags);
-            }
+            $transaction->tags()->sync($this->selectedTags);
 
             $account = Account::find($transaction->account_id);
             if ($transaction->types->name == 'Expense') {
@@ -92,7 +90,7 @@ new #[Layout('layouts.app')] class extends Component {
         });
 
         // Reset form fields
-        $this->reset(['name', 'description', 'amount', 'image', 'account_id', 'category_id', 'recurring_id', 'type_id', 'selectedTags']);
+        $this->reset(['name', 'description', 'amount', 'image', 'account_id', 'category_id', 'recurring_id', 'selectedTags']);
 
         // Emit event to refresh transaction list
         $this->dispatch('transactionUpdate');
@@ -117,10 +115,10 @@ new #[Layout('layouts.app')] class extends Component {
         $this->expenses = TransactionCategory::where('user_id', Auth::id())->where('type_id', 2)->get();
     }
 
-    #[On('tagsUpdated')]
-    public function updateSelectedTags($tagIds)
+    #[On('update-selected-tags')]
+    public function updateSelectedTags($tags)
     {
-        $this->selectedTags = $tagIds;
+        $this->selectedTags = $tags;
     }
 
     public function getSelectedAccountProperty()
@@ -175,9 +173,6 @@ new #[Layout('layouts.app')] class extends Component {
                         :class="expense ? 'text-secondary' : 'text-primary'" />
 
                 </div>
-                @error('name')
-                    <span class="validator-hint">{{ $message }}</span>
-                @enderror
             </div>
             <div class="flex flex-col gap-3 w-1/2 mt-2">
                 <div>
@@ -200,24 +195,34 @@ new #[Layout('layouts.app')] class extends Component {
                     <!-- Display formatted amount -->
                     <span x-show="!editing" @click="editing = true; $nextTick(() => $refs.input.focus())"
                         class="cursor-pointer text-2xl font-semibold block truncate"
-                        :class="expense ? 'text-secondary' : 'text-primary'" x-text="formatted()">
+                        :class="expense ? 'text-secondary' : 'text-primary'"
+                        x-text="expense ? '-'+formatted() : '+'+formatted()">
                     </span>
 
                     <!-- Input field -->
                     <label x-show="editing" @click.away="editing = false"
                         class="input input-ghost font-semibold text-2xl mt-2"
                         :class="expense ? 'text-secondary' : 'text-primary'">
-                        <span class="label">₱</span>
+                        <span class="label" x-text="expense ? '-₱' : '+₱'"></span>
                         <input x-ref="input" x-model="amount" wire:model.lazy="amount" type="text"
                             placeholder="0.00" step="0.01" class="bg-transparent w-full outline-none border-none" />
                     </label>
                 </div>
+            </div>
+        </div>
+
+        <div class="flex flex-row items-end mb-5 gap-x-4">
+            <div class="flex flex-col gap-3 w-1/2">
+                @error('name')
+                    <span class="validator-hint">{{ $message }}</span>
+                @enderror
+            </div>
+            <div class="flex flex-col gap-3 w-1/2">
                 @error('amount')
                     <span class="validator-hint">{{ $message }}</span>
                 @enderror
             </div>
         </div>
-
         <div class="flex flex-row gap-4 ">
 
             <div class="w-1/2">
@@ -239,9 +244,9 @@ new #[Layout('layouts.app')] class extends Component {
                     </label>
                     <div tabindex="0"
                         class="dropdown-content z-[1] menu mt-4 shadow-lg bg-base-100 rounded-xl w-60 border border-base-200">
-                        <ul class="ml-2 mt-1.5">
-                            <li class="text-6sm">
-                                @foreach ($accounts as $account)
+                        <ul class="ml-2 my-1.5 flex flex-col overflow-auto max-h-40 space-y-1">
+                            @foreach ($accounts as $account)
+                                <li class=" text-6sm  ">
                                     <a wire:click="$set('account_id', {{ $account->id }})"
                                         class="flex items-center justify-between px-3 py-2 transition-all duration-200 group
         {{ $account_id == $account->id ? $this->selectedGradient : '' }}"
@@ -258,9 +263,23 @@ new #[Layout('layouts.app')] class extends Component {
                                             ₱{{ number_format($account->balance) }}
                                         </span>
                                     </a>
-                                @endforeach
-                            </li>
+                                </li>
+                            @endforeach
                         </ul>
+                        <a @click="$dispatch('showRightSidebar', {operation: 'create', page: 'Account', component: 'pages.user.accounts.add'}); rightSidebarOpen = true;"
+                            class="flex items-center justify-center px-3 py-2 transition-all duration-200 group rounded-xl border-4"
+                            :class="expense ? 'hover:bg-secondary border-secondary' : 'hover:bg-primary border-primary'">
+
+                            <span class="flex space-x-1 items-center justify-center group-hover:text-primary"
+                                :class="expense ? 'group-hover:text-secondary-content' :
+                                    'group-hover:text-primary-content'">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                                <span>New</span>
+                            </span>
+                        </a>
                     </div>
                 </div>
                 @error('account_id')
@@ -273,8 +292,8 @@ new #[Layout('layouts.app')] class extends Component {
                     <label tabindex="0" class="btn btn-md border shadow-sm w-full"
                         :class="expense ? 'text-secondary border-secondary hover:bg-secondary/50' :
                             'text-primary border-primary hover:bg-primary/50'">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="h-5 w-5">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 0 0 3.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008Z" />
                         </svg>
@@ -282,12 +301,12 @@ new #[Layout('layouts.app')] class extends Component {
                     </label>
                     <div tabindex="0"
                         class="dropdown-content z-[1] menu mt-4 shadow-lg bg-base-100 w-60 border border-base-200">
-                        <ul class="ml-2 mt-1.5">
-                            <li class="text-6sm">
-                                @if ($type_id == 1)
-                                    @foreach ($incomes as $income)
-                                        @if ($income->name !== 'None')
-                                            <a wire:click="$set('category_id', {{ $income->id }})"
+                        <ul class="ml-2 my-1.5 flex flex-col overflow-auto max-h-40 space-y-1">
+                            @if ($type_id == 1)
+                                @foreach ($incomes as $income)
+                                    @if ($income->name !== 'None')
+                                        <li class="text-6sm">
+                                            <a wire:click="$setVariable('category_id', {{ $income->id }})"
                                                 class="flex items-center justify-between px-3 py-2 transition-all duration-200 group
         {{ $category_id == $income->id ? $this->selectedGradient : '' }}"
                                                 :class="expense ? 'hover:bg-secondary' : 'hover:bg-primary'">
@@ -298,11 +317,13 @@ new #[Layout('layouts.app')] class extends Component {
                                                     <span class="truncate ">{{ $income->name }}</span>
                                                 </span>
                                             </a>
-                                        @endif
-                                    @endforeach
-                                @else
-                                    @foreach ($expenses as $expense)
-                                        @if ($expense->name !== 'None')
+                                        </li>
+                                    @endif
+                                @endforeach
+                            @else
+                                @foreach ($expenses as $expense)
+                                    @if ($expense->name !== 'None')
+                                        <li class="text-6sm">
                                             <a wire:click="$set('category_id', {{ $expense->id }})"
                                                 class="flex items-center justify-between px-3 py-2 transition-all duration-200 group
         {{ $category_id == $expense->id ? $this->selectedGradient : '' }}"
@@ -314,11 +335,25 @@ new #[Layout('layouts.app')] class extends Component {
                                                     <span class="truncate ">{{ $expense->name }}</span>
                                                 </span>
                                             </a>
-                                        @endif
-                                    @endforeach
-                                @endif
-                            </li>
+                                        </li>
+                                    @endif
+                                @endforeach
+                            @endif
                         </ul>
+                        <a @click="$dispatch('showRightSidebar', {operation: 'create', page: 'Category', component: 'pages.user.categories.add'}); rightSidebarOpen = true;"
+                            class="flex items-center justify-center px-3 py-2 transition-all duration-200 group rounded-xl border-4"
+                            :class="expense ? 'hover:bg-secondary border-secondary' : 'hover:bg-primary border-primary'">
+
+                            <span class="flex space-x-1 items-center justify-center group-hover:text-primary"
+                                :class="expense ? 'group-hover:text-secondary-content' :
+                                    'group-hover:text-primary-content'">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                                <span>New</span>
+                            </span>
+                        </a>
                     </div>
                 </div>
                 @error('category_id')

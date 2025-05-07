@@ -96,13 +96,13 @@ new #[Layout('layouts.app')] class extends Component {
         $this->transaction->delete();
 
         $this->dispatch('transactionUpdate');
+        $this->dispatch('detailSidebarClose');
         Toaster::success('Transaction Deleted!');
     }
 
     #[On('update-selected-tags')]
-    public function handleTagUpdate($tags)
+    public function updateSelectedTags($tags)
     {
-        // Just update the selected tags without saving
         $this->selectedTags = $tags;
     }
 
@@ -113,7 +113,8 @@ new #[Layout('layouts.app')] class extends Component {
 
         $this->validate();
 
-        $noChanges = $this->transaction->account_id == $this->account_id && $this->transaction->category_id == $this->category_id && $this->transaction->type_id == $this->type_id && $this->transaction->amount == $this->amount && $this->transaction->name === $this->name && $this->transaction->description === $this->description;
+        // Checks
+        $noChanges = $this->transaction->account_id == $this->account_id && $this->transaction->category_id == $this->category_id && $this->transaction->type_id == $this->type_id && $this->transaction->amount == $this->amount && $this->transaction->name === $this->name && $this->transaction->description === $this->description && $this->transaction->selectedTags === $this->selectedTags && $this->transaction->image === $this->image;
 
         if ($noChanges) {
             Toaster::error('No changes detected');
@@ -459,7 +460,7 @@ new #[Layout('layouts.app')] class extends Component {
                 @if ($transaction->image_url)
                     <div class="avatar"
                         @click="$dispatch('open-image-viewer', '{{ asset('app/' . $transaction->image_url) }}')">
-                        <div class="w-10 rounded">
+                        <div class="w-10 rounded border-4 " :class="expense ? 'border-secondary' : 'border-primary'">
                             <img src="{{ asset('app/' . $transaction->image_url) }}" alt="Transaction Receipt" />
                         </div>
                     </div>
@@ -498,8 +499,7 @@ new #[Layout('layouts.app')] class extends Component {
         <template x-if="isDelete">
             <div class="flex flex-row gap-x-2">
                 <button @click="isDelete = false" class="flex-1 btn btn-neutral">Cancel</button>
-                <button class="btn btn-error flex-1" wire:click="delete"
-                    @click="setTimeout(() => detailSidebarOpen = false, 1000)">Delete<span
+                <button class="btn btn-error flex-1" wire:click="delete">Delete<span
                         class="loading loading-bars loading-lg" wire:loading></span></button>
             </div>
         </template>
