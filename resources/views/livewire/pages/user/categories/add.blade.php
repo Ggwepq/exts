@@ -126,7 +126,7 @@ new #[Layout('layouts.app')] class extends Component {
             }" class="relative w-full max-w-full">
 
                 <!-- display name (click to edit) -->
-                <span x-show="!editing" @click="editing = true; $nexttick(() => $refs.nameinput.focus())"
+                <span x-show="!editing" @click="editing = true; $nextTick(() => $refs.nameinput.focus())"
                     class="cursor-pointer font-bold text-3xl block truncate text-center"
                     :class="expense ? 'text-secondary' : 'text-primary'" x-text="name || 'ㄟ( ▔, ▔ )ㄏ'">
                 </span>
@@ -134,8 +134,8 @@ new #[Layout('layouts.app')] class extends Component {
                 <!-- editable input -->
                 <input x-show="editing" x-ref="nameinput" x-model="name" wire:model.lazy="name"
                     @click.away="editing = false" type="text" placeholder="name" autocomplete="name"
-                    class="input input-xl font-bold text-4xl w-full bg-transparent outline-none border-none"
-                    :class="expense ? 'text-secondary' : 'text-primary'" />
+                    class="input input-xl font-bold text-4xl w-full bg-transparent outline-none border-none text-center"
+                    :class="expense ? 'text-secondary input-secondary' : 'text-primary input-primary'" autofocus />
 
             </div>
             @error('name')

@@ -159,7 +159,7 @@ new #[Layout('layouts.app')] class extends Component {
                 <!-- editable input -->
                 <input x-show="editing" x-ref="nameinput" x-model="name" wire:model.lazy="name"
                     @click.away="editing = false" type="text" placeholder="name" autocomplete="name"
-                    class="input input-xl font-bold text-4xl w-full bg-transparent outline-none border-none"
+                    class="input input-xl font-bold text-4xl w-full bg-transparent outline-none border-none text-center"
                     :class="expense ? 'text-secondary' : 'text-primary'" />
 
             </div>
