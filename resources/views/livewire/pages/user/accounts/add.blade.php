@@ -87,6 +87,8 @@ new #[Layout('layouts.app')] class extends Component {
             DB::rollBack();
             Toaster::error('Account Creation Failed!');
         }
+        $this->dispatch('rightSidebarClose');
+        $this->dispatch('reloadDropdowns');
     }
 
     public function mount()

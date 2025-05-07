@@ -60,7 +60,7 @@ new #[Layout('layouts.guest')] class extends Component {
                             <!-- First Name -->
                             <div class="form-control w-full mt-4">
                                 <x-input-label for="first_name" :value="__('First Name')" />
-                                <input type="text" wire:model="first_name"
+                                <input type="text" wire:model.lazy="first_name"
                                     class="input input-bordered validator w-full" name="first_name" required
                                     autocomplete="Name" />
                                 <x-input-error :messages="$errors->get('first_name')" class="mt-2" />
@@ -69,7 +69,7 @@ new #[Layout('layouts.guest')] class extends Component {
                             <!-- Last Name -->
                             <div class="form-control w-full mt-4">
                                 <x-input-label for="last_name" :value="__('Last Name')" />
-                                <input type="text" wire:model="last_name"
+                                <input type="text" wire:model.lazy="last_name"
                                     class="input input-bordered validator w-full" name="last_name" required
                                     autocomplete="last_name" />
                                 <x-input-error :messages="$errors->get('last_name')" class="mt-2" />
@@ -78,15 +78,16 @@ new #[Layout('layouts.guest')] class extends Component {
                             <!-- Email -->
                             <div class="form-control w-full mt-4">
                                 <x-input-label for="email" :value="__('Email')" />
-                                <input type="email" wire:model="email" class="input input-bordered validator w-full"
-                                    name="email" required autocomplete="username" />
+                                <input type="email" wire:model.lazy="email"
+                                    class="input input-bordered validator w-full" name="email" required
+                                    autocomplete="username" />
                                 <x-input-error :messages="$errors->get('email')" class="mt-2" />
                             </div>
 
                             <!-- Password -->
                             <div class="form-control w-full mt-4">
                                 <x-input-label for="password" :value="__('Password')" />
-                                <input wire:model="password" id="password"
+                                <input wire:model.lazy="password" id="password"
                                     class="input input-bordered validator w-full" type="password" name="password"
                                     required autocomplete="new-password" />
                                 <x-input-error :messages="$errors->get('password')" class="mt-2" />
@@ -95,7 +96,7 @@ new #[Layout('layouts.guest')] class extends Component {
                             <!-- Confirm Password -->
                             <div class="form-control w-full mt-4">
                                 <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-                                <input wire:model="password_confirmation" id="password_confirmation"
+                                <input wire:model.lazy="password_confirmation" id="password_confirmation"
                                     class="input input-bordered validator w-full" type="password"
                                     name="password_confirmation" required autocomplete="new-password" />
                                 <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
