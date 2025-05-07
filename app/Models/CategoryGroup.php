@@ -20,6 +20,6 @@ class CategoryGroup extends Model
 
     public function transactionCategory()
     {
-        return $this->hasMany(TransactionCategory::class);
+        return $this->hasMany(TransactionCategory::class, 'group_id');
     }
 }
