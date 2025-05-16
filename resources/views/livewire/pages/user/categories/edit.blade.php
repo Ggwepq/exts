@@ -16,7 +16,6 @@ use Livewire\Volt\Component;
 
 new #[Layout('layouts.app')] class extends Component {
     // [Validate('required|string|max:255')]
-    public $groups;
     public $name;
     public $currentCategory;
 
@@ -34,14 +33,16 @@ new #[Layout('layouts.app')] class extends Component {
                 'string',
                 'max:255',
                 function ($attribute, $value, $fail) {
-                    $exists = DB::table('transaction_categories')
-                        ->where('user_id', Auth::id())
-                        ->whereRaw('LOWER(name) = ?', [strtolower($value)])
-                        ->exists();
+                    if ($this->name != $this->currentCategory->name) {
+                        $exists = DB::table('transaction_categories')
+                            ->where('user_id', Auth::id())
+                            ->whereRaw('LOWER(name) = ?', [strtolower($value)])
+                            ->exists();
 
-                    if ($exists) {
-                        Toaster::error('Name must be Unique');
-                        $fail('');
+                        if ($exists) {
+                            Toaster::error('Name must be Unique');
+                            $fail('');
+                        }
                     }
                 },
             ],
@@ -51,11 +52,13 @@ new #[Layout('layouts.app')] class extends Component {
     public function save()
     {
         $this->validate();
-        $this->type_id = $this->type_id ? 1 : 2;
+        $typeCheck = $this->type_id == 1 ? 1 : 2;
+        $this->type_id = $typeCheck;
 
-        $noChanges = $this->currentCategory->name === $this->name && $this->currentCategory->group_id === $this->group_id && $this->currentCategory->type_id === $this->type_id;
+        $noChanges = strtolower($this->currentCategory->name) === strtolower($this->name) && $this->currentCategory->group_id === $this->group_id && $this->currentCategory->type_id === $this->type_id;
+
         if ($noChanges) {
-            Toaster::error('No changes detected');
+            Toaster::warning('No changes detected');
             return;
         }
 
@@ -70,33 +73,35 @@ new #[Layout('layouts.app')] class extends Component {
             ]);
             DB::commit();
 
-            // Reset form fields
-            $this->reset(['name', 'group_id']);
-
-            // Emit event to refresh transaction list
-            $this->dispatch('categoryUpdate');
-            $this->dispatch('reloadDropdowns');
-            $this->dispatch('rightSidebarClose');
-
-            Toaster::success('Category Created!');
+            Toaster::success('Category Updated!');
         } catch (\Exception $e) {
             DB::rollBack();
-            Toaster::error('Category Creation Failed!');
+            Toaster::error($e);
+            $this->loadCategory($this->currentCategory->id);
         }
+
+        // Emit event to refresh transaction list
+        $this->dispatch('categoryUpdate');
+        $this->dispatch('reloadDropdowns');
+        $this->loadCategory($this->currentCategory->id);
     }
 
     public function delete()
     {
         $this->currentCategory->delete();
         $this->dispatch('categoryUpdate');
-        $this->dispatch('detailSidebarClose');
         Toaster::success('Categories Deleted!');
     }
 
     public function mount(?int $modelId = null)
     {
-        $this->groups = CategoryGroup::where('user_id', Auth::id())->get();
         $this->loadCategory($modelId);
+    }
+
+    #[On('reloadDropdowns')]
+    public function getGroupsProperty()
+    {
+        return CategoryGroup::where('user_id', Auth::id())->where('type', 'Transaction')->get();
     }
 
     public function loadCategory($id)
@@ -126,11 +131,13 @@ new #[Layout('layouts.app')] class extends Component {
         <div class="flex flex-row w-full justify-between">
             <div class="flex items-center gap-2 mb-2 ">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                    stroke="currentColor" class="size-6" :class="expense ? 'text-secondary' : 'text-primary'">
+                    stroke="currentColor" class="size-6"
+                    :class="$wire.type_id == 2 || !$wire.type_id ? 'text-secondary' : 'text-primary'">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M6.75 2.994v2.25m10.5-2.25v2.25m-14.252 13.5V7.491a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v11.251m-18 0a2.25 2.25 0 0 0 2.25 2.25h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v7.5m-6.75-6h2.25m-9 2.25h4.5m.002-2.25h.005v.006H12v-.006Zm-.001 4.5h.006v.006h-.006v-.005Zm-2.25.001h.005v.006H9.75v-.006Zm-2.25 0h.005v.005h-.006v-.005Zm6.75-2.247h.005v.005h-.005v-.005Zm0 2.247h.006v.006h-.006v-.006Zm2.25-2.248h.006V15H16.5v-.005Z" />
                 </svg>
-                <span class="text-xs font-semibold" :class="expense ? 'text-secondary' : 'text-primary'">
+                <span class="text-xs font-semibold"
+                    :class="$wire.type_id == 2 || !$wire.type_id ? 'text-secondary' : 'text-primary'">
                     {{ carbon::now()->format('l, F j Y') }}
                 </span>
             </div>
@@ -139,8 +146,8 @@ new #[Layout('layouts.app')] class extends Component {
                 <input type="checkbox" :checked="$wire.type_id == 1" wire:model.live="type_id"
                     class="toggle border-secondary bg-secondary checked:bg-primary checked:text-primary checked:border-primary"
                     @click="expense = !expense; $wire.category_id = ''" />
-                <span x-text="expense ? 'Expense' : 'Income'"
-                    :class="expense ? 'text-secondary' : 'text-primary'"></span>
+                <span x-text="$wire.type_id == 2 || !$wire.type_id  ? 'Expense' : 'Income'"
+                    :class="$wire.type_id == 2 || !$wire.type_id ? 'text-secondary' : 'text-primary'"></span>
             </div>
         </div>
         <div class="flex flex-col gap-3 mt-2">
@@ -153,14 +160,15 @@ new #[Layout('layouts.app')] class extends Component {
                 <!-- display name (click to edit) -->
                 <span x-show="!editing" @click="editing = true; $nextTick(() => $refs.nameinput.focus())"
                     class="cursor-pointer font-bold text-3xl block truncate text-center"
-                    :class="expense ? 'text-secondary' : 'text-primary'" x-text="name || 'ㄟ( ▔, ▔ )ㄏ'">
+                    :class="$wire.type_id == 2 || !$wire.type_id ? 'text-secondary' : 'text-primary'"
+                    x-text="name || 'ㄟ( ▔, ▔ )ㄏ'">
                 </span>
 
                 <!-- editable input -->
                 <input x-show="editing" x-ref="nameinput" x-model="name" wire:model.lazy="name"
                     @click.away="editing = false" type="text" placeholder="name" autocomplete="name"
                     class="input input-xl font-bold text-4xl w-full bg-transparent outline-none border-none text-center"
-                    :class="expense ? 'text-secondary' : 'text-primary'" />
+                    :class="$wire.type_id == 2 || !$wire.type_id ? 'text-secondary' : 'text-primary'" />
 
             </div>
             @error('name')
@@ -171,7 +179,7 @@ new #[Layout('layouts.app')] class extends Component {
 
             <div class="dropdown dropdown-center w-full">
                 <label tabindex="0" class="btn btn-md border shadow-sm w-full" aria-label="Select Group"
-                    :class="expense ? 'text-secondary border-secondary hover:bg-secondary/50' :
+                    :class="$wire.type_id == 2 || !$wire.type_id ? 'text-secondary border-secondary hover:bg-secondary/50' :
                         'text-primary border-primary hover:bg-primary/50'">
 
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -184,15 +192,29 @@ new #[Layout('layouts.app')] class extends Component {
                 <div tabindex="0"
                     class="dropdown-content z-[1] menu mt-4 shadow-lg bg-base-100 rounded-xl w-60 border border-base-200">
                     <ul class="ml-2 my-1.5 flex flex-col overflow-auto max-h-40 space-y-1">
-                        @foreach ($groups as $group)
+                        <li class=" text-6sm  ">
+                            <a wire:click="$set('group_id', null)"
+                                class="flex items-center justify-between px-3 py-2 transition-all duration-200 group
+        {{ $group_id == null ? $this->selectedGradient : '' }}"
+                                :class="$wire.type_id == 2 || !$wire.type_id ? 'hover:bg-secondary' : 'hover:bg-primary'">
+
+                                <span class="flex space-x-1 items-center group-hover:text-primary"
+                                    :class="$wire.type_id == 2 || !$wire.type_id ? 'group-hover:text-secondary-content' :
+                                        'group-hover:text-primary-content'">
+                                    <span class="truncate ">None</span>
+                                </span>
+
+                            </a>
+                        </li>
+                        @foreach ($this->groups as $group)
                             <li class=" text-6sm  ">
                                 <a wire:click="$set('group_id', {{ $group->id }})"
                                     class="flex items-center justify-between px-3 py-2 transition-all duration-200 group
         {{ $group_id == $group->id ? $this->selectedGradient : '' }}"
-                                    :class="expense ? 'hover:bg-secondary' : 'hover:bg-primary'">
+                                    :class="$wire.type_id == 2 || !$wire.type_id ? 'hover:bg-secondary' : 'hover:bg-primary'">
 
                                     <span class="flex space-x-1 items-center group-hover:text-primary"
-                                        :class="expense ? 'group-hover:text-secondary-content' :
+                                        :class="$wire.type_id == 2 || !$wire.type_id ? 'group-hover:text-secondary-content' :
                                             'group-hover:text-primary-content'">
                                         <span class="truncate ">{{ $group->name }}</span>
                                     </span>
@@ -201,12 +223,13 @@ new #[Layout('layouts.app')] class extends Component {
                             </li>
                         @endforeach
                     </ul>
-                    <a @click="$dispatch('showRightSidebar', {operation: 'create', page: 'Account', component: 'pages.user.accounts.add'}); rightSidebarOpen = true;"
+                    <a @click="$dispatch('showRightSidebar', {operation: 'create', page: 'Group', component: 'pages.user.groups.add'}); rightSidebarOpen = true;"
                         class="flex items-center justify-center px-3 py-2 transition-all duration-200 group rounded-xl border-4"
-                        :class="expense ? 'hover:bg-secondary border-secondary' : 'hover:bg-primary border-primary'">
+                        :class="$wire.type_id == 2 || !$wire.type_id ? 'hover:bg-secondary border-secondary' :
+                            'hover:bg-primary border-primary'">
 
                         <span class="flex space-x-1 items-center justify-center group-hover:text-primary"
-                            :class="expense ? 'group-hover:text-secondary-content' :
+                            :class="$wire.type_id == 2 || !$wire.type_id ? 'group-hover:text-secondary-content' :
                                 'group-hover:text-primary-content'">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -224,7 +247,7 @@ new #[Layout('layouts.app')] class extends Component {
 
         <!-- Submit Button -->
         <button type="submit" class="btn btn-primary w-full"
-            :class="expense ? 'bg-secondary' : 'bg-primary'">Save<span
+            :class="$wire.type_id == 2 || !$wire.type_id ? 'bg-secondary' : 'bg-primary'">Save<span
                 wire:loading.class="loading loading-bars loading-lg"></span></button>
     </form>
     <div x-data="{ isDelete: false }" class="mt-4">

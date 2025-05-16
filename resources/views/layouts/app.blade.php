@@ -39,13 +39,16 @@
     <div class="drawer lg:drawer-open" x-data="{
         detailSidebarOpen: false,
         rightSidebarOpen: false,
-    }">
+    }" x-init="window.addEventListener('rightSidebarClose', () => {
+        rightSidebarOpen = false;
+    });
+    window.addEventListener('detailSidebarClose', () => {
+        detailSidebarOpen = false;
+    })">
         <input id="left-sidebar-drawer" type="checkbox" class="drawer-toggle" />
 
         <!-- Page Content -->
-        <div class="drawer-content flex flex-col"
-            x-on:rightSidebarClose.window="rightSidebarOpen = false; console.log('Close That Bitcht')"
-            x-on:detailSidebarClose.window="detailSidebarOpen = false; console.log('Close That Bitcht')">
+        <div class="drawer-content flex flex-col">
             <main class="min-h-screen bg-base-200 relative overflow-x-hidden">
                 {{ $slot }}
             </main>
@@ -53,7 +56,6 @@
 
         <!-- Left Sidebar -->
         <livewire:pages.user.containers.sidebar />
-
     </div>
 
     <x-toaster-hub />

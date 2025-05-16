@@ -13,9 +13,14 @@ class TransactionCategory extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function categories()
+    public function groups()
     {
         return $this->belongsTo(CategoryGroup::class, 'group_id');
+    }
+
+    public function types()
+    {
+        return $this->belongsTo(Type::class, 'type_id');
     }
 
     public function budgets()

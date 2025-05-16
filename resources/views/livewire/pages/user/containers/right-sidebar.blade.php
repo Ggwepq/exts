@@ -12,12 +12,13 @@ new #[Layout('layouts.app')] class extends Component {
     public mixed $modelId = null;
 
     #[On('showRightSidebar')]
-    public function open(string $operation, string $page, string $component = ''): void
+    public function open(string $operation, string $page, string $component = '', mixed $modelId = null): void
     {
         $this->oldComponent = $component;
         $this->operation = $operation;
         $this->page = $page;
         $this->component = $component;
+        $this->modelId = $modelId;
     }
 };
 
@@ -86,3 +87,4 @@ new #[Layout('layouts.app')] class extends Component {
         </div>
     </aside>
 </div>
+
