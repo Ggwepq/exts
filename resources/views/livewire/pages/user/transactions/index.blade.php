@@ -189,17 +189,86 @@ new #[Layout('layouts.app')] class extends Component {
         }
         return number_format($amount, 2);
     }
+
+    // Bulk Delete
+    public function deleteSelected(array $ids)
+    {
+        Transaction::whereIn('id', $ids)->delete();
+        Toaster::success('Items Deleted!');
+        $this->dispatch('transactionUpdate');
+    }
 }; ?>
 
-<section x-data="{ detailSidebarOpen: false }" x-cloak class="h-screen">
+<section x-data="{
+    detailSidebarOpen: false,
+    selected: [],
+    toggle(id) {
+        if (this.selected.includes(id)) {
+            this.selected = this.selected.filter(item => item !== id);
+        } else {
+            this.selected.push(id);
+        }
+    },
+    selectAll(ids) {
+        this.selected = [...ids];
+    },
+    clearSelected() {
+        this.selected = [];
+    }
+}" x-cloak class="h-screen">
     <!-- Main Content with Animated Margin -->
-    <div class="transition-all duration-300 ease-in-out"
-        :class="{ 'md:mr-[17rem] lg:mr-[23rem] xl:mr-[27rem] 2xl:mr-[41rem]': detailSidebarOpen }">
+    <!-- <div class="transition-all duration-300 ease-in-out" -->
+    <!--     :class="{ 'md:mr-[17rem] lg:mr-[23rem] xl:mr-[29rem] 2xl:mr-[31rem]': detailSidebarOpen }"> -->
+
+    <!-- No Margin -->
+    <div class="transition-all duration-300 ease-in-out">
+
         @livewire('pages.user.containers.main-header', ['component' => 'pages.user.transactions.header', 'header' => 'Transactions'])
 
         <div class="flex-1 overflow-y-auto md:pt-4 pt-4 px-6 bg-base-200 h-screen">
-            <div class="card w-full p-6 bg-base-100 shadow-xl mt-2">
 
+            <div x-show="selected.length > 0" x-transition
+                class="fixed bottom-1 left-1/2 transform -translate-x-1/2 bg-base-100 shadow-lg rounded-lg p-3 z-50 border border-base-content/10">
+                <div class="flex gap-2 justify-center items-center">
+                    <div class="flex justify-center items-center gap-2 mr-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59" />
+                        </svg>
+                        <span class=" text-sm font-semibold " x-text="selected.length + ' selected'"></span>
+                    </div>
+                    <button class="btn btn-sm btn-secondary"
+                        @click="Livewire.dispatch('showRightSidebar', {
+                            operation: 'edit',
+                            page: 'Transactions',
+                            component: 'pages.user.transactions.bulk-edit',
+                            modelId: selected
+                        })">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                        </svg>
+                        Edit Fields</button>
+                    <button class="btn btn-sm btn-error" @click="$wire.call('deleteSelected', selected); selected = []">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                        </svg>
+                    </button>
+                    <button class="btn btn-sm btn-outline" @click="clearSelected()">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="card w-full p-6 bg-base-100 shadow-xl mt-2">
                 @if (count($transactions))
                     <ul class="list bg-base-100 space-y-4">
                         @foreach ($transactions as $date => $record)
@@ -249,18 +318,18 @@ new #[Layout('layouts.app')] class extends Component {
                                         @endif
                                     </div>
                                 </div>
-                                <div class="text-right text-xs font-semibold">
-                                    <span class="text-primary block md:hidden w-1/2">
+                                <div class="text-right text-xs w-1/2  font-semibold">
+                                    <span class="text-primary truncate inline-block md:hidden w-1/2 md:w-auto">
                                         +₱{{ $this->formatShortAmount($totalIncome) }}
                                     </span>
-                                    <span class="text-primary truncate hidden md:inline-block w-auto">
+                                    <span class="text-primary truncate hidden md:inline-block w-1/2 md:w-auto">
                                         +₱{{ number_format($totalIncome, 2) }}
                                     </span>
 
-                                    <span class="text-secondary truncate inline-block md:hidden w-1/2">
+                                    <span class="text-secondary truncate inline-block md:hidden w-1/2 md:w-auto">
                                         -₱{{ $this->formatShortAmount($totalExpense) }}
                                     </span>
-                                    <span class="text-secondary truncate hidden md:inline-block w-auto">
+                                    <span class="text-secondary truncate hidden md:inline-block w-1/2 md:w-auto">
                                         -₱{{ number_format($totalExpense, 2) }}
                                     </span>
                                 </div>
@@ -270,9 +339,12 @@ new #[Layout('layouts.app')] class extends Component {
                                 <li
                                     class="group list-row hover:bg-base-200 flex items-center justify-between w-full p2-5 py-4 border border-base-200 mb-3 mx-0.5 transition-all duration-200 hover:shadow-md cursor-pointer">
                                     <!-- Red for Expense, Green for Income -->
-                                    <div class="opacity-0 hover:opacity-100 transition-all duration-100 ease-in-out">
+                                    <div class="opacity-0 hover:opacity-100 transition-all duration-100 ease-in-out"
+                                        :class="selected.length > 0 ? 'opacity-100' : 'opacity-0'">
 
-                                        <input type="checkbox" class="checkbox " />
+                                        <input type="checkbox" class="checkbox "
+                                            :checked="selected.includes({{ $transaction->id }})"
+                                            @change="toggle({{ $transaction->id }})" />
                                     </div>
 
                                     <div class="flex flex-row md:items-center w-full grow"
