@@ -20,23 +20,28 @@ new class extends Component {
     {
         $userId = Auth::id();
 
+        // Load all categories with their group and type
         $allCategories = TransactionCategory::where('user_id', $userId)->with('groups', 'types')->get();
 
-        $this->categories = $allCategories
-            ->groupBy(function ($cat) {
-                return optional($cat->groups)->name ?? 'None';
-            })
-            ->all();
+        // Group categories by group name
+        $this->categories = $allCategories->groupBy(fn($cat) => optional($cat->groups)->name ?? 'None')->all();
 
-        // Load all real groups
-        $groups = CategoryGroup::where('user_id', $userId)->where('type', 'Transaction')->get();
+        // Load all groups
+        $allGroups = CategoryGroup::where('user_id', $userId)->where('type', 'Transaction')->get();
 
-        // Add a dummy "None" group using the same model class
-        $dummyGroup = new CategoryGroup();
-        $dummyGroup->id = null;
-        $dummyGroup->name = 'None';
+        // Identify group IDs that are used in the categories
+        $usedGroupIds = $allCategories->pluck('group_id')->filter()->unique();
 
-        $this->groups = $groups
+        // Add the dummy None group manually
+        $dummyGroup = (object) ['id' => null, 'name' => 'None'];
+
+        // Separate groups that are used vs unused
+        $usedGroups = $allGroups->filter(fn($group) => $usedGroupIds->contains($group->id));
+        $unusedGroups = $allGroups->reject(fn($group) => $usedGroupIds->contains($group->id));
+
+        // Merge used + unused + dummy "None"
+        $this->groups = $usedGroups
+            ->merge($unusedGroups)
             ->map(
                 fn($group) => [
                     'id' => $group->id,
