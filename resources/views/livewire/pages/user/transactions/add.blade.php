@@ -157,7 +157,7 @@ new #[Layout('layouts.app')] class extends Component {
 
                 <div x-data="{
                     editing: false,
-                    name: @entangle('name').defer
+                    name: @entangle('name')
                 }" class="relative w-full max-w-full">
 
                     <!-- Display name (click to edit) -->
@@ -185,7 +185,7 @@ new #[Layout('layouts.app')] class extends Component {
 
                 <div x-data="{
                     editing: false,
-                    amount: @entangle('amount').defer,
+                    amount: @entangle('amount'),
                     formatted() {
                         const num = parseFloat(this.amount || 0);
                         return num.toLocaleString('en-PH', { style: 'currency', currency: 'PHP' });
