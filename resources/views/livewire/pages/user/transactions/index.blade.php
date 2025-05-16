@@ -239,12 +239,12 @@ new #[Layout('layouts.app')] class extends Component {
                         <span class=" text-sm font-semibold " x-text="selected.length + ' selected'"></span>
                     </div>
                     <button class="btn btn-sm btn-secondary"
-                        @click="Livewire.dispatch('showRightSidebar', {
+                        @click="$dispatch('showRightSidebar', {
                             operation: 'edit',
                             page: 'Transactions',
                             component: 'pages.user.transactions.bulk-edit',
                             modelId: selected
-                        })">
+                        }); rightSidebarOpen = true">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-6">
                             <path stroke-linecap="round" stroke-linejoin="round"
