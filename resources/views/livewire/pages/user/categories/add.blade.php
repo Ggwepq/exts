@@ -13,10 +13,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
+use Livewire\Attribute\On;
 
 new #[Layout('layouts.app')] class extends Component {
     // [Validate('required|string|max:255')]
-    public $groups;
     public $name;
 
     #[Validate('nullable')]
@@ -39,7 +39,8 @@ new #[Layout('layouts.app')] class extends Component {
                         ->exists();
 
                     if ($exists) {
-                        $fail('The name must be unique.');
+                        Toaster::error('Name must be Unique');
+                        $fail('');
                     }
                 },
             ],
@@ -62,24 +63,24 @@ new #[Layout('layouts.app')] class extends Component {
             ]);
             DB::commit();
 
-            // Reset form fields
-            $this->reset(['name', 'group_id']);
-
-            // Emit event to refresh transaction list
-            $this->dispatch('categoryUpdate');
-            $this->dispatch('reloadDropdowns');
-            $this->dispatch('rightSidebarClose');
-
             Toaster::success('Category Created!');
         } catch (\Exception $e) {
             DB::rollBack();
             Toaster::error('Category Creation Failed!');
         }
+
+        $this->dispatch('$refresh');
+
+        // Emit event to refresh transaction list
+        $this->dispatch('categoryUpdate');
     }
 
-    public function mount()
+    public function mount() {}
+
+    #[On('reloadDropdowns')]
+    public function getGroupsProperty()
     {
-        $this->groups = CategoryGroup::where('user_id', Auth::id())->get();
+        return CategoryGroup::where('user_id', Auth::id())->where('type', 'Transaction')->get();
     }
 
     public function getSelectedGroupProperty()
@@ -127,15 +128,19 @@ new #[Layout('layouts.app')] class extends Component {
 
                 <!-- display name (click to edit) -->
                 <span x-show="!editing" @click="editing = true; $nextTick(() => $refs.nameinput.focus())"
-                    class="cursor-pointer font-bold text-3xl block truncate text-center"
-                    :class="expense ? 'text-secondary' : 'text-primary'" x-text="name || 'ㄟ( ▔, ▔ )ㄏ'">
+                    class="cursor-pointer font-bold block"
+                    :class="(expense ? 'text-secondary input-secondary' : 'text-primary input-primary') + ' ' + (!name ?
+                        'text-center text-3xl' : 'text-left truncate  text-5xl')"
+                    x-text="name || 'ㄟ( ▔, ▔ )ㄏ'">
                 </span>
 
                 <!-- editable input -->
                 <input x-show="editing" x-ref="nameinput" x-model="name" wire:model.lazy="name"
                     @click.away="editing = false" type="text" placeholder="name" autocomplete="name"
-                    class="input input-xl font-bold text-4xl w-full bg-transparent outline-none border-none text-center"
-                    :class="expense ? 'text-secondary input-secondary' : 'text-primary input-primary'" autofocus />
+                    class="input input-xl font-bold text-4xl w-full bg-transparent outline-none border-none"
+                    :class="(expense ? 'text-secondary input-secondary' : 'text-primary input-primary') + ' ' + (!name ?
+                        'text-center ' : 'text-left')"
+                    :class="name != null ? 'text-left' : 'text-center'" autofocus />
 
             </div>
             @error('name')
@@ -159,7 +164,7 @@ new #[Layout('layouts.app')] class extends Component {
                 <div tabindex="0"
                     class="dropdown-content z-[1] menu mt-4 shadow-lg bg-base-100 rounded-xl w-60 border border-base-200">
                     <ul class="ml-2 my-1.5 flex flex-col overflow-auto max-h-40 space-y-1">
-                        @foreach ($groups as $group)
+                        @foreach ($this->groups as $group)
                             <li class=" text-6sm  ">
                                 <a wire:click="$set('group_id', {{ $group->id }})"
                                     class="flex items-center justify-between px-3 py-2 transition-all duration-200 group
@@ -176,7 +181,7 @@ new #[Layout('layouts.app')] class extends Component {
                             </li>
                         @endforeach
                     </ul>
-                    <a @click="$dispatch('showRightSidebar', {operation: 'create', page: 'Account', component: 'pages.user.accounts.add'}); rightSidebarOpen = true;"
+                    <a @click="$dispatch('showRightSidebar', {operation: 'create', page: 'Group', component: 'pages.user.groups.add'}); rightSidebarOpen = true; console.log(rightSidebarOpen)"
                         class="flex items-center justify-center px-3 py-2 transition-all duration-200 group rounded-xl border-4"
                         :class="expense ? 'hover:bg-secondary border-secondary' : 'hover:bg-primary border-primary'">
 
