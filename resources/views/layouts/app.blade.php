@@ -39,7 +39,12 @@
     <div class="drawer lg:drawer-open" x-data="{
         detailSidebarOpen: false,
         rightSidebarOpen: false,
-    }">
+    }" x-init="window.addEventListener('rightSidebarClose', () => {
+        rightSidebarOpen = false;
+    });
+    window.addEventListener('detailSidebarClose', () => {
+        detailSidebarOpen = false;
+    })">
         <input id="left-sidebar-drawer" type="checkbox" class="drawer-toggle" />
 
         <!-- Page Content -->
