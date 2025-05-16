@@ -58,10 +58,12 @@ new class extends Component {
                 <path d="m21 21-4.3-4.3"></path>
             </g>
         </svg>
-        <input type="text" placeholder="Search transactions..." wire:model.live.debounce.300ms="filters.search" />
+        <input x-ref="searchInput" type="text" placeholder="Search transactions..."
+            wire:model.live.debounce.300ms="filters.search" />
     </label>
 
-    <div class="flex" @click="showSearchBar = true" x-show="!showSearchBar">
+    <div class="flex" @click="showSearchBar = true; $nextTick(() => $refs.searchInput.focus())"
+        x-show="!showSearchBar">
         <label class="btn btn-sm bg-sky-100 hover:bg-sky-200 text-sky-700 border border-sky-300 shadow-sm" x-transition>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                 stroke="currentColor" class="size-5 text-sky-600">
