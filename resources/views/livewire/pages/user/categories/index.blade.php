@@ -189,7 +189,7 @@ new class extends Component {
 
                             @foreach ($record as $category)
                                 <li class="group list-row flex hover:bg-base-200 items-center justify-between w-full px-5 py-4 border border-base-200  mb-3 mx-0.5 transition-all duration-200 hover:shadow-md cursor-pointer"
-                                    @click="$dispatch('showSidebar', {operation: 'edit', page: 'Category', component: 'pages.user.categories.edit', modelId: {{ $category['id'] }}}); detailSidebarOpen = true;"
+                                    @click="$dispatch('showSidebar', {operation: 'view', page: 'Category', component: 'pages.user.categories.view', modelId: {{ $category['id'] }}}); detailSidebarOpen = true;"
                                     draggable="true" x-data @dragstart="draggedCategoryId = {{ $category->id }}">
                                     <div class="flex items-center gap-4">
                                         <div
