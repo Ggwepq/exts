@@ -80,7 +80,7 @@ new #[Layout('layouts.app')] class extends Component {
                         @if ($operation == 'view')
                             <button
                                 class="btn btn-ghost btn-sm bg-base-100 hover:bg-base-200 border border-base-300 shadow-sm"
-                                @click="$dispatch('showSidebar', {operation: 'edit', page: '{{ $page }}', component: 'pages.user.categories.edit', modelId: {{ $modelId }}}); detailSidebarOpen = true;">
+                                @click="$dispatch('showSidebar', {operation: 'edit', page: '{{ $page }}', component: 'pages.user.{{ \Illuminate\Support\Str::plural(strtolower($page)) }}.edit', modelId: {{ $modelId }}}); detailSidebarOpen = true;">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor" class="size-6">
                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -91,7 +91,7 @@ new #[Layout('layouts.app')] class extends Component {
                         @elseif ($operation == 'edit')
                             <button
                                 class="btn btn-ghost btn-sm bg-base-100 hover:bg-base-200 border border-base-300 shadow-sm"
-                                @click="$dispatch('showSidebar', {operation: 'view', page: '{{ $page }}', component: 'pages.user.categories.view', modelId: {{ $modelId }}}); detailSidebarOpen = true;">
+                                @click="$dispatch('showSidebar', {operation: 'view', page: '{{ $page }}', component: 'pages.user.{{ \Illuminate\Support\Str::plural(strtolower($page)) }}.view', modelId: {{ $modelId }}}); detailSidebarOpen = true;">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor" class="size-6">
                                     <path stroke-linecap="round" stroke-linejoin="round"
