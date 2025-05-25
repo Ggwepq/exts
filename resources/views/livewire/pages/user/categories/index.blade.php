@@ -214,6 +214,15 @@ new class extends Component {
                                 </li>
                             @endforeach
                         @endforeach
+
+                        <li class="group bg-base-200/50 text-sm font-medium py-2 px-4 mb-2 sticky top-0 z-10 backdrop-blur-sm shadow-sm cursor-pointer flex items-center justify-center"
+                            @click="$dispatch('showRightSidebar', {operation: 'create', page: 'Group', component: 'pages.user.groups.add'}); rightSidebarOpen = true; console.log(rightSidebarOpen)">
+                            <!-- icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke-width="1.5" stroke="currentColor" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                            </svg>
+                        </li>
                     </ul>
                 @else
                     <div class="flex flex-col items-center justify-center p-10 bg-base-200/30 ">
