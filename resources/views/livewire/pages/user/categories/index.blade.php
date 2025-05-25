@@ -5,10 +5,12 @@ use App\Models\CategoryGroup;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
 use Livewire\Volt\Component;
+use Masmerise\Toaster\Toaster;
 
 new class extends Component {
     public $categories;
     public $groups;
+    public $refreshKey;
 
     public function mount()
     {
@@ -48,11 +50,14 @@ new class extends Component {
                     'name' => $group->name,
                 ],
             )
+            ->sortBy('name')
             ->prepend([
                 'id' => null,
                 'name' => 'None',
             ])
             ->values();
+
+        $this->refreshKey = uniqid();
     }
 
     public function reassignCategoryGroup($categoryId, $groupId)
@@ -73,9 +78,39 @@ new class extends Component {
 
         $this->loadCategories(); // refresh the list
     }
+
+    public function renameGroup($groupId, $newName)
+    {
+        if ($groupId == null) {
+            Toaster::error('Not a group');
+            return;
+        }
+
+        $userId = Auth::id();
+        CategoryGroup::where('id', $groupId)
+            ->where('user_id', $userId)
+            ->update(['name' => trim($newName)]);
+
+        Toaster::success('Category Group Updated!');
+
+        $this->loadCategories();
+    }
+
+    public function deleteGroup($groupId)
+    {
+        $userId = Auth::id();
+        $group = CategoryGroup::where('id', $groupId)->where('user_id', $userId);
+
+        $group->delete();
+
+        $this->dispatch('refresh');
+        Toaster::success('Category Group Deleted!');
+
+        $this->loadCategories();
+    }
 }; ?>
 
-<section>
+<section wire:poll.10s>
     <!-- Yes Margin -->
     <!-- <div class="transition-all duration-300 ease-in-out" -->
     <!--     :class="{ 'md:mr-[17rem] lg:mr-[23rem] xl:mr-[27rem] 2xl:mr-[41rem]': detailSidebarOpen }"> -->
@@ -83,7 +118,7 @@ new class extends Component {
     <div class="transition-all duration-300 ease-in-out">
         @livewire('pages.user.containers.main-header', ['component' => 'pages.user.categories.header'])
         <div class="flex-1 overflow-y-auto md:pt-4 pt-4 px-6 bg-base-200 h-screen">
-            <div class="card w-full p-6 bg-base-100 shadow-xl mt-2">
+            <div class="card w-full p-6 bg-base-100 shadow-xl mt-2" wire:key="group-list-{{ $refreshKey }}">
                 @if ($categories)
                     <!-- Total Balance Banner -->
 
@@ -95,23 +130,66 @@ new class extends Component {
                                 $record = $categories[$groupName] ?? [];
                             @endphp
 
-                            <li class="bg-base-200/50 text-sm font-medium py-2 px-4 mb-2 sticky top-0 z-10 backdrop-blur-sm shadow-sm cursor-pointer"
-                                x-data
+                            <li x-data="{
+                                editing: false,
+                                newName: @js($groupName),
+                                originalName: @js($groupName),
+                                startEdit() {
+                                    this.originalName = this.newName;
+                                    this.editing = true;
+                                    this.$nextTick(() => this.$refs.input?.focus());
+                                },
+                                cancelEdit() {
+                                    this.newName = this.originalName;
+                                    this.editing = false;
+                                },
+                                saveEdit() { if (this.newName.trim() !== this.originalName) { $wire.call('renameGroup', '{{ $groupId }}', this.newName); } this.editing = false; }
+                            }"
+                                class="group bg-base-200/50 text-sm font-medium py-2 px-4 mb-2 sticky top-0 z-10 backdrop-blur-sm shadow-sm cursor-pointer flex items-center justify-between"
                                 @drop.prevent="$wire.call('reassignCategoryGroup', draggedCategoryId, {{ $groupId ?? 'null' }}); console.log(draggedCategoryId)"
                                 @dragover.prevent @dragenter.prevent>
                                 <div class="flex items-center gap-2">
+                                    <!-- icon -->
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                         stroke-width="1.5" stroke="currentColor" class="size-6">
                                         <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 0 1-1.125-1.125v-3.75ZM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 0 1-1.125-1.125v-8.25ZM3.75 16.125c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 0 1-1.125-1.125v-2.25Z" />
+                                            d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 0 1-1.125-1.125v-3.75Z M14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 0 1-1.125-1.125v-8.25Z M3.75 16.125c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 0 1-1.125-1.125v-2.25Z" />
                                     </svg>
-                                    {{ $groupName }}
+
+                                    <template x-if="!editing">
+                                        <span x-text="newName" class="text-base font-semibold"></span>
+                                    </template>
+
+                                    <template x-if="editing">
+                                        <input type="text" x-model="newName" x-ref="input"
+                                            @keydown.enter.prevent="saveEdit" @keydown.escape.prevent="cancelEdit"
+                                            @blur="cancelEdit" class="input input-sm input-bordered w-48 bg-base-100" />
+                                    </template>
+                                    <div class="hidden "
+                                        :class="newName == 'None' ? '' : 'group-hover:flex gap-2 items-center'">
+                                        <button @click="startEdit" class="btn btn-xs btn-outline">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                stroke-width="1.5" stroke="currentColor" class="size-4">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                            </svg>
+                                        </button>
+                                        <button wire:click="deleteGroup({{ $groupId }}); wire"
+                                            class="btn btn-xs btn-error">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                stroke-width="1.5" stroke="currentColor" class="size-4">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                            </svg>
+                                        </button>
+                                    </div>
+
                                 </div>
                             </li>
 
                             @foreach ($record as $category)
                                 <li class="group list-row flex hover:bg-base-200 items-center justify-between w-full px-5 py-4 border border-base-200  mb-3 mx-0.5 transition-all duration-200 hover:shadow-md cursor-pointer"
-                                    @click="$dispatch('showSidebar', {operation: 'edit', page: 'Category', component: 'pages.user.categories.edit', modelId: {{ $category['id'] }}}); detailSidebarOpen = true;"
+                                    @click="$dispatch('showSidebar', {operation: 'view', page: 'Category', component: 'pages.user.categories.view', modelId: {{ $category['id'] }}}); detailSidebarOpen = true;"
                                     draggable="true" x-data @dragstart="draggedCategoryId = {{ $category->id }}">
                                     <div class="flex items-center gap-4">
                                         <div
@@ -136,6 +214,15 @@ new class extends Component {
                                 </li>
                             @endforeach
                         @endforeach
+
+                        <li class="group bg-base-200/50 text-sm font-medium py-2 px-4 mb-2 sticky top-0 z-10 backdrop-blur-sm shadow-sm cursor-pointer flex items-center justify-center"
+                            @click="$dispatch('showRightSidebar', {operation: 'create', page: 'Group', component: 'pages.user.groups.add'}); rightSidebarOpen = true; console.log(rightSidebarOpen)">
+                            <!-- icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke-width="1.5" stroke="currentColor" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                            </svg>
+                        </li>
                     </ul>
                 @else
                     <div class="flex flex-col items-center justify-center p-10 bg-base-200/30 ">

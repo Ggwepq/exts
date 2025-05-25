@@ -18,6 +18,7 @@ new #[Layout('layouts.app')] class extends Component {
     // [Validate('required|string|max:255')]
     public $name;
     public $currentCategory;
+    public $modelId;
 
     #[Validate('nullable')]
     public $group_id = null;
@@ -83,6 +84,7 @@ new #[Layout('layouts.app')] class extends Component {
         // Emit event to refresh transaction list
         $this->dispatch('categoryUpdate');
         $this->dispatch('reloadDropdowns');
+        $this->dispatch('showSidebar', operation: 'view', page: 'Category', component: 'pages.user.categories.view', modelId: $this->modelId);
         $this->loadCategory($this->currentCategory->id);
     }
 
@@ -95,6 +97,7 @@ new #[Layout('layouts.app')] class extends Component {
 
     public function mount(?int $modelId = null)
     {
+        $this->modelId = $modelId;
         $this->loadCategory($modelId);
     }
 
