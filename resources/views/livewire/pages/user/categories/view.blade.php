@@ -20,7 +20,7 @@ new #[Layout('layouts.app')] class extends Component {
     public $currentCategory;
 
     #[Validate('nullable')]
-    public $group_id = null;
+    public $group_name = null;
 
     #[Validate('required')]
     public $type_id = false;
@@ -34,15 +34,15 @@ new #[Layout('layouts.app')] class extends Component {
     {
         $this->currentCategory = TransactionCategory::findOrFail($id);
         $this->name = $this->currentCategory->name;
-        $this->group_id = $this->currentCategory->group_id;
+        $this->group_name = $this->currentCategory->groups->name ?? 'None';
         $this->type_id = $this->currentCategory->type_id;
     }
 }; ?>
 
-<section>
+<section class="space-y-10" x-data="{ expense: $wire.type_id == 1 ? false : true }">
     <!-- Form -->
 
-    <form wire:submit="save" class="space-y-10" x-data="{ expense: $wire.type_id == 1 ? false : true }">
+    <form wire:submit="save" class="space-y-10">
         <!-- name -->
         <div class="flex flex-row w-full justify-between">
             <div class="flex items-center gap-2 mb-2 ">
@@ -94,13 +94,41 @@ new #[Layout('layouts.app')] class extends Component {
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
                     </svg>
-                    <span>{{ $group_id ? $this->selectedGroup->name : 'Group' }}</span>
+                    <span>{{ $group_name }}</span>
                 </label>
-                @error('account_id')
-                    <span class="validator-hint">{{ $message }}</span>
-                @enderror
             </div>
         </div>
 
     </form>
+    <div class="grow overflow-y-auto" wire:lazy>
+        <div class="bg-primary/5 px-4 py-2 mb-2 flex items-center justify-between">
+            <span class="text-sm font-medium "
+                :class="$wire.type_id == 2 ? 'text-secondary' : 'text-primary'">Transactions</span>
+            <span class="badge badge-sm text-xs"
+                :class="$wire.type_id == 2 ? 'badge-secondary' : 'badge-primary'">{{ count($currentCategory->transactions) }}</span>
+        </div>
+        <ul class="mt-1 space-y-1.5">
+            <ul class="ml-3 mt-2 space-y-1">
+                <!-- Display uncategorized accounts first, directly without a nested dropdown -->
+                @if (count($currentCategory->transactions) > 0)
+                    @foreach ($currentCategory->transactions as $transaction)
+                        <li class="{{ $transaction->types->name == 'Expense' ? 'text-secondary' : 'text-primary' }}">
+                            <a
+                                class="flex items-center justify-between px-3 py-2 text-sm hover:bg-base-200 transition-all duration-200 group">
+                                <span class="truncate group-hover:text-primary">{{ $transaction->name }}</span>
+                                <span
+                                    class="badge badge-sm badge-dash text-xs {{ $transaction->types->name == 'Expense' ? 'badge-secondary' : 'badge-primary' }}">{{ $transaction->types->name == 'Expense' ? '-₱' : '+₱' }}{{ number_format($transaction->amount, 2) }}</span>
+                            </a>
+                        </li>
+                    @endforeach
+                @else
+                    <li class="flex justify-center mt-10"
+                        :class="$wire.type_id == 2 ? 'text-secondary' : 'text-primary'">
+                        😴 No Transaction for this category
+                    </li>
+                @endif
+            </ul>
+        </ul>
+    </div>
+
 </section>
