@@ -40,6 +40,6 @@ class Transaction extends Model
 
     public function transactionCategories()
     {
-        return $this->hasMany(TransactionCategory::class);
+        return $this->belongsTo(TransactionCategory::class, 'category_id');
     }
 }

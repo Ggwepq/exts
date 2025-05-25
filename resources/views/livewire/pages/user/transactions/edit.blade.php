@@ -25,6 +25,7 @@ new #[Layout('layouts.app')] class extends Component {
     public $incomes;
     public $expenses;
     public $selectedTags = [];
+    public $modelId;
 
     #[Validate('required|string|max:255')]
     public $name;
@@ -52,6 +53,7 @@ new #[Layout('layouts.app')] class extends Component {
 
     public function mount(?int $modelId = null)
     {
+        $this->modelId = $modelId;
         $transaction = Transaction::with('tags')->findOrFail($modelId);
         $this->transaction = $transaction;
         $this->oldTransaction = $transaction;
@@ -226,6 +228,7 @@ new #[Layout('layouts.app')] class extends Component {
         $this->reloadTransaction();
         $this->dispatch('transactionUpdate');
         $this->dispatch('refreshTransaction');
+        $this->dispatch('showSidebar', operation: 'view', page: 'Transaction', component: 'pages.user.transactions.view', modelId: $this->modelId);
     }
 
     public function getSelectedAccountProperty()

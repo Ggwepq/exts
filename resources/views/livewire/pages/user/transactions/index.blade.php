@@ -351,7 +351,7 @@ new #[Layout('layouts.app')] class extends Component {
                                     </div>
 
                                     <div class="flex flex-row md:items-center w-full grow"
-                                        @click="$dispatch('showSidebar', {operation: 'edit', page: 'Transaction', component: 'pages.user.transactions.edit', modelId: {{ $transaction->id }}}); detailSidebarOpen = true;">
+                                        @click="$dispatch('showSidebar', {operation: 'view', page: 'Transaction', component: 'pages.user.transactions.view', modelId: {{ $transaction->id }}}); detailSidebarOpen = true;">
                                         <!-- Transaction Name -->
                                         <div
                                             class="w-1/3 truncate font-bold text-md mb-1.5 mr-2 text-base-content transition-colors duration-200 {{ $transaction->types->name == 'Expense' ? 'group-hover:text-secondary' : 'group-hover:text-primary' }}">
