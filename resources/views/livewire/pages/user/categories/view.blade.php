@@ -18,6 +18,7 @@ new #[Layout('layouts.app')] class extends Component {
     // [Validate('required|string|max:255')]
     public $name;
     public $currentCategory;
+    public $modelId;
 
     #[Validate('nullable')]
     public $group_name = null;
@@ -32,6 +33,7 @@ new #[Layout('layouts.app')] class extends Component {
 
     public function loadCategory($id)
     {
+        $this->modelId = $id;
         $this->currentCategory = TransactionCategory::findOrFail($id);
         $this->name = $this->currentCategory->name;
         $this->group_name = $this->currentCategory->groups->name ?? 'None';
@@ -112,7 +114,8 @@ new #[Layout('layouts.app')] class extends Component {
                 <!-- Display uncategorized accounts first, directly without a nested dropdown -->
                 @if (count($currentCategory->transactions) > 0)
                     @foreach ($currentCategory->transactions as $transaction)
-                        <li class="{{ $transaction->types->name == 'Expense' ? 'text-secondary' : 'text-primary' }}">
+                        <li class="{{ $transaction->types->name == 'Expense' ? 'text-secondary' : 'text-primary' }} cursor-pointer"
+                            @click="$dispatch('showRightSidebar', {operation: 'view', page: 'Transaction', component: 'pages.user.transactions.view', modelId: {{ $transaction->id }}}); rightSidebarOpen = true;">
                             <a
                                 class="flex items-center justify-between px-3 py-2 text-sm hover:bg-base-200 transition-all duration-200 group">
                                 <span class="truncate group-hover:text-primary">{{ $transaction->name }}</span>
