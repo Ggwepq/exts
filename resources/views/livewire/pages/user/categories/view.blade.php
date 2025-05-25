@@ -113,7 +113,7 @@ new #[Layout('layouts.app')] class extends Component {
             <ul class="ml-3 mt-2 space-y-1">
                 <!-- Display uncategorized accounts first, directly without a nested dropdown -->
                 @if (count($currentCategory->transactions) > 0)
-                    @foreach ($currentCategory->transactions as $transaction)
+                    @foreach ($currentCategory->transactions->sortByDesc('created_at') as $transaction)
                         <li class="{{ $transaction->types->name == 'Expense' ? 'text-secondary' : 'text-primary' }} cursor-pointer"
                             @click="$dispatch('showRightSidebar', {operation: 'view', page: 'Transaction', component: 'pages.user.transactions.view', modelId: {{ $transaction->id }}}); rightSidebarOpen = true;">
                             <a
