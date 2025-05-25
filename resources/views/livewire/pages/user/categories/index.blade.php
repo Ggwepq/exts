@@ -244,4 +244,6 @@ new class extends Component {
         @livewire('pages.user.containers.details-sidebar', ['lazy' => true])
         @livewire('pages.user.containers.right-sidebar', ['lazy' => true])
     </div>
+
+    <x-image-viewer imageUrl="" />
 </section>
