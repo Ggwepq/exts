@@ -370,8 +370,23 @@ new #[Layout('layouts.app')] class extends Component {
                                 @endforeach
                             </li>
                         </ul>
+                        <a @click="$dispatch('showRightSidebar', {operation: 'create', page: 'Account', component: 'pages.user.accounts.add'}); rightSidebarOpen = true;"
+                            class="flex items-center justify-center px-3 py-2 transition-all duration-200 group rounded-xl border-4"
+                            :class="expense ? 'hover:bg-secondary border-secondary' : 'hover:bg-primary border-primary'">
+
+                            <span class="flex space-x-1 items-center justify-center group-hover:text-primary"
+                                :class="expense ? 'group-hover:text-secondary-content' :
+                                    'group-hover:text-primary-content'">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                                <span>New</span>
+                            </span>
+                        </a>
                     </div>
                 </div>
+
                 @error('account_id')
                     <span class="validator-hint">{{ $message }}</span>
                 @enderror
@@ -428,6 +443,20 @@ new #[Layout('layouts.app')] class extends Component {
                                 @endif
                             </li>
                         </ul>
+                        <a @click="$dispatch('showRightSidebar', {operation: 'create', page: 'Category', component: 'pages.user.categories.add'}); rightSidebarOpen = true;"
+                            class="flex items-center justify-center px-3 py-2 transition-all duration-200 group rounded-xl border-4"
+                            :class="expense ? 'hover:bg-secondary border-secondary' : 'hover:bg-primary border-primary'">
+
+                            <span class="flex space-x-1 items-center justify-center group-hover:text-primary"
+                                :class="expense ? 'group-hover:text-secondary-content' :
+                                    'group-hover:text-primary-content'">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                                <span>New</span>
+                            </span>
+                        </a>
                     </div>
                 </div>
                 @error('category_id')
