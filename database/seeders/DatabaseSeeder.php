@@ -35,59 +35,59 @@ class DatabaseSeeder extends Seeder
             ],
         ]);
 
-        DB::table('category_groups')->insert([
-            [
-                'user_id' => 1,
-                'name' => 'Essential',
-                'type' => 'Transaction',
-            ],
-            [
-                'user_id' => 1,
-                'name' => 'Personal',
-                'type' => 'Account',
-            ],
-            [
-                'user_id' => 1,
-                'name' => 'Job',
-                'type' => 'Transaction',
-            ],
-        ]);
-
-        DB::table('account_categories')->insert([
-            [
-                'user_id' => 1,
-                'group_id' => 2,
-                'name' => 'Bank',
-            ],
-            [
-                'user_id' => 1,
-                'group_id' => 2,
-                'name' => 'Digital',
-            ],
-        ]);
-
-        DB::table('transaction_categories')->insert([
-            [
-                'user_id' => 1,
-                'group_id' => 1,
-                'name' => 'Food',
-                'type_id' => 2,
-            ],
-            [
-                'user_id' => 1,
-                'group_id' => 3,
-                'name' => 'Salary',
-                'type_id' => 1,
-            ],
-            [
-                'user_id' => 1,
-                'group_id' => 3,
-                'name' => 'Freelance',
-                'type_id' => 1,
-            ],
-        ]);
-
-        $this->call(TransactionAccountSeeder::class);
+        // DB::table('category_groups')->insert([
+        //     [
+        //         'user_id' => 1,
+        //         'name' => 'Essential',
+        //         'type' => 'Transaction',
+        //     ],
+        //     [
+        //         'user_id' => 1,
+        //         'name' => 'Personal',
+        //         'type' => 'Account',
+        //     ],
+        //     [
+        //         'user_id' => 1,
+        //         'name' => 'Job',
+        //         'type' => 'Transaction',
+        //     ],
+        // ]);
+        //
+        // DB::table('account_categories')->insert([
+        //     [
+        //         'user_id' => 1,
+        //         'group_id' => 2,
+        //         'name' => 'Bank',
+        //     ],
+        //     [
+        //         'user_id' => 1,
+        //         'group_id' => 2,
+        //         'name' => 'Digital',
+        //     ],
+        // ]);
+        //
+        // DB::table('transaction_categories')->insert([
+        //     [
+        //         'user_id' => 1,
+        //         'group_id' => 1,
+        //         'name' => 'Food',
+        //         'type_id' => 2,
+        //     ],
+        //     [
+        //         'user_id' => 1,
+        //         'group_id' => 3,
+        //         'name' => 'Salary',
+        //         'type_id' => 1,
+        //     ],
+        //     [
+        //         'user_id' => 1,
+        //         'group_id' => 3,
+        //         'name' => 'Freelance',
+        //         'type_id' => 1,
+        //     ],
+        // ]);
+        //
+        // $this->call(TransactionAccountSeeder::class);
         $this->call(SettingSeeder::class);
     }
 }
