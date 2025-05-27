@@ -23,7 +23,7 @@ new class extends Component {
         $userId = Auth::id();
 
         // Load all categories with their group and type
-        $allCategories = TransactionCategory::where('user_id', $userId)->with('groups', 'types')->orderBy('updated_at')->get();
+        $allCategories = TransactionCategory::where('user_id', $userId)->with('groups', 'types', 'budgets')->orderBy('updated_at')->get();
 
         // Group categories by group name
         $this->categories = $allCategories->groupBy(fn($cat) => optional($cat->groups)->name ?? 'None')->all();
@@ -183,9 +183,9 @@ new class extends Component {
 
                             @foreach ($record as $category)
                                 <li class="group list-row flex hover:bg-base-200 items-center justify-between w-full px-5 py-4 border border-base-200  mb-3 mx-0.5 transition-all duration-200 hover:shadow-md cursor-pointer"
-                                    @click="$dispatch('showSidebar', {operation: 'view', page: 'Category', component: 'pages.user.categories.view', modelId: {{ $category['id'] }}}); detailSidebarOpen = true;"
-                                    draggable="true" x-data @dragstart="draggedCategoryId = {{ $category->id }}">
-                                    <div class="flex items-center gap-4">
+                                    draggable="true" x-data @dragstart="draggedCategoryId = {{ $category->id }}"
+                                    @click="$dispatch('showSidebar', {operation: 'view', page: 'Category', component: 'pages.user.categories.view', modelId: {{ $category['id'] }}}); detailSidebarOpen = true;">
+                                    <div class="flex items-center gap-4 w-3/4">
                                         <div
                                             class="p-2.5 {{ $category['type_id'] == 2 ? 'bg-secondary/10' : 'bg-primary/10' }}">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -205,6 +205,41 @@ new class extends Component {
                                         </div>
                                     </div>
 
+                                    <div class="p-2.5 w-1/2 hover:bg-base-300 transition-all duration-200 hover:shadow-md"
+                                        @click.stop="$dispatch('showSidebar', {operation: 'view', page: 'Budget', component: 'pages.user.budgets.view', modelId: {{ $category['id'] }}}); detailSidebarOpen = true;">
+                                        @if ($category->budgets)
+                                            @php
+                                                $percentage =
+                                                    ($category->transactions->where('type_id', 2)->sum('amount') /
+                                                        $category->budgets->limit_amount) *
+                                                    100;
+                                            @endphp
+                                            <div class="w-full px-4 py-2" x-data="{ open: false }">
+                                                <div
+                                                    class="flex justify-between items-center cursor-pointer @if ($percentage > 0 && $percentage < 50) text-success @elseif ($percentage >= 50 && $percentage < 100) text-warning @else text-error @endif">
+                                                    <div class="flex flex-col ">
+                                                        <span class="text-sm font-semibold text-right ">
+                                                            ₱{{ number_format($category->transactions->where('type_id', '2')->sum('amount') ?? 0, 2) }}
+                                                            spend
+                                                        </span>
+                                                    </div>
+                                                    <span class="text-sm font-semibold text-right ">
+                                                        ₱{{ number_format($category->budgets->limit_amount ?? 0, 2) }}
+                                                    </span>
+                                                </div>
+
+                                                {{-- Progress bar --}}
+                                                <progress
+                                                    class="progress @if ($percentage > 0 && $percentage < 50) progress-success @elseif($percentage >= 50 && $percentage < 100) progress-warning @else progress-error @endif w-full mt-2"
+                                                    value="{{ $category->transactions->where('type_id', '2')->sum('amount') ?? 0 }}"
+                                                    max="{{ $category->budgets->limit_amount ?? 1 }}"></progress>
+
+                                                {{-- Budget detail panel --}}
+                                            </div>
+                                        @else
+                                            Add Budget
+                                        @endif
+                                    </div>
                                 </li>
                             @endforeach
                         @endforeach

@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
             $table->foreignId('group_id')->nullable()->constrained('category_groups')->onDelete('set null');
-            $table->foreignId('budget_id')->nullable()->constrained('budgets')->onDelete('set null');
             $table->foreignId('type_id')->constrained()->onDelete('cascade');
             $table->string('name');
             $table->timestamps();

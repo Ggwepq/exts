@@ -25,7 +25,7 @@ class TransactionCategory extends Model
 
     public function budgets()
     {
-        return $this->belongsTo(Budget::class);
+        return $this->hasOne(Budget::class);
     }
 
     public function transactions()

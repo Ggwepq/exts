@@ -13,7 +13,7 @@ class Budget extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function transacionCategories()
+    public function transactionCategories()
     {
         return $this->belongsTo(TransactionCategory::class);
     }
