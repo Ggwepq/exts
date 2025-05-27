@@ -59,9 +59,10 @@
     <x-toaster-hub />
 </body>
 <script>
-    window.addEventListener('detailSidebarClose', () => {
-        const event = new Event("detailSidebarClose");
-        window.dispatchEvent(event);
+    document.addEventListener('livewire:init', () => {
+        Livewire.on('detailSidebarClose', (event) => {
+            detailSidebarOpen = false
+        });
     });
 </script>
 
