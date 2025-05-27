@@ -23,7 +23,7 @@ new class extends Component {
         $userId = Auth::id();
 
         // Load all categories with their group and type
-        $allCategories = TransactionCategory::where('user_id', $userId)->with('groups', 'types')->get();
+        $allCategories = TransactionCategory::where('user_id', $userId)->with('groups', 'types')->orderBy('updated_at')->get();
 
         // Group categories by group name
         $this->categories = $allCategories->groupBy(fn($cat) => optional($cat->groups)->name ?? 'None')->all();
@@ -34,27 +34,21 @@ new class extends Component {
         // Identify group IDs that are used in the categories
         $usedGroupIds = $allCategories->pluck('group_id')->filter()->unique();
 
-        // Add the dummy None group manually
-        $dummyGroup = (object) ['id' => null, 'name' => 'None'];
+        // Create Dummy Group
+        $dummyGroup = new CategoryGroup();
+        $dummyGroup->id = null;
+        $dummyGroup->name = 'None';
+        $dummyGroup->exists = false;
 
         // Separate groups that are used vs unused
         $usedGroups = $allGroups->filter(fn($group) => $usedGroupIds->contains($group->id));
         $unusedGroups = $allGroups->reject(fn($group) => $usedGroupIds->contains($group->id));
 
         // Merge used + unused + dummy "None"
-        $this->groups = $usedGroups
+        $this->groups = collect([$dummyGroup])
+            ->merge($usedGroups)
             ->merge($unusedGroups)
-            ->map(
-                fn($group) => [
-                    'id' => $group->id,
-                    'name' => $group->name,
-                ],
-            )
             ->sortBy('name')
-            ->prepend([
-                'id' => null,
-                'name' => 'None',
-            ])
             ->values();
 
         $this->refreshKey = uniqid();
@@ -110,14 +104,14 @@ new class extends Component {
     }
 }; ?>
 
-<section wire:poll.10s>
+<section>
     <!-- Yes Margin -->
     <!-- <div class="transition-all duration-300 ease-in-out" -->
     <!--     :class="{ 'md:mr-[17rem] lg:mr-[23rem] xl:mr-[27rem] 2xl:mr-[41rem]': detailSidebarOpen }"> -->
     <!-- No Margin -->
     <div class="transition-all duration-300 ease-in-out">
         @livewire('pages.user.containers.main-header', ['component' => 'pages.user.categories.header'])
-        <div class="flex-1 overflow-y-auto md:pt-4 pt-4 px-6 bg-base-200 h-screen">
+        <div class="flex-1 overflow-y-auto pt-4 pb-10 px-6 bg-base-200">
             <div class="card w-full p-6 bg-base-100 shadow-xl mt-2" wire:key="group-list-{{ $refreshKey }}">
                 @if ($categories)
                     <!-- Total Balance Banner -->
@@ -125,8 +119,8 @@ new class extends Component {
                     <ul class="list bg-base-100 space-y-4" x-data="{ draggedCategoryId: null }">
                         @foreach ($groups as $group)
                             @php
-                                $groupName = $group['name'];
-                                $groupId = $group['id'];
+                                $groupName = $group->name;
+                                $groupId = $group->id;
                                 $record = $categories[$groupName] ?? [];
                             @endphp
 
@@ -215,19 +209,20 @@ new class extends Component {
                             @endforeach
                         @endforeach
 
-                        <li class="group bg-base-200/50 text-sm font-medium py-2 px-4 mb-2 sticky top-0 z-10 backdrop-blur-sm shadow-sm cursor-pointer flex items-center justify-center"
+                        <li class="group gap-2 bg-base-200/50 text-sm font-medium py-2 px-4 mb-2 sticky top-0 z-10 backdrop-blur-sm shadow-sm cursor-pointer flex items-center justify-center"
                             @click="$dispatch('showRightSidebar', {operation: 'create', page: 'Group', component: 'pages.user.groups.add'}); rightSidebarOpen = true; console.log(rightSidebarOpen)">
                             <!-- icon -->
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke-width="1.5" stroke="currentColor" class="size-6">
+                                stroke-width="1.5" stroke="currentColor" class="size-4">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg>
+                            <span>Group</span>
                         </li>
                     </ul>
                 @else
                     <div class="flex flex-col items-center justify-center p-10 bg-base-200/30 ">
-                        <span class="text-base-content text-lg font-medium mb-1">
-                            😴 No transactions found
+                        <span class="text-base-content text-lg font-medium mb-5">
+                            😴 No Categories found
                         </span>
                         <button class="btn btn-sm btn-primary"
                             @click="detailSidebarOpen = true; $dispatch('showSidebar', {operation: 'create', page: 'Category', component: 'pages.user.categories.add', modelId: null})">
@@ -235,7 +230,7 @@ new class extends Component {
                                 stroke-width="1.5" stroke="currentColor" class="size-5 mr-1">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg>
-                            Add Your First Account
+                            Add Category
                         </button>
                     </div>
                 @endif

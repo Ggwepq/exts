@@ -209,7 +209,8 @@ new #[Layout('layouts.app')] class extends Component {
                 @endforeach
             </ul>
         @else
-            <div class="flex flex-col items-center justify-center p-10 bg-base-200/30 ">
+            <div class="flex flex-col items-center justify-center p-10 bg-base-200/30  border border-dashed rounded-xl "
+                :class="$wire.type_id == 1 ? 'border-primary' : 'border-secondary'">
                 <span class="text-base-content text-lg font-medium mb-1">
                     😴 No transactions found
                 </span>

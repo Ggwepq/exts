@@ -73,6 +73,8 @@ new #[Layout('layouts.app')] class extends Component {
 
         // Emit event to refresh transaction list
         $this->dispatch('categoryUpdate');
+        $this->dispatch('rightSidebarClose');
+        $this->dispatch('reloadDropdowns');
     }
 
     public function mount() {}

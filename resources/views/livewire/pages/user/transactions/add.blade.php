@@ -306,7 +306,7 @@ new #[Layout('layouts.app')] class extends Component {
                                 @foreach ($incomes as $income)
                                     @if ($income->name !== 'None')
                                         <li class="text-6sm">
-                                            <a wire:click="$setVariable('category_id', {{ $income->id }})"
+                                            <a wire:click="$set('category_id', {{ $income->id }})"
                                                 class="flex items-center justify-between px-3 py-2 transition-all duration-200 group
         {{ $category_id == $income->id ? $this->selectedGradient : '' }}"
                                                 :class="expense ? 'hover:bg-secondary' : 'hover:bg-primary'">
