@@ -41,7 +41,8 @@
         rightSidebarOpen: false,
     }" x-init="window.addEventListener('rightSidebarClose', () => {
         rightSidebarOpen = false;
-    });">
+    });"
+        @detailSidebarClose.window="detailSidebarOpen = false">
         <input id="left-sidebar-drawer" type="checkbox" class="drawer-toggle" />
 
         <!-- Page Content -->
@@ -59,9 +60,8 @@
 </body>
 <script>
     window.addEventListener('detailSidebarClose', () => {
-        console.log('Closing detail sidebar...');
-        detailSidebarOpen = false;
-        console.log(detailSidebarOpen);
+        const event = new Event("detailSidebarClose");
+        window.dispatchEvent(event);
     });
 </script>
 

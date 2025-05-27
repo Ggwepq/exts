@@ -82,26 +82,6 @@ new #[Layout('layouts.app')] class extends Component {
         $this->expenses = TransactionCategory::where('user_id', Auth::id())->where('type_id', 2)->get();
     }
 
-    public function delete()
-    {
-        $account = $this->transaction->accounts;
-
-        if ($this->transaction->type_id == 1) {
-            // Income → subtract from balance
-            $account->balance -= $this->transaction->amount;
-        } else {
-            // Expense → add back to balance
-            $account->balance += $this->transaction->amount;
-        }
-
-        $account->save();
-        $this->transaction->delete();
-
-        $this->dispatch('transactionUpdate');
-        $this->dispatch('detailSidebarClose');
-        Toaster::success('Transaction Deleted!');
-    }
-
     #[On('update-selected-tags')]
     public function updateSelectedTags($tags)
     {
@@ -513,9 +493,6 @@ new #[Layout('layouts.app')] class extends Component {
             @endif
 
         </div>
-
-
-
         <!-- Submit Button -->
         <div class="form-control">
             <button type="submit" class="btn w-full" @click="$wire.type_id = expense"
@@ -523,17 +500,4 @@ new #[Layout('layouts.app')] class extends Component {
         </div>
     </form>
 
-    <div x-data="{ isDelete: false }" class="mt-4">
-        <template x-if="!isDelete">
-            <button @click="isDelete = true" class="btn btn-error w-full">Delete Transaction<span
-                    wire:loading.class="loading loading-bars loading-lg"></span></button>
-        </template>
-        <template x-if="isDelete">
-            <div class="flex flex-row gap-x-2">
-                <button @click="isDelete = false" class="flex-1 btn btn-neutral">Cancel</button>
-                <button class="btn btn-error flex-1" wire:click="delete">Delete<span
-                        class="loading loading-bars loading-lg" wire:loading></span></button>
-            </div>
-        </template>
-    </div>
 </section>

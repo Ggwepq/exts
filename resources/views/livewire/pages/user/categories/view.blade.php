@@ -69,9 +69,17 @@ new #[Layout('layouts.app')] class extends Component {
         }
         return number_format($amount, 2);
     }
+
+    public function delete()
+    {
+        $this->currentCategory->delete();
+        $this->dispatch('categoryUpdate');
+        $this->dispatch('closeSidebar');
+        Toaster::success('Categories Deleted!');
+    }
 }; ?>
 
-<section class="space-y-10" x-data="{ expense: $wire.type_id == 1 ? false : true }">
+<section x-data="{ expense: $wire.type_id == 1 ? false : true }">
     <!-- Form -->
 
     <form wire:submit="save" class="space-y-10">
@@ -132,7 +140,22 @@ new #[Layout('layouts.app')] class extends Component {
         </div>
 
     </form>
-    <div class="w-full mt-2">
+
+    <div x-data="{ isDelete: false }" class="mt-6">
+        <template x-if="!isDelete">
+            <button @click="isDelete = true" class="btn btn-error w-full">Delete Transaction<span
+                    wire:loading.class="loading loading-bars loading-lg"></span></button>
+        </template>
+        <template x-if="isDelete">
+            <div class="flex flex-row gap-x-2">
+                <button @click="isDelete = false" class="flex-1 btn btn-neutral">Cancel</button>
+                <button class="btn btn-error flex-1" wire:click="delete" @click="isDelete = false">Delete<span
+                        class="loading loading-bars loading-lg" wire:loading></span></button>
+            </div>
+        </template>
+    </div>
+
+    <div class="w-full mt-10">
         @if (count($transactions))
             <ul class="list bg-base-100 space-y-4">
                 @foreach ($transactions as $date => $record)
