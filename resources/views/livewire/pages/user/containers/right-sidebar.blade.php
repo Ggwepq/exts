@@ -60,6 +60,7 @@ new #[Layout('layouts.app')] class extends Component {
                             @endif
                         </div>
                         <h2 class="text-xl font-bold text-base-content capitalize">
+                            {{ ucfirst($operation) }} {{ $page }}
                         </h2>
                     </div>
                     <div>

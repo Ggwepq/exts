@@ -5,6 +5,7 @@ use Livewire\WithFileUploads;
 use App\Models\Transaction;
 use App\Models\Account;
 use App\Models\TransactionCategory;
+use App\Models\Budget;
 use App\Models\Type;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,8 @@ new #[Layout('layouts.app')] class extends Component {
     public $expenses;
     public $incomes;
     public $selectedTags = [];
+    public $budgetLimit;
+    public $amountSpent;
 
     #[Validate('required|string|max:255')]
     public $name;
@@ -46,11 +49,37 @@ new #[Layout('layouts.app')] class extends Component {
     #[Validate('required')]
     public $type_id = false;
 
+    public function loadBudget()
+    {
+        $budget = Budget::where('user_id', auth()->id())
+            ->where('transaction_category_id', $this->category_id)
+            ->where('status', 'Active')
+            ->where('end_date', '>=', Carbon::today())
+            ->first();
+
+        if ($budget) {
+            $this->budgetLimit = $budget->limit_amount;
+            $this->amountSpent = Transaction::where('user_id', auth()->id())
+                ->where('category_id', $this->category_id)
+                ->where('type_id', 2) // replace with your Expense type_id
+                ->sum('amount');
+        } else {
+            $this->budgetLimit = null;
+            $this->amountSpent = 0;
+        }
+    }
+
     public function save()
     {
         $this->validate();
 
         $this->type_id = $this->type_id ? 1 : 2;
+
+        $this->loadBudget();
+
+        if ($this->budgetLimit && $this->amountSpent + $this->amount > $this->budgetLimit) {
+            Toaster::warning('Budget limit has been exceeded');
+        }
 
         if ($this->type_id == 2) {
             $account = Account::find($this->account_id);
