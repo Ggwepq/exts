@@ -29,7 +29,7 @@ new class extends Component {
         $this->categories = $allCategories->groupBy(fn($cat) => optional($cat->groups)->name ?? 'None')->all();
 
         // Load all groups
-        $allGroups = CategoryGroup::where('user_id', $userId)->where('type', 'Transaction')->get();
+        $allGroups = CategoryGroup::where('user_id', $userId)->get();
 
         // Identify group IDs that are used in the categories
         $usedGroupIds = $allCategories->pluck('group_id')->filter()->unique();
@@ -63,7 +63,7 @@ new class extends Component {
         if (is_null($groupId)) {
             $category->group_id = null;
         } else {
-            $group = CategoryGroup::where('id', $groupId)->where('user_id', $userId)->where('type', 'Transaction')->firstOrFail();
+            $group = CategoryGroup::where('id', $groupId)->where('user_id', $userId)->firstOrFail();
 
             $category->group_id = $group->id;
         }

@@ -52,7 +52,6 @@ new #[Layout('layouts.app')] class extends Component {
             $group = CategoryGroup::create([
                 'user_id' => Auth::id(),
                 'name' => $this->name,
-                'type' => 'Transaction',
             ]);
             DB::commit();
 
@@ -72,7 +71,7 @@ new #[Layout('layouts.app')] class extends Component {
 
     public function mount()
     {
-        $this->groups = CategoryGroup::where('user_id', Auth::id())->where('type', 'Transaction')->get();
+        $this->groups = CategoryGroup::where('user_id', Auth::id())->get();
     }
 
     public function getSelectedGroupProperty()

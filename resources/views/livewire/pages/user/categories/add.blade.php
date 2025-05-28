@@ -82,7 +82,7 @@ new #[Layout('layouts.app')] class extends Component {
     #[On('reloadDropdowns')]
     public function getGroupsProperty()
     {
-        return CategoryGroup::where('user_id', Auth::id())->where('type', 'Transaction')->get();
+        return CategoryGroup::where('user_id', Auth::id())->get();
     }
 
     public function getSelectedGroupProperty()
