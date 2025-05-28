@@ -46,6 +46,7 @@ new class extends Component {
             ->values();
 
         $this->refreshKey = uniqid();
+        $this->getTotal();
     }
 
     public function reassignAccountGroup($accountId, $groupId)
