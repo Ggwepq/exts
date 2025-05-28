@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -13,7 +14,8 @@ return new class extends Migration {
         Schema::create('transaction_categories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
-            $table->foreignId('group_id')->nullable()->constrained('category_groups')->onDelete('cascade');
+            $table->foreignId('group_id')->nullable()->constrained('category_groups')->onDelete('set null');
+            $table->foreignId('budget_id')->nullable()->constrained('budgets')->onDelete('set null');
             $table->foreignId('type_id')->constrained()->onDelete('cascade');
             $table->string('name');
             $table->timestamps();

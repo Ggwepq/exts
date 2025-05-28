@@ -41,10 +41,8 @@
         rightSidebarOpen: false,
     }" x-init="window.addEventListener('rightSidebarClose', () => {
         rightSidebarOpen = false;
-    });
-    window.addEventListener('detailSidebarClose', () => {
-        detailSidebarOpen = false;
-    })">
+    });"
+        @detailSidebarClose.window="detailSidebarOpen = false">
         <input id="left-sidebar-drawer" type="checkbox" class="drawer-toggle" />
 
         <!-- Page Content -->
@@ -60,5 +58,11 @@
 
     <x-toaster-hub />
 </body>
+<script>
+    window.addEventListener('detailSidebarClose', () => {
+        const event = new Event("detailSidebarClose");
+        window.dispatchEvent(event);
+    });
+</script>
 
 </html>
