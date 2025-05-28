@@ -55,14 +55,14 @@ new class extends Component {
             <span class="text-4xl font-bold">₱{{ number_format($category->budgets->limit_amount ?? 0, 2) }}</span>
         </div>
         <div
-            class="flex justify-between @if ($percentage > 0 && $percentage < 50) text-success @elseif($percentage >= 50 && $percentage < 100) text-warning @else text-error @endif">
+            class="flex justify-between @if ($percentage < 50) text-success @elseif($percentage >= 50 && $percentage < 100) text-warning @else text-error @endif">
             <span class="text-base-content/70">Total Spent</span>
             <span
                 class="font-medium ">₱{{ number_format($category->transactions->where('type_id', '2')->sum('amount') ?? 0, 2) }}</span>
         </div>
 
         <progress
-            class="progress @if ($percentage > 0 && $percentage < 50) progress-success @elseif($percentage >= 50 && $percentage < 100) progress-warning @else progress-error @endif w-full mt-2"
+            class="progress @if ($percentage < 50) progress-success @elseif($percentage >= 50 && $percentage < 100) progress-warning @else progress-error @endif w-full mt-2"
             value="{{ $category->transactions->where('type_id', '2')->sum('amount') ?? 0 }}"
             max="{{ $category->budgets->limit_amount ?? 1 }}"></progress>
     </div>
@@ -90,7 +90,7 @@ new class extends Component {
                             </div>
                         </div>
                         <div
-                            class="text-right text-md w-1/2  font-semibold @if ($percentage > 0 && $percentage < 50) text-success @elseif($percentage >= 50 && $percentage < 100) text-warning @else text-error @endif">
+                            class="text-right text-md w-1/2  font-semibold @if ($percentage < 50) text-success @elseif($percentage >= 50 && $percentage < 100) text-warning @else text-error @endif">
                             <span class="truncate inline-block md:hidden w-1/2 md:w-auto">
                                 ₱{{ $this->formatShortAmount($totalExpense) }}
                             </span>
@@ -115,7 +115,7 @@ new class extends Component {
                                 <!-- Contribution -->
                                 <div class="w-1/3 truncate uppercase font-semibold hidden md:flex">
                                     <progress
-                                        class="progress @if ($percentage > 0 && $percentage < 50) progress-success @elseif($percentage >= 50 && $percentage < 100) progress-warning @else progress-error @endif w-full mt-2"
+                                        class="progress @if ($percentage < 50) progress-success @elseif($percentage >= 50 && $percentage < 100) progress-warning @else progress-error @endif w-full mt-2"
                                         value="{{ $transaction->amount }}"
                                         max="{{ $category->transactions->where('type_id', 2)->sum('amount') }}"></progress>
                                 </div>

@@ -224,13 +224,13 @@ new class extends Component {
                                                 $percentage = ($spent / $limit) * 100;
                                             @endphp
 
-                                            <div class="p-2.5 w-full sm:w-auto flex-1 sm:flex-initial text-right"
+                                            <div class="p-2.5 w-full sm:w-auto flex-1 sm:flex-initial text-right hover:bg-base-300 transition-all duration-200 hover:shadow-md"
                                                 @click.stop="$dispatch('showSidebar', {
-            operation: 'view',
-            page: 'Budget',
-            component: 'pages.user.budgets.view',
-            modelId: {{ $category['id'] }}
-        }); detailSidebarOpen = true;">
+                                                    operation: 'view',
+                                                    page: 'budget',
+                                                    component: 'pages.user.budgets.view',
+                                                    modelid: {{ $category['id'] }}
+                                                }); detailsidebaropen = true;">
 
                                                 <div class="w-full px-4 ">
                                                     <div
@@ -264,9 +264,9 @@ new class extends Component {
                                                     {{-- Progress bar only on sm and up --}}
                                                     <progress
                                                         class="hidden sm:block progress mt-2 w-full
-                    @if ($percentage < 50) progress-success
-                    @elseif($percentage < 100) progress-warning
-                    @else progress-error @endif"
+                                                        @if ($percentage < 50) progress-success
+                                                        @elseif($percentage < 100) progress-warning
+                                                        @else progress-error @endif"
                                                         value="{{ $spent }}"
                                                         max="{{ $limit }}"></progress>
                                                 </div>
@@ -274,11 +274,12 @@ new class extends Component {
                                         @else
                                             <div class="p-2.5 text-right flex w-full sm:w-auto hover:bg-base-300 transition-all duration-200 hover:shadow-md"
                                                 @click.stop="$dispatch('showSidebar', {
-            operation: 'edit',
-            page: 'Budget',
-            component: 'pages.user.budgets.add',
-            modelId: {{ $category['id'] }}
-        }); detailSidebarOpen = true;">
+                                                    operation: 'edit',
+                                                    page: 'Budget',
+                                                    component: 'pages.user.budgets.add',
+                                                    modelId: {{ $category['id'] }},
+                                                    cancel: false
+                                                }); detailSidebarOpen = true;">
 
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
