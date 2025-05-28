@@ -37,7 +37,7 @@ new #[Layout('layouts.app')] class extends Component {
     <!-- No Margin -->
     <div class="transition-all duration-300 ease-in-out">
 
-        @livewire('pages.user.containers.main-header', ['component' => 'pages.user.transactions.header', 'header' => 'Transactions'])
+        @livewire('pages.user.containers.main-header', ['component' => 'pages.user.recurrings.header', 'header' => 'Transactions'])
 
         <div class="flex-1 overflow-y-auto pt-4 pb-10 px-6 bg-base-200">
 
@@ -50,7 +50,7 @@ new #[Layout('layouts.app')] class extends Component {
                                 <div class="flex items-center gap-2">
                                     <!-- <input type="checkbox" class="checkbox " /> -->
                                     <div class="flex items-center gap-2"
-                                        @click="$dispatch('showRightSidebar', {operation: 'create', page: 'Transaction', component: 'pages.user.transactions.create'}); rightSidebarOpen = true;">
+                                        @click="$dispatch('showRightSidebar', {operation: 'create', page: 'Transaction', component: 'pages.user.recurrings.create'}); rightSidebarOpen = true;">
 
                                         {{ ucfirst($frequency) }}
                                     </div>

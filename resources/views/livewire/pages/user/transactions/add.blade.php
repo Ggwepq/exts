@@ -75,10 +75,12 @@ new #[Layout('layouts.app')] class extends Component {
 
         $this->type_id = $this->type_id ? 1 : 2;
 
-        $this->loadBudget();
+        if ($this->category_id) {
+            $this->loadBudget();
 
-        if ($this->budgetLimit && $this->amountSpent + $this->amount > $this->budgetLimit) {
-            Toaster::warning('Budget limit has been exceeded');
+            if ($this->budgetLimit && $this->amountSpent + $this->amount > $this->budgetLimit) {
+                Toaster::warning('Budget limit has been exceeded');
+            }
         }
 
         if ($this->type_id == 2) {
