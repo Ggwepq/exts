@@ -69,12 +69,19 @@ new #[Layout('layouts.app')] class extends Component {
             Toaster::error('Category Creation Failed!');
         }
 
-        $this->dispatch('$refresh');
+        $this->resetFields();
 
         // Emit event to refresh transaction list
         $this->dispatch('categoryUpdate');
         $this->dispatch('rightSidebarClose');
         $this->dispatch('reloadDropdowns');
+    }
+
+    public function resetFields()
+    {
+        $this->name = null;
+        $this->group_id = null;
+        $this->type_id = $this->type_id == 2 ? false : true;
     }
 
     public function mount() {}
@@ -114,7 +121,7 @@ new #[Layout('layouts.app')] class extends Component {
             </div>
 
             <div>
-                <input type="checkbox" checked="checked" wire:model.live="type_id"
+                <input type="checkbox" checked="$wire.type_id == 1" wire:model.live="type_id"
                     class="toggle border-secondary bg-secondary checked:bg-primary checked:text-primary checked:border-primary"
                     @click="expense = !expense; $wire.category_id = ''" />
                 <span x-text="expense ? 'Expense' : 'Income'"
@@ -125,7 +132,7 @@ new #[Layout('layouts.app')] class extends Component {
 
             <div x-data="{
                 editing: false,
-                name: @entangle('name').defer
+                name: @entangle('name')
             }" class="relative w-full max-w-full">
 
                 <!-- display name (click to edit) -->

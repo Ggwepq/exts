@@ -10,15 +10,17 @@ new #[Layout('layouts.app')] class extends Component {
     public string $page = ''; // Account, Transaction
     public string $component = '';
     public mixed $modelId = null;
+    public bool $cancel;
 
     #[On('showRightSidebar')]
-    public function open(string $operation, string $page, string $component = '', mixed $modelId = null): void
+    public function open(string $operation, string $page, string $component = '', mixed $modelId = null, bool $cancel = true): void
     {
         $this->oldComponent = $component;
         $this->operation = $operation;
         $this->page = $page;
         $this->component = $component;
         $this->modelId = $modelId;
+        $this->cancel = $cancel;
     }
 };
 
@@ -60,6 +62,7 @@ new #[Layout('layouts.app')] class extends Component {
                             @endif
                         </div>
                         <h2 class="text-xl font-bold text-base-content capitalize">
+                            {{ ucfirst($operation) }} {{ $page }}
                         </h2>
                     </div>
                     <div>
@@ -76,16 +79,29 @@ new #[Layout('layouts.app')] class extends Component {
                                     <span class="hidden md:flex">Edit</span>
                                 </button>
                             @elseif ($operation == 'edit')
-                                <button
-                                    class="btn btn-ghost btn-sm bg-base-100 hover:bg-base-200 border border-base-300 shadow-sm"
-                                    @click="$dispatch('showRightSidebar', {operation: 'view', page: '{{ $page }}', component: 'pages.user.{{ (string) Str::plural(strtolower($page)) }}.view', modelId: {{ $modelId }}}); rightSidebarOpen = true;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                        stroke-width="1.5" stroke="currentColor" class="size-6">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
-                                    </svg>
-                                    <span class="hidden md:flex">Cancel</span>
-                                </button>
+                                @if ($cancel)
+                                    <button
+                                        class="btn btn-ghost btn-sm bg-base-100 hover:bg-base-200 border border-base-300 shadow-sm"
+                                        @click="$dispatch('showRightSidebar', {operation: 'view', page: '{{ $page }}', component: 'pages.user.{{ (string) Str::plural(strtolower($page)) }}.view', modelId: {{ $modelId }}}); rightSidebarOpen = true;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor" class="size-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+                                        </svg>
+                                        <span class="hidden md:flex">Cancel</span>
+                                    </button>
+                                @else
+                                    <button
+                                        class="btn btn-ghost btn-sm bg-base-100 hover:bg-base-200 border border-base-300 shadow-sm"
+                                        @click="rightSidebarOpen = false">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor" class="size-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+                                        </svg>
+                                        <span class="hidden md:flex">Cancel</span>
+                                    </button>
+                                @endif
                             @endif
                         @endif
                         <button

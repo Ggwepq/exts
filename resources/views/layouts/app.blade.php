@@ -32,6 +32,7 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body class="font-roboto antialiased">
@@ -59,9 +60,10 @@
     <x-toaster-hub />
 </body>
 <script>
-    window.addEventListener('detailSidebarClose', () => {
-        const event = new Event("detailSidebarClose");
-        window.dispatchEvent(event);
+    document.addEventListener('livewire:init', () => {
+        Livewire.on('detailSidebarClose', (event) => {
+            detailSidebarOpen = false
+        });
     });
 </script>
 

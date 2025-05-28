@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class TransactionCategory extends Model
 {
+    use HasFactory;
+
     protected $guarded = [];
 
     public function users()
@@ -25,7 +28,7 @@ class TransactionCategory extends Model
 
     public function budgets()
     {
-        return $this->belongsTo(Budget::class);
+        return $this->hasOne(Budget::class);
     }
 
     public function transactions()
