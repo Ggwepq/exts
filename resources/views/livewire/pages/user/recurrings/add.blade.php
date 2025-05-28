@@ -46,6 +46,7 @@ new #[Layout('layouts.app')] class extends Component {
 
         session()->flash('success', 'Recurring transaction created!');
         $this->reset();
+        $this->dispatch('recurringUpdate');
     }
 }; ?>
 

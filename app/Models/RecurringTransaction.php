@@ -17,4 +17,9 @@ class RecurringTransaction extends Model
     {
         return $this->hasOne(Transaction::class, 'recurring_id');
     }
+
+    public function allTransaction()
+    {
+        return $this->hasMany(Transaction::class, 'recurring_id');
+    }
 }

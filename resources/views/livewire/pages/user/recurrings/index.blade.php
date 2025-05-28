@@ -13,6 +13,8 @@ new #[Layout('layouts.app')] class extends Component {
     {
         $this->loadRecurrings();
     }
+
+    #[On('recurringUpdate')]
     public function loadRecurrings()
     {
         $this->recurrings = RecurringTransaction::where('user_id', Auth::id())->get()->groupBy('frequency')->all();
@@ -63,7 +65,7 @@ new #[Layout('layouts.app')] class extends Component {
                                         class="group list-row hover:bg-base-200 flex items-center justify-between w-full p2-5 py-4 border border-base-200 mb-3 mx-0.5 transition-all duration-200 hover:shadow-md cursor-pointer">
                                         <!-- Red for Expense, Green for Income -->
                                         <div class="flex flex-row md:items-center w-full grow"
-                                            @click="$dispatch('showSidebar', {operation: 'view', page: 'Transaction', component: 'pages.user.transactions.view', modelId: {{ $recurring->id }}}); detailSidebarOpen = true;">
+                                            @click="$dispatch('showSidebar', {operation: 'view', page: 'Recurring', component: 'pages.user.recurrings.view', modelId: {{ $recurring->id }}}); detailSidebarOpen = true;">
                                             <!-- Transaction Name -->
                                             <div
                                                 class="w-1/3 truncate font-bold text-md mb-1.5 mr-2 text-base-content transition-colors duration-200 {{ $recurring->transactions->types->name == 'Expense' ? 'group-hover:text-secondary' : 'group-hover:text-primary' }}">
@@ -97,36 +99,6 @@ new #[Layout('layouts.app')] class extends Component {
                         <span class="text-base-content text-lg font-medium mb-1">
                             😴 No transactions found
                         </span>
-                        <p class="text-base-content/40 text-sm mb-4">
-                            @if (
-                                !empty($filters['search']) ||
-                                    !empty($filters['types']) ||
-                                    !empty($filters['account_id']) ||
-                                    !empty($filters['date_mode']))
-                            @endif
-                        </p>
-                        @if (
-                            !empty($filters['search']) &&
-                                (empty($filters['types']) && empty($filters['account_id']) && empty($filters['date_mode'])))
-                            <!-- No button for search-only filtering -->
-                        @elseif (
-                            !empty($filters['types']) ||
-                                !empty($filters['account_id']) ||
-                                !empty($filters['date_mode']) ||
-                                !empty($filters['search']))
-                            <button class="btn btn-sm btn-outline btn-primary mt-2" wire:click="resetFilters">
-                                Clear filters
-                            </button>
-                        @else
-                            <button class="btn btn-sm btn-primary"
-                                @click="detailSidebarOpen = true; $dispatch('showSidebar', {operation: 'create', page: 'Transaction', component: 'pages.user.transactions.add', modelId: 12})">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="currentColor" class="size-5 mr-1">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                                </svg>
-                                Add Transaction
-                            </button>
-                        @endif
                     </div>
                 @endif
             </div>
