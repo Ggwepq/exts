@@ -25,12 +25,12 @@ new class extends Component {
         $allAccounts = Account::where('user_id', $userId)->orderBy('updated_at')->get();
 
         // Group accounts by group name
-        $this->accounts = $allAccounts->groupBy(fn($acc) => optional($acc->group)->name ?? 'None')->all();
+        $this->accounts = $allAccounts->groupBy(fn($acc) => optional($acc->accountCategories)->name ?? 'None')->all();
 
         // Load all groups
         $allGroups = AccountCategory::where('user_id', $userId)->get();
 
-        $usedGroupIds = $allAccounts->pluck('group_id')->filter()->unique();
+        $usedGroupIds = $allAccounts->pluck('category_id')->filter()->unique();
 
         $dummyGroup = new AccountCategory();
         $dummyGroup->id = null;
@@ -41,9 +41,8 @@ new class extends Component {
         $unusedGroups = $allGroups->reject(fn($group) => $usedGroupIds->contains($group->id));
 
         $this->groups = collect([$dummyGroup])
-            ->merge($usedGroups)
-            ->merge($unusedGroups)
-            ->sortBy('name')
+            ->merge($usedGroups->sortByDesc('name'))
+            ->merge($unusedGroups->sortByDesc('name'))
             ->values();
 
         $this->refreshKey = uniqid();
@@ -54,7 +53,7 @@ new class extends Component {
         $userId = Auth::id();
         $account = Account::where('id', $accountId)->where('user_id', $userId)->firstOrFail();
 
-        $account->group_id = $groupId ?: null;
+        $account->category_id = $groupId ?: null;
         $account->save();
 
         $this->loadAccounts();
@@ -194,6 +193,7 @@ new class extends Component {
 
                             @foreach ($record as $account)
                                 <li class="group list-row hover:bg-base-200 flex items-center justify-between w-full px-5 py-4 border border-base-200  mb-3 mx-0.5 transition-all duration-200 hover:shadow-md cursor-pointer"
+                                    draggable="true" x-data @dragstart="draggedAccountId = {{ $account->id }}"
                                     @click="$dispatch('showSidebar', {operation: 'edit', page: 'Account', component: 'pages.user.accounts.edit', modelId: {{ $account['id'] }}}); detailSidebarOpen = true;">
                                     <div class="flex items-center gap-4">
                                         <div class="bg-primary/10 p-2.5 ">
