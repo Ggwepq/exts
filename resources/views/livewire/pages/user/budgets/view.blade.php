@@ -116,7 +116,7 @@ new class extends Component {
                                 <div class="w-1/3 truncate uppercase font-semibold hidden md:flex">
                                     <progress
                                         class="progress @if ($percentage > 0 && $percentage < 50) progress-success @elseif($percentage >= 50 && $percentage < 100) progress-warning @else progress-error @endif w-full mt-2"
-                                        value="{{ number_format($transaction->amount, 2) }}"
+                                        value="{{ $transaction->amount }}"
                                         max="{{ $category->transactions->where('type_id', 2)->sum('amount') }}"></progress>
                                 </div>
 
