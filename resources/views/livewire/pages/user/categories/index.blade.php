@@ -46,9 +46,8 @@ new class extends Component {
 
         // Merge used + unused + dummy "None"
         $this->groups = collect([$dummyGroup])
-            ->merge($usedGroups)
-            ->merge($unusedGroups)
-            ->sortBy('name')
+            ->merge($usedGroups->sortByDesc('name'))
+            ->merge($unusedGroups->sortByDesc('name'))
             ->values();
 
         $this->refreshKey = uniqid();
