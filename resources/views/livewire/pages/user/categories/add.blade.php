@@ -81,7 +81,7 @@ new #[Layout('layouts.app')] class extends Component {
     {
         $this->name = null;
         $this->group_id = null;
-        $this->type_id = false;
+        $this->type_id = $this->type_id == 2 ? false : true;
     }
 
     public function mount() {}
@@ -121,7 +121,7 @@ new #[Layout('layouts.app')] class extends Component {
             </div>
 
             <div>
-                <input type="checkbox" checked="checked" wire:model.live="type_id"
+                <input type="checkbox" checked="$wire.type_id == 1" wire:model.live="type_id"
                     class="toggle border-secondary bg-secondary checked:bg-primary checked:text-primary checked:border-primary"
                     @click="expense = !expense; $wire.category_id = ''" />
                 <span x-text="expense ? 'Expense' : 'Income'"
