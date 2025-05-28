@@ -96,6 +96,16 @@ new class extends Component {
         $income = Auth::user()->transactions->where('type_id', 1)->sum('amount');
         $total = $expense . '/' . $income;
     }
+
+    public function togglePin($accountId)
+    {
+        $account = Account::findOrFail($accountId);
+
+        $account->is_pinned = !$account->is_pinned;
+        $account->save();
+
+        $this->dispatch('accountUpdate');
+    }
 }; ?>
 <section>
     <!-- Yes Margin -->
@@ -208,6 +218,14 @@ new class extends Component {
                                             <p
                                                 class="text-lg font-bold group-hover:text-primary transition-colors duration-200">
                                                 {{ $account['name'] }}</p>
+                                        </div>
+
+                                        <div class="tooltip tooltip-right opacity-0 hover:opacity-100 transition-all duration-100 ease-in-out"
+                                            :class="{{ $account->is_pinned }} ? 'opacity-100' : 'opacity-0'"
+                                            data-tip="{{ $account->is_pinned ? 'Unpin' : 'Pin' }}"> <button
+                                                wire:click.stop="togglePin({{ $account->id }})" class="text-sm ">
+                                                📌
+                                            </button>
                                         </div>
                                     </div>
 

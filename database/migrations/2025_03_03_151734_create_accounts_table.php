@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('category_id')->nullable()->constrained('account_categories')->onDelete('set null');
             $table->string('name');
             $table->decimal('balance', 15, 2);
+            $table->boolean('is_pinned')->default(false);
             $table->timestamps();
         });
     }
