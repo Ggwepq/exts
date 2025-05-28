@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Recurring extends Model
+class RecurringTransaction extends Model
 {
     protected $guarded = [];
 
@@ -15,6 +15,6 @@ class Recurring extends Model
 
     public function transactions()
     {
-        return $this->hasMany(Transaction::class);
+        return $this->hasMany(Transaction::class, 'recurring_id');
     }
 }
