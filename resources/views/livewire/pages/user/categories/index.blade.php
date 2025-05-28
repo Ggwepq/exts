@@ -23,7 +23,7 @@ new class extends Component {
         $userId = Auth::id();
 
         // Load all categories with their group and type
-        $allCategories = TransactionCategory::where('user_id', $userId)->with('groups', 'types')->get();
+        $allCategories = TransactionCategory::where('user_id', $userId)->with('groups', 'types', 'budgets')->orderBy('updated_at')->get();
 
         // Group categories by group name
         $this->categories = $allCategories->groupBy(fn($cat) => optional($cat->groups)->name ?? 'None')->all();
@@ -34,27 +34,20 @@ new class extends Component {
         // Identify group IDs that are used in the categories
         $usedGroupIds = $allCategories->pluck('group_id')->filter()->unique();
 
-        // Add the dummy None group manually
-        $dummyGroup = (object) ['id' => null, 'name' => 'None'];
+        // Create Dummy Group
+        $dummyGroup = new CategoryGroup();
+        $dummyGroup->id = null;
+        $dummyGroup->name = 'None';
+        $dummyGroup->exists = false;
 
         // Separate groups that are used vs unused
         $usedGroups = $allGroups->filter(fn($group) => $usedGroupIds->contains($group->id));
         $unusedGroups = $allGroups->reject(fn($group) => $usedGroupIds->contains($group->id));
 
         // Merge used + unused + dummy "None"
-        $this->groups = $usedGroups
-            ->merge($unusedGroups)
-            ->map(
-                fn($group) => [
-                    'id' => $group->id,
-                    'name' => $group->name,
-                ],
-            )
-            ->sortBy('name')
-            ->prepend([
-                'id' => null,
-                'name' => 'None',
-            ])
+        $this->groups = collect([$dummyGroup])
+            ->merge($usedGroups->sortByDesc('name'))
+            ->merge($unusedGroups->sortByDesc('name'))
             ->values();
 
         $this->refreshKey = uniqid();
@@ -108,16 +101,26 @@ new class extends Component {
 
         $this->loadCategories();
     }
+
+    public function formatShortAmount($amount)
+    {
+        if ($amount >= 1_000_000) {
+            return number_format($amount / 1_000_000, 1) . 'M';
+        } elseif ($amount >= 1_000) {
+            return number_format($amount / 1_000, 1) . 'K';
+        }
+        return number_format($amount, 2);
+    }
 }; ?>
 
-<section wire:poll.10s>
+<section>
     <!-- Yes Margin -->
     <!-- <div class="transition-all duration-300 ease-in-out" -->
     <!--     :class="{ 'md:mr-[17rem] lg:mr-[23rem] xl:mr-[27rem] 2xl:mr-[41rem]': detailSidebarOpen }"> -->
     <!-- No Margin -->
     <div class="transition-all duration-300 ease-in-out">
         @livewire('pages.user.containers.main-header', ['component' => 'pages.user.categories.header'])
-        <div class="flex-1 overflow-y-auto md:pt-4 pt-4 px-6 bg-base-200 h-screen">
+        <div class="flex-1 overflow-y-auto pt-4 pb-10 px-6 bg-base-200">
             <div class="card w-full p-6 bg-base-100 shadow-xl mt-2" wire:key="group-list-{{ $refreshKey }}">
                 @if ($categories)
                     <!-- Total Balance Banner -->
@@ -125,8 +128,8 @@ new class extends Component {
                     <ul class="list bg-base-100 space-y-4" x-data="{ draggedCategoryId: null }">
                         @foreach ($groups as $group)
                             @php
-                                $groupName = $group['name'];
-                                $groupId = $group['id'];
+                                $groupName = $group->name;
+                                $groupId = $group->id;
                                 $record = $categories[$groupName] ?? [];
                             @endphp
 
@@ -188,10 +191,10 @@ new class extends Component {
                             </li>
 
                             @foreach ($record as $category)
-                                <li class="group list-row flex hover:bg-base-200 items-center justify-between w-full px-5 py-4 border border-base-200  mb-3 mx-0.5 transition-all duration-200 hover:shadow-md cursor-pointer"
-                                    @click="$dispatch('showSidebar', {operation: 'view', page: 'Category', component: 'pages.user.categories.view', modelId: {{ $category['id'] }}}); detailSidebarOpen = true;"
-                                    draggable="true" x-data @dragstart="draggedCategoryId = {{ $category->id }}">
-                                    <div class="flex items-center gap-4">
+                                <li class="group list-row hover:bg-base-200 flex items-center justify-between w-full px-5 py-4 border border-base-200 mb-3 mx-0.5 transition-all duration-200 hover:shadow-md cursor-pointer"
+                                    draggable="true" x-data @dragstart="draggedCategoryId = {{ $category->id }}"
+                                    @click="$dispatch('showSidebar', {operation: 'view', page: 'Category', component: 'pages.user.categories.view', modelId: {{ $category['id'] }}}); detailSidebarOpen = true;">
+                                    <div class="flex items-center gap-4 ">
                                         <div
                                             class="p-2.5 {{ $category['type_id'] == 2 ? 'bg-secondary/10' : 'bg-primary/10' }}">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -201,7 +204,8 @@ new class extends Component {
                                                     d="M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 0 0 3.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008Z" />
                                             </svg>
                                         </div>
-                                        <div>
+                                        <div
+                                            class="truncate font-bold text-md text-base-content transition-colors duration-200">
                                             <span
                                                 class="text-lg font-bold mr-2 {{ $category['type_id'] == 2 ? 'text-secondary' : 'text-primary' }}">
                                                 {{ $category['name'] }}</span>
@@ -211,23 +215,100 @@ new class extends Component {
                                         </div>
                                     </div>
 
+                                    @if ($category->types->name == 'Expense')
+                                        @if ($category->budgets)
+                                            @php
+                                                $spent = $category->transactions->where('type_id', 2)->sum('amount');
+                                                $limit = $category->budgets->limit_amount ?? 1;
+                                                $percentage = ($spent / $limit) * 100;
+                                            @endphp
+
+                                            <div class="p-2.5 w-full sm:w-auto flex-1 sm:flex-initial text-right hover:bg-base-300 transition-all duration-200 hover:shadow-md"
+                                                @click.stop="$dispatch('showSidebar', {
+                                                    operation: 'view',
+                                                    page: 'budget',
+                                                    component: 'pages.user.budgets.view',
+                                                    modelId: {{ $category['id'] }}
+                                                }); detailSidebarOpen = true;">
+
+                                                <div class="w-full px-4 ">
+                                                    <div
+                                                        class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 md:gap-20 text-sm font-semibold @if ($percentage < 50) text-success @elseif($percentage < 100) text-warning @else text-error @endif">
+
+                                                        {{-- Spent --}}
+                                                        <span class="font-semibold truncate w-3/4 md:w-auto ">
+                                                            <span class="md:hidden">
+                                                                ₱{{ $this->formatShortAmount($spent) }}
+                                                            </span>
+                                                            <span class="hidden md:inline">
+                                                                ₱{{ number_format($spent, 2) }}
+                                                            </span>
+                                                        </span>
+
+                                                        {{-- Slash on small screen, progress bar on larger --}}
+                                                        <span class="block sm:hidden">/</span>
+
+                                                        {{-- Limit --}}
+                                                        <span class="font-semibold truncate w-3/4 md:w-auto ">
+                                                            <span class="md:hidden">
+                                                                ₱{{ $this->formatShortAmount($limit) }}
+                                                            </span>
+                                                            <span class="hidden md:inline">
+                                                                ₱{{ number_format($limit, 2) }}
+                                                            </span>
+                                                        </span>
+
+                                                    </div>
+
+                                                    {{-- Progress bar only on sm and up --}}
+                                                    <progress
+                                                        class="hidden sm:block progress mt-2 w-full
+                                                        @if ($percentage < 50) progress-success
+                                                        @elseif($percentage < 100) progress-warning
+                                                        @else progress-error @endif"
+                                                        value="{{ $spent }}"
+                                                        max="{{ $limit }}"></progress>
+                                                </div>
+                                            </div>
+                                        @else
+                                            <div class="p-2.5 text-right flex w-full sm:w-auto hover:bg-base-300 transition-all duration-200 hover:shadow-md"
+                                                @click.stop="$dispatch('showSidebar', {
+                                                    operation: 'edit',
+                                                    page: 'Budget',
+                                                    component: 'pages.user.budgets.add',
+                                                    modelId: {{ $category['id'] }},
+                                                    cancel: false
+                                                }); detailSidebarOpen = true;">
+
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                                    class="size-5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                                </svg>
+                                                <span class="ml-2 text-sm font-semibold text-base-content">Set
+                                                    Budget</span>
+                                            </div>
+                                        @endif
+                                    @endif
                                 </li>
                             @endforeach
                         @endforeach
 
-                        <li class="group bg-base-200/50 text-sm font-medium py-2 px-4 mb-2 sticky top-0 z-10 backdrop-blur-sm shadow-sm cursor-pointer flex items-center justify-center"
+                        <li class="group gap-2 bg-base-200/50 text-sm font-medium py-2 px-4 mb-2 sticky top-0 z-10 backdrop-blur-sm shadow-sm cursor-pointer flex items-center justify-center"
                             @click="$dispatch('showRightSidebar', {operation: 'create', page: 'Group', component: 'pages.user.groups.add'}); rightSidebarOpen = true; console.log(rightSidebarOpen)">
                             <!-- icon -->
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke-width="1.5" stroke="currentColor" class="size-6">
+                                stroke-width="1.5" stroke="currentColor" class="size-4">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg>
+                            <span>Group</span>
                         </li>
                     </ul>
                 @else
                     <div class="flex flex-col items-center justify-center p-10 bg-base-200/30 ">
-                        <span class="text-base-content text-lg font-medium mb-1">
-                            😴 No transactions found
+                        <span class="text-base-content text-lg font-medium mb-5">
+                            😴 No Categories found
                         </span>
                         <button class="btn btn-sm btn-primary"
                             @click="detailSidebarOpen = true; $dispatch('showSidebar', {operation: 'create', page: 'Category', component: 'pages.user.categories.add', modelId: null})">
@@ -235,7 +316,7 @@ new class extends Component {
                                 stroke-width="1.5" stroke="currentColor" class="size-5 mr-1">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg>
-                            Add Your First Account
+                            Add Category
                         </button>
                     </div>
                 @endif

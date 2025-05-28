@@ -97,5 +97,8 @@ new class extends Component {
                 </div>
             </div>
         </div>
+
+        <!-- Income vs Expenses Chart -->
+        @livewire('pages.user.dashboard.chart')
     </div>
 </div>

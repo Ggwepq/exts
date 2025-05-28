@@ -10,26 +10,17 @@ new #[Layout('layouts.app')] class extends Component {
     public string $page = ''; // Account, Transaction
     public string $component = '';
     public mixed $modelId = null;
-
-    public string $oldComponent = '';
+    public bool $cancel;
 
     #[On('showSidebar')]
-    public function open(string $operation, string $page, string $component = '', ?int $modelId = null): void
+    public function open(string $operation, string $page, string $component = '', $modelId = null, bool $cancel = true): void
     {
         $this->oldComponent = $component;
         $this->operation = $operation;
         $this->page = $page;
         $this->component = $component;
         $this->modelId = $modelId;
-    }
-
-    public function compare($component)
-    {
-        if ($this->oldComponent != $component) {
-            return true;
-        }
-
-        return false;
+        $this->cancel = $cancel;
     }
 };
 
@@ -89,16 +80,29 @@ new #[Layout('layouts.app')] class extends Component {
                                 <span class="hidden md:flex">Edit</span>
                             </button>
                         @elseif ($operation == 'edit')
-                            <button
-                                class="btn btn-ghost btn-sm bg-base-100 hover:bg-base-200 border border-base-300 shadow-sm"
-                                @click="$dispatch('showSidebar', {operation: 'view', page: '{{ $page }}', component: 'pages.user.{{ \Illuminate\Support\Str::plural(strtolower($page)) }}.view', modelId: {{ $modelId }}}); detailSidebarOpen = true;">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="currentColor" class="size-6">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
-                                </svg>
-                                <span class="hidden md:flex">Cancel</span>
-                            </button>
+                            @if ($cancel)
+                                <button
+                                    class="btn btn-ghost btn-sm bg-base-100 hover:bg-base-200 border border-base-300 shadow-sm"
+                                    @click="$dispatch('showSidebar', {operation: 'view', page: '{{ $page }}', component: 'pages.user.{{ \Illuminate\Support\Str::plural(strtolower($page)) }}.view', modelId: {{ $modelId }}}); detailSidebarOpen = true;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor" class="size-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+                                    </svg>
+                                    <span class="hidden md:flex">Cancel</span>
+                                </button>
+                            @else
+                                <button
+                                    class="btn btn-ghost btn-sm bg-base-100 hover:bg-base-200 border border-base-300 shadow-sm"
+                                    @click="detailSidebarOpen = false">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor" class="size-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+                                    </svg>
+                                    <span class="hidden md:flex">Cancel</span>
+                                </button>
+                            @endif
                         @endif
                         <button
                             class="btn btn-ghost btn-sm bg-base-100 hover:bg-base-200 border border-base-300 shadow-sm "
@@ -108,7 +112,6 @@ new #[Layout('layouts.app')] class extends Component {
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
-
                     </div>
                 </div>
             </div>

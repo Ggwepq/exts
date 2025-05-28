@@ -5,6 +5,7 @@ use Livewire\WithFileUploads;
 use App\Models\Transaction;
 use App\Models\Account;
 use App\Models\TransactionCategory;
+use App\Models\Budget;
 use App\Models\Type;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,8 @@ new #[Layout('layouts.app')] class extends Component {
     public $expenses;
     public $incomes;
     public $selectedTags = [];
+    public $budgetLimit;
+    public $amountSpent;
 
     #[Validate('required|string|max:255')]
     public $name;
@@ -46,11 +49,37 @@ new #[Layout('layouts.app')] class extends Component {
     #[Validate('required')]
     public $type_id = false;
 
+    public function loadBudget()
+    {
+        $budget = Budget::where('user_id', auth()->id())
+            ->where('transaction_category_id', $this->category_id)
+            ->where('status', 'Active')
+            ->where('end_date', '>=', Carbon::today())
+            ->first();
+
+        if ($budget) {
+            $this->budgetLimit = $budget->limit_amount;
+            $this->amountSpent = Transaction::where('user_id', auth()->id())
+                ->where('category_id', $this->category_id)
+                ->where('type_id', 2) // replace with your Expense type_id
+                ->sum('amount');
+        } else {
+            $this->budgetLimit = null;
+            $this->amountSpent = 0;
+        }
+    }
+
     public function save()
     {
         $this->validate();
 
         $this->type_id = $this->type_id ? 1 : 2;
+
+        $this->loadBudget();
+
+        if ($this->budgetLimit && $this->amountSpent + $this->amount > $this->budgetLimit) {
+            Toaster::warning('Budget limit has been exceeded');
+        }
 
         if ($this->type_id == 2) {
             $account = Account::find($this->account_id);
@@ -128,7 +157,16 @@ new #[Layout('layouts.app')] class extends Component {
 
     public function getSelectedCategoryProperty()
     {
-        return $this->type_id == 1 ? collect($this->incomes)->firstWhere('id', $this->category_id) : collect($this->expenses)->firstWhere('id', $this->category_id);
+        $category = $this->type_id == 1 ? collect($this->incomes)->firstWhere('id', $this->category_id) : collect($this->expenses)->firstWhere('id', $this->category_id);
+        return $category;
+    }
+
+    public function getPercentage()
+    {
+        $category = TransactionCategory::findOrFail($this->category_id);
+
+        $percentage = ($category->transactions->sum('amount') / $category->budgets->limit_amount) * 100;
+        return $percentage;
     }
 
     public function getSelectedGradientProperty()
@@ -298,6 +336,13 @@ new #[Layout('layouts.app')] class extends Component {
                                 d="M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 0 0 3.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008Z" />
                         </svg>
                         <span>{{ $category_id ? $this->selectedCategory->name : 'Category' }}</span>
+
+
+                        @if ($this->selectedCategory && $this->selectedCategory->budgets)
+                            <span
+                                class="badge badge-sm block truncate
+                                @if ($this->getPercentage() < 50) badge-success @elseif($this->getPercentage() >= 50 && $this->getPercentage() < 100) badge-warning @else badge-error @endif">₱{{ number_format($this->selectedCategory->budgets->limit_amount - $this->selectedCategory->transactions->sum('amount')) }}</span>
+                        @endif
                     </label>
                     <div tabindex="0"
                         class="dropdown-content z-[1] menu mt-4 shadow-lg bg-base-100 w-60 border border-base-200">
@@ -306,7 +351,7 @@ new #[Layout('layouts.app')] class extends Component {
                                 @foreach ($incomes as $income)
                                     @if ($income->name !== 'None')
                                         <li class="text-6sm">
-                                            <a wire:click="$setVariable('category_id', {{ $income->id }})"
+                                            <a wire:click="$set('category_id', {{ $income->id }})"
                                                 class="flex items-center justify-between px-3 py-2 transition-all duration-200 group
         {{ $category_id == $income->id ? $this->selectedGradient : '' }}"
                                                 :class="expense ? 'hover:bg-secondary' : 'hover:bg-primary'">
@@ -322,6 +367,14 @@ new #[Layout('layouts.app')] class extends Component {
                                 @endforeach
                             @else
                                 @foreach ($expenses as $expense)
+                                    @php
+                                        if ($expense->budgets) {
+                                            $percentage =
+                                                ($expense->transactions->sum('amount') /
+                                                    $expense->budgets->limit_amount) *
+                                                100;
+                                        }
+                                    @endphp
                                     @if ($expense->name !== 'None')
                                         <li class="text-6sm">
                                             <a wire:click="$set('category_id', {{ $expense->id }})"
@@ -334,6 +387,13 @@ new #[Layout('layouts.app')] class extends Component {
                                                         'group-hover:text-primary-content'">
                                                     <span class="truncate ">{{ $expense->name }}</span>
                                                 </span>
+
+                                                @if ($expense->budgets)
+                                                    <span
+                                                        class="badge badge-xs badge-primary p-3 @if ($percentage < 50) badge-success @elseif($percentage >= 50 && $percentage < 100) badge-warning @else badge-error @endif">
+                                                        ₱{{ number_format($expense->budgets->limit_amount - $expense->transactions->sum('amount')) }}
+                                                    </span>
+                                                @endif
                                             </a>
                                         </li>
                                     @endif

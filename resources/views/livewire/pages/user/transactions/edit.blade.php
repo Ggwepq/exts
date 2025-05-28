@@ -82,26 +82,6 @@ new #[Layout('layouts.app')] class extends Component {
         $this->expenses = TransactionCategory::where('user_id', Auth::id())->where('type_id', 2)->get();
     }
 
-    public function delete()
-    {
-        $account = $this->transaction->accounts;
-
-        if ($this->transaction->type_id == 1) {
-            // Income → subtract from balance
-            $account->balance -= $this->transaction->amount;
-        } else {
-            // Expense → add back to balance
-            $account->balance += $this->transaction->amount;
-        }
-
-        $account->save();
-        $this->transaction->delete();
-
-        $this->dispatch('transactionUpdate');
-        $this->dispatch('detailSidebarClose');
-        Toaster::success('Transaction Deleted!');
-    }
-
     #[On('update-selected-tags')]
     public function updateSelectedTags($tags)
     {
@@ -245,6 +225,14 @@ new #[Layout('layouts.app')] class extends Component {
     {
         return $this->type_id == 1 ? 'bg-gradient-to-r from-primary/100 to-primary/50 text-primary-content' : 'bg-gradient-to-r from-secondary/100 to-secondary/50 text-secondary-content';
     }
+
+    public function getPercentage()
+    {
+        $category = TransactionCategory::findOrFail($this->category_id);
+
+        $percentage = ($category->transactions->sum('amount') / $category->budgets->limit_amount) * 100;
+        return $percentage;
+    }
 };
 
 ?>
@@ -370,8 +358,23 @@ new #[Layout('layouts.app')] class extends Component {
                                 @endforeach
                             </li>
                         </ul>
+                        <a @click="$dispatch('showRightSidebar', {operation: 'create', page: 'Account', component: 'pages.user.accounts.add'}); rightSidebarOpen = true;"
+                            class="flex items-center justify-center px-3 py-2 transition-all duration-200 group rounded-xl border-4"
+                            :class="expense ? 'hover:bg-secondary border-secondary' : 'hover:bg-primary border-primary'">
+
+                            <span class="flex space-x-1 items-center justify-center group-hover:text-primary"
+                                :class="expense ? 'group-hover:text-secondary-content' :
+                                    'group-hover:text-primary-content'">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                                <span>New</span>
+                            </span>
+                        </a>
                     </div>
                 </div>
+
                 @error('account_id')
                     <span class="validator-hint">{{ $message }}</span>
                 @enderror
@@ -388,6 +391,12 @@ new #[Layout('layouts.app')] class extends Component {
                                 d="M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 0 0 3.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008Z" />
                         </svg>
                         <span>{{ $this->selectedCategory?->name ?? 'Category' }}</span>
+
+                        @if ($this->selectedCategory && $this->selectedCategory->budgets)
+                            <span
+                                class="badge badge-sm block truncate
+                                @if ($this->getPercentage() < 50) badge-success @elseif($this->getPercentage() >= 50 && $this->getPercentage() < 100) badge-warning @else badge-error @endif">₱{{ number_format($this->selectedCategory->budgets->limit_amount - $this->selectedCategory->transactions->sum('amount')) }}</span>
+                        @endif
                     </label>
                     <div tabindex="0"
                         class="dropdown-content z-[1] menu mt-4 shadow-lg bg-base-100 w-60 border border-base-200">
@@ -411,6 +420,14 @@ new #[Layout('layouts.app')] class extends Component {
                                     @endforeach
                                 @else
                                     @foreach ($expenses as $expense)
+                                        @php
+                                            if ($expense->budgets) {
+                                                $percentage =
+                                                    ($expense->transactions->sum('amount') /
+                                                        $expense->budgets->limit_amount) *
+                                                    100;
+                                            }
+                                        @endphp
                                         @if ($expense->name !== 'None')
                                             <a wire:click="$set('category_id', {{ $expense->id }})"
                                                 class="flex items-center justify-between px-3 py-2 transition-all duration-200 group
@@ -422,12 +439,33 @@ new #[Layout('layouts.app')] class extends Component {
                                                         'group-hover:text-primary-content'">
                                                     <span class="truncate ">{{ $expense->name }}</span>
                                                 </span>
+
+                                                @if ($expense->budgets)
+                                                    <span
+                                                        class="badge badge-xs badge-primary p-3 @if ($percentage < 50) badge-success @elseif($percentage >= 50 && $percentage < 100) badge-warning @else badge-error @endif">
+                                                        ₱{{ number_format($expense->budgets->limit_amount - $expense->transactions->sum('amount')) }}
+                                                    </span>
+                                                @endif
                                             </a>
                                         @endif
                                     @endforeach
                                 @endif
                             </li>
                         </ul>
+                        <a @click="$dispatch('showRightSidebar', {operation: 'create', page: 'Category', component: 'pages.user.categories.add'}); rightSidebarOpen = true;"
+                            class="flex items-center justify-center px-3 py-2 transition-all duration-200 group rounded-xl border-4"
+                            :class="expense ? 'hover:bg-secondary border-secondary' : 'hover:bg-primary border-primary'">
+
+                            <span class="flex space-x-1 items-center justify-center group-hover:text-primary"
+                                :class="expense ? 'group-hover:text-secondary-content' :
+                                    'group-hover:text-primary-content'">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                                <span>New</span>
+                            </span>
+                        </a>
                     </div>
                 </div>
                 @error('category_id')
@@ -484,9 +522,6 @@ new #[Layout('layouts.app')] class extends Component {
             @endif
 
         </div>
-
-
-
         <!-- Submit Button -->
         <div class="form-control">
             <button type="submit" class="btn w-full" @click="$wire.type_id = expense"
@@ -494,17 +529,4 @@ new #[Layout('layouts.app')] class extends Component {
         </div>
     </form>
 
-    <div x-data="{ isDelete: false }" class="mt-4">
-        <template x-if="!isDelete">
-            <button @click="isDelete = true" class="btn btn-error w-full">Delete Transaction<span
-                    wire:loading.class="loading loading-bars loading-lg"></span></button>
-        </template>
-        <template x-if="isDelete">
-            <div class="flex flex-row gap-x-2">
-                <button @click="isDelete = false" class="flex-1 btn btn-neutral">Cancel</button>
-                <button class="btn btn-error flex-1" wire:click="delete">Delete<span
-                        class="loading loading-bars loading-lg" wire:loading></span></button>
-            </div>
-        </template>
-    </div>
 </section>

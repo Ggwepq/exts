@@ -225,7 +225,7 @@ new #[Layout('layouts.app')] class extends Component {
 
         @livewire('pages.user.containers.main-header', ['component' => 'pages.user.transactions.header', 'header' => 'Transactions'])
 
-        <div class="flex-1 overflow-y-auto md:pt-4 pt-4 px-6 bg-base-200 h-screen">
+        <div class="flex-1 overflow-y-auto pt-4 pb-10 px-6 bg-base-200">
 
             <div x-show="selected.length > 0" x-transition
                 class="fixed bottom-1 left-1/2 transform -translate-x-1/2 bg-base-100 shadow-lg rounded-lg p-3 z-50 border border-base-content/10">
