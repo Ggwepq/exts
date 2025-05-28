@@ -149,7 +149,8 @@ new #[Layout('layouts.app')] class extends Component {
         <template x-if="isDelete">
             <div class="flex flex-row gap-x-2">
                 <button @click="isDelete = false" class="flex-1 btn btn-neutral">Cancel</button>
-                <button class="btn btn-error flex-1" wire:click="delete" @click="isDelete = false">Delete<span
+                <button class="btn btn-error flex-1" wire:click="delete"
+                    @click="isDelete = false; detailSidebarOpen = false">Delete<span
                         class="loading loading-bars loading-lg" wire:loading></span></button>
             </div>
         </template>
