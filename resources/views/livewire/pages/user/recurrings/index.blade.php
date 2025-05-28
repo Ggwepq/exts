@@ -97,7 +97,7 @@ new #[Layout('layouts.app')] class extends Component {
                 @else
                     <div class="flex flex-col items-center justify-center p-10 bg-base-200/30 ">
                         <span class="text-base-content text-lg font-medium mb-1">
-                            😴 No transactions found
+                            😴 No Recurring Transactions found
                         </span>
                     </div>
                 @endif

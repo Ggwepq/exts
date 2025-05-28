@@ -12,32 +12,25 @@ use Livewire\Volt\Component;
 new #[Layout('layouts.app')] class extends Component {
     public $recurring;
     public $transactions;
+    public $transaction_id;
+    public $modelId;
 
-    public $recurring_id;
     public $name;
     public $frequency;
-    public $modelId;
 
     public function mount($modelId)
     {
         $this->modelId = $modelId;
-        $this->recurring = RecurringTransaction::find($modelId);
 
-        if (!$this->recurring) {
-            // Redirect, flash message, or fallback
-            session()->flash('error', 'Recurring transaction not found.');
-            return redirect()->route('recurrings.index');
-        }
-
-        $this->name = optional($this->recurring->transactions)->name ?? 'N/A'; // null-safe access
+        $this->recurring = RecurringTransaction::findOrFail($modelId);
+        $this->name = $this->recurring->transactions->name;
         $this->frequency = $this->recurring->frequency;
-        $this->recurring_id = $this->recurring->id;
-        $this->loadTransactions();
+        $this->getRecurringTransactions();
     }
 
-    public function loadTransactions()
+    public function getRecurringTransactions()
     {
-        $transactions = $this->recurring->allTransaction;
+        $transactions = Transaction::where('recurring_id', $this->recurring->id)->get();
 
         $this->transactions = $transactions
             ->groupBy(function ($transaction) {
@@ -58,6 +51,36 @@ new #[Layout('layouts.app')] class extends Component {
         return Transaction::where('user_id', Auth::id())->whereNull('recurring_id')->where('name', '!=', 'Initial Account Balance')->get();
     }
 
+    public function save()
+    {
+        $this->validate([
+            'transaction_id' => 'required|exists:transactions,id',
+            'frequency' => 'required|in:daily,weekly,monthly',
+        ]);
+
+        $transaction = Transaction::findOrFail($this->transaction_id);
+
+        // Calculate next due date
+        $nextDueDate = match ($this->frequency) {
+            'daily' => Carbon::today()->addDay(),
+            'weekly' => Carbon::today()->addWeek(),
+            'monthly' => Carbon::today()->addMonth(),
+        };
+
+        $recurring = RecurringTransaction::create([
+            'user_id' => Auth::id(),
+            'frequency' => $this->frequency,
+            'next_due_date' => $nextDueDate,
+            'status' => 'Active',
+        ]);
+
+        // Update transaction to link with recurring
+        $transaction->update(['recurring_id' => $recurring->id]);
+
+        session()->flash('success', 'Recurring transaction created!');
+        $this->reset();
+    }
+
     public function formatShortAmount($amount)
     {
         if ($amount >= 1_000_000) {
@@ -66,15 +89,6 @@ new #[Layout('layouts.app')] class extends Component {
             return number_format($amount / 1_000, 1) . 'K';
         }
         return number_format($amount, 2);
-    }
-
-    public function delete()
-    {
-        $this->recurring->delete();
-
-        $this->reset();
-        $this->dispatch('recurringUpdate');
-        Toaster::success('Recurring Transaction Deleted!');
     }
 }; ?>
 
@@ -103,7 +117,6 @@ new #[Layout('layouts.app')] class extends Component {
 
                 <!-- display name (click to edit) -->
                 <span class="cursor-pointer font-bold text-3xl block truncate text-center"
-                    @click="$dispatch('showRightSidebar', {operation: 'view', page: 'Transaction', component: 'pages.user.transactions.view', modelId: {{ $recurring_id }}}); rightSidebarOpen = true;"
                     x-text="name || 'ㄟ( ▔, ▔ )ㄏ'">
                 </span>
             </div>
@@ -115,6 +128,12 @@ new #[Layout('layouts.app')] class extends Component {
 
             <div class="dropdown dropdown-center w-full">
                 <label tabindex="0" class="btn btn-md border shadow-sm w-full" aria-label="Select Group">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+                    </svg>
                     <span>{{ ucfirst($frequency) }}</span>
                 </label>
             </div>
@@ -138,7 +157,7 @@ new #[Layout('layouts.app')] class extends Component {
     </div>
 
     <div class="w-full mt-10">
-        @if ($transactions && count($transactions))
+        @if (count($transactions))
             <ul class="list bg-base-100 space-y-4">
                 @foreach ($transactions as $date => $record)
                     @php
