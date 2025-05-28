@@ -29,7 +29,7 @@ new class extends Component {
         $this->categories = $allCategories->groupBy(fn($cat) => optional($cat->groups)->name ?? 'None')->all();
 
         // Load all groups
-        $allGroups = CategoryGroup::where('user_id', $userId)->where('type', 'Transaction')->get();
+        $allGroups = CategoryGroup::where('user_id', $userId)->get();
 
         // Identify group IDs that are used in the categories
         $usedGroupIds = $allCategories->pluck('group_id')->filter()->unique();
@@ -62,7 +62,7 @@ new class extends Component {
         if (is_null($groupId)) {
             $category->group_id = null;
         } else {
-            $group = CategoryGroup::where('id', $groupId)->where('user_id', $userId)->where('type', 'Transaction')->firstOrFail();
+            $group = CategoryGroup::where('id', $groupId)->where('user_id', $userId)->firstOrFail();
 
             $category->group_id = $group->id;
         }
@@ -153,10 +153,11 @@ new class extends Component {
                                 @dragover.prevent @dragenter.prevent>
                                 <div class="flex items-center gap-2">
                                     <!-- icon -->
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                        stroke-width="1.5" stroke="currentColor" class="size-6">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 0 1-1.125-1.125v-3.75Z M14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 0 1-1.125-1.125v-8.25Z M3.75 16.125c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 0 1-1.125-1.125v-2.25Z" />
+                                    <svg class="w-6 h-6 " aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                        width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                        <path fill-rule="evenodd"
+                                            d="M4.857 3A1.857 1.857 0 0 0 3 4.857v4.286C3 10.169 3.831 11 4.857 11h4.286A1.857 1.857 0 0 0 11 9.143V4.857A1.857 1.857 0 0 0 9.143 3H4.857Zm10 0A1.857 1.857 0 0 0 13 4.857v4.286c0 1.026.831 1.857 1.857 1.857h4.286A1.857 1.857 0 0 0 21 9.143V4.857A1.857 1.857 0 0 0 19.143 3h-4.286Zm-10 10A1.857 1.857 0 0 0 3 14.857v4.286C3 20.169 3.831 21 4.857 21h4.286A1.857 1.857 0 0 0 11 19.143v-4.286A1.857 1.857 0 0 0 9.143 13H4.857Zm10 0A1.857 1.857 0 0 0 13 14.857v4.286c0 1.026.831 1.857 1.857 1.857h4.286A1.857 1.857 0 0 0 21 19.143v-4.286A1.857 1.857 0 0 0 19.143 13h-4.286Z"
+                                            clip-rule="evenodd" />
                                     </svg>
 
                                     <template x-if="!editing">

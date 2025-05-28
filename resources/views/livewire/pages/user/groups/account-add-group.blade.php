@@ -3,10 +3,7 @@
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\WithFileUploads;
-use App\Models\Transaction;
-use App\Models\TransactionCategory;
-use App\Models\CategoryGroup;
-use App\Models\Type;
+use App\Models\AccountCategory;
 use Carbon\Carbon;
 use Masmerise\Toaster\Toaster;
 use Illuminate\Support\Facades\DB;
@@ -28,7 +25,7 @@ new #[Layout('layouts.app')] class extends Component {
                 'string',
                 'max:255',
                 function ($attribute, $value, $fail) {
-                    $exists = DB::table('category_groups')
+                    $exists = DB::table('account_categories')
                         ->where('user_id', Auth::id())
                         ->whereRaw('LOWER(name) = ?', [strtolower($value)])
                         ->exists();
@@ -49,7 +46,7 @@ new #[Layout('layouts.app')] class extends Component {
         try {
             // Use a database transaction to ensure consistency
             DB::beginTransaction();
-            $group = CategoryGroup::create([
+            $group = AccountCategory::create([
                 'user_id' => Auth::id(),
                 'name' => $this->name,
             ]);
@@ -57,21 +54,21 @@ new #[Layout('layouts.app')] class extends Component {
 
             // Reset form fields
 
-            Toaster::success('Group Created!');
+            Toaster::success('Account Group Created!');
         } catch (\Exception $e) {
             DB::rollBack();
-            Toaster::error('Category Creation Failed!');
+            Toaster::error('Account Group Creation Failed! ' . $e->getMessage());
         }
 
         // Emit event to refresh transaction list
-        $this->dispatch('categoryUpdate');
+        $this->dispatch('accountUpdate');
         $this->dispatch('reloadDropdowns');
         $this->dispatch('rightSidebarClose');
     }
 
     public function mount()
     {
-        $this->groups = CategoryGroup::where('user_id', Auth::id())->get();
+        $this->groups = AccountCategory::where('user_id', Auth::id())->get();
     }
 
     public function getSelectedGroupProperty()
@@ -79,10 +76,10 @@ new #[Layout('layouts.app')] class extends Component {
         return collect($this->groups)->firstWhere('id', $this->group_id);
     }
 
-    public function getSelectedGradientProperty()
-    {
-        return $this->type_id == 1 ? 'bg-gradient-to-r from-primary/100 to-primary/50 text-primary-content' : 'bg-gradient-to-r from-secondary/100 to-secondary/50 text-secondary-content';
-    }
+    // public function getSelectedGradientProperty()
+    // {
+    //     return $this->type_id == 1 ? 'bg-gradient-to-r from-primary/100 to-primary/50 text-primary-content' : 'bg-gradient-to-r from-secondary/100 to-secondary/50 text-secondary-content';
+    // }
 }; ?>
 
 <section>
@@ -106,7 +103,7 @@ new #[Layout('layouts.app')] class extends Component {
 
             <div x-data="{
                 editing: false,
-                name: @entangle('name').defer
+                name: @entangle('name')
             }" class="relative w-full max-w-full">
 
                 <!-- display name (click to edit) -->
@@ -133,5 +130,4 @@ new #[Layout('layouts.app')] class extends Component {
         <button type="submit" class="btn btn-primary w-full">Save<span
                 wire:loading.class="loading loading-bars loading-lg"></span></button>
     </form>
-    <template x-on:rightSidebarClose.window="rightSidebarOpen = false; console.log('Close That Bitcht')"></template>
 </section>
