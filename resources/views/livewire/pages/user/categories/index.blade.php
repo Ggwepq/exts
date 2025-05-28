@@ -229,8 +229,8 @@ new class extends Component {
                                                     operation: 'view',
                                                     page: 'budget',
                                                     component: 'pages.user.budgets.view',
-                                                    modelid: {{ $category['id'] }}
-                                                }); detailsidebaropen = true;">
+                                                    modelId: {{ $category['id'] }}
+                                                }); detailSidebarOpen = true;">
 
                                                 <div class="w-full px-4 ">
                                                     <div
