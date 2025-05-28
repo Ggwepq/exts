@@ -195,7 +195,7 @@ new class extends Component {
                             @foreach ($record as $account)
                                 <li class="group list-row hover:bg-base-200 flex items-center justify-between w-full px-5 py-4 border border-base-200  mb-3 mx-0.5 transition-all duration-200 hover:shadow-md cursor-pointer"
                                     draggable="true" x-data @dragstart="draggedAccountId = {{ $account->id }}"
-                                    @click="$dispatch('showSidebar', {operation: 'edit', page: 'Account', component: 'pages.user.accounts.edit', modelId: {{ $account['id'] }}}); detailSidebarOpen = true;">
+                                    @click="$dispatch('showSidebar', {operation: 'view', page: 'Account', component: 'pages.user.accounts.view', modelId: {{ $account['id'] }}}); detailSidebarOpen = true;">
                                     <div class="flex items-center gap-4">
                                         <div class="bg-primary/10 p-2.5 ">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
