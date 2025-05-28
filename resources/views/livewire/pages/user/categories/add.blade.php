@@ -69,12 +69,19 @@ new #[Layout('layouts.app')] class extends Component {
             Toaster::error('Category Creation Failed!');
         }
 
-        $this->dispatch('$refresh');
+        $this->resetFields();
 
         // Emit event to refresh transaction list
         $this->dispatch('categoryUpdate');
         $this->dispatch('rightSidebarClose');
         $this->dispatch('reloadDropdowns');
+    }
+
+    public function resetFields()
+    {
+        $this->name = null;
+        $this->group_id = null;
+        $this->type_id = false;
     }
 
     public function mount() {}
@@ -125,7 +132,7 @@ new #[Layout('layouts.app')] class extends Component {
 
             <div x-data="{
                 editing: false,
-                name: @entangle('name').defer
+                name: @entangle('name')
             }" class="relative w-full max-w-full">
 
                 <!-- display name (click to edit) -->
