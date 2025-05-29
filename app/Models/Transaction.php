@@ -45,4 +45,9 @@ class Transaction extends Model
     {
         return $this->belongsTo(TransactionCategory::class, 'category_id');
     }
+
+    public function recurringTransactions()
+    {
+        return $this->belongsTo(RecurringTransaction::class, 'recurring_id');
+    }
 }

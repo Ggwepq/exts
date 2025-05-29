@@ -60,7 +60,7 @@ new class extends Component {
                 <div class="mask mask-squircle w-10 bg-primary/10 flex items-center justify-center p-1">
                     <img src="{{ asset('img/sample-logo.png') }}" alt="Logo" class="w-full h-full object-contain">
                 </div>
-                <span class="font-bold text-xl text-primary">Gastababy</span>
+                <span class="font-bold text-xl text-primary">Trackwise</span>
             </a>
         </div>
 
@@ -137,7 +137,7 @@ new class extends Component {
                 <!-- Recurring -->
                 <li>
                     <a class="{{ request()->routeIs('user.recurring') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 transition-all duration-200"
-                        href="{{ route('user.categories') }}">
+                        href="{{ route('user.recurring') }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="h-5 w-5">
                             <path stroke-linecap="round" stroke-linejoin="round"

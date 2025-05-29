@@ -353,9 +353,21 @@ new #[Layout('layouts.app')] class extends Component {
                                     <div class="flex flex-row md:items-center w-full grow"
                                         @click="$dispatch('showSidebar', {operation: 'view', page: 'Transaction', component: 'pages.user.transactions.view', modelId: {{ $transaction->id }}}); detailSidebarOpen = true;">
                                         <!-- Transaction Name -->
-                                        <div
-                                            class="w-1/3 truncate font-bold text-md mb-1.5 mr-2 text-base-content transition-colors duration-200 {{ $transaction->types->name == 'Expense' ? 'group-hover:text-secondary' : 'group-hover:text-primary' }}">
-                                            {{ $transaction->name }}
+                                        <div class="w-1/3 truncate font-bold md:flex">
+                                            <span
+                                                class="text-md mb-1.5 mr-2 text-base-content transition-colors duration-200 {{ $transaction->types->name == 'Expense' ? 'group-hover:text-secondary' : 'group-hover:text-primary' }}">
+                                                {{ $transaction->name }}
+                                            </span>
+                                            <span>
+                                                @if ($transaction->recurringTransactions)
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                                        class="h-5 w-5">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3" />
+                                                    </svg>
+                                                @endif
+                                            </span>
                                         </div>
 
                                         <!-- Account Name -->
