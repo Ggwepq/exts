@@ -59,10 +59,11 @@ new #[Layout('layouts.app')] class extends Component {
 
         if ($budget) {
             $this->budgetLimit = $budget->limit_amount;
-            $this->amountSpent = Transaction::where('user_id', auth()->id())
-                ->where('category_id', $this->category_id)
-                ->where('type_id', 2) // replace with your Expense type_id
-                ->sum('amount');
+            $this->amountSpent =
+                Transaction::where('user_id', auth()->id())
+                    ->where('category_id', $this->category_id)
+                    ->where('type_id', 2) // replace with your Expense type_id
+                    ->sum('amount') + $this->amount;
         } else {
             $this->budgetLimit = null;
             $this->amountSpent = 0;
@@ -78,8 +79,18 @@ new #[Layout('layouts.app')] class extends Component {
         if ($this->category_id) {
             $this->loadBudget();
 
-            if ($this->budgetLimit && $this->amountSpent + $this->amount > $this->budgetLimit) {
-                Toaster::warning('Budget limit has been exceeded');
+            if ($this->budgetLimit) {
+                $percentageUsed = ($this->amountSpent / $this->budgetLimit) * 100;
+
+                if ($percentageUsed >= 100) {
+                    Toaster::error('Budget limit has been exceeded!');
+                } elseif ($percentageUsed >= 90) {
+                    Toaster::warning('You have used 90% of your budget.');
+                } elseif ($percentageUsed >= 75) {
+                    Toaster::info('You have used 75% of your budget.');
+                } elseif ($percentageUsed >= 50) {
+                    Toaster::info('You have used half of your budget.');
+                }
             }
         }
 
