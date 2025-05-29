@@ -12,6 +12,7 @@ new #[Layout('layouts.app')] class extends Component {
     public $filters = [
         'types' => [],
         'account_id' => [],
+        'category_id' => [],
         'date_mode' => '',
         'search' => '',
         'sort' => [
@@ -45,6 +46,11 @@ new #[Layout('layouts.app')] class extends Component {
         // Apply account filter
         if (!empty($this->filters['account_id'])) {
             $query->whereIn('account_id', $this->filters['account_id']);
+        }
+
+        // Apply category filter
+        if (!empty($this->filters['category_id'])) {
+            $query->whereIn('category_id', $this->filters['category_id']);
         }
 
         // Search
@@ -169,6 +175,7 @@ new #[Layout('layouts.app')] class extends Component {
         $this->filters = [
             'types' => [],
             'account_id' => '',
+            'category_id' => '',
             'date_mode' => '',
             'search' => '',
             'sort' => [

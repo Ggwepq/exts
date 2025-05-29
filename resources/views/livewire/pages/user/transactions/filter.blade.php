@@ -2,13 +2,16 @@
 
 use Livewire\Volt\Component;
 use App\Models\Account;
+use App\Models\TransactionCategory;
 use Illuminate\Support\Facades\Auth;
 
 new class extends Component {
     public $accounts = [];
+    public $categories = [];
     public $filters = [
         'types' => [],
         'account_id' => [],
+        'category_id' => [],
         'date_mode' => '',
         'search' => '',
         'sort' => [
@@ -20,6 +23,7 @@ new class extends Component {
     public function mount($filters = null)
     {
         $this->accounts = Account::where('user_id', Auth::id())->get();
+        $this->categories = TransactionCategory::where('user_id', Auth::id())->get();
         if ($filters) {
             $this->filters = $filters;
             if (isset($filters['sort'])) {
@@ -39,6 +43,7 @@ new class extends Component {
         $this->filters = [
             'types' => [],
             'account_id' => [],
+            'category_id' => [],
             'date_mode' => '',
             'search' => '',
         ];
@@ -60,6 +65,15 @@ new class extends Component {
                     $this->filters['account_id'] = array_filter($this->filters['account_id'], fn($id) => $id !== $value);
                 } else {
                     $this->filters['account_id'][] = $value;
+                }
+
+                break;
+
+            case 'category':
+                if (in_array($value, $this->filters['category_id'])) {
+                    $this->filters['category_id'] = array_filter($this->filters['category_id'], fn($id) => $id !== $value);
+                } else {
+                    $this->filters['category_id'][] = $value;
                 }
 
                 break;
@@ -236,7 +250,50 @@ new class extends Component {
                     </li>
                 </ul>
             </details>
+
+            <details>
+                <summary
+                    class="flex items-center justify-between cursor-pointer hover:bg-base-200 transition-all duration-200">
+                    <div class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+                        </svg>
+                        <span>Category</span>
+                    </div>
+
+                    @if ($filters['category_id'])
+                        <span class="badge badge-xs badge-primary p-3">
+                            @if (count($filters['category_id']) > 1)
+                                ...
+                            @else
+                                @foreach ($categories as $category)
+                                    @if (in_array($category->id, $filters['category_id']))
+                                        {{ $category->name }}
+                                    @endif
+                                @endforeach
+                            @endif
+                        </span>
+                    @endif
+                </summary>
+                <ul class="ml-2 mt-1.5">
+                    <li class="text-6sm">
+
+                        @foreach ($categories as $category)
+                            <a wire:click="filterBy('category', '{{ $category->id }}')"
+                                class="flex items-center justify-between px-3 py-2 hover:bg-base-200 transition-all duration-200 group {{ in_array($account->id, $filters['account_id']) ? 'bg-gradient-to-r from-primary/100 to-primary/50 text-primary-content' : '' }}">
+
+                                <span class="flex space-x-1 items-center group-hover:text-primary">
+                                    <span class="truncate ">{{ $category->name }}</span>
+                                </span>
+                            </a>
+                        @endforeach
+                    </li>
+                </ul>
+            </details>
         </li>
+
 
 
         <div class="divider my-1"></div>
