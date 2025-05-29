@@ -13,6 +13,7 @@ new #[Layout('layouts.app')] class extends Component {
         'types' => [],
         'account_id' => [],
         'category_id' => [],
+        'frequency' => [],
         'date_mode' => '',
         'search' => '',
         'sort' => [
@@ -51,6 +52,13 @@ new #[Layout('layouts.app')] class extends Component {
         // Apply category filter
         if (!empty($this->filters['category_id'])) {
             $query->whereIn('category_id', $this->filters['category_id']);
+        }
+        //
+        // Filter by recurrence frequency
+        if (!empty($this->filters['frequency'])) {
+            $query->whereHas('recurringTransactions', function ($q) {
+                $q->whereIn('frequency', (array) $this->filters['frequency']);
+            });
         }
 
         // Search
@@ -176,6 +184,7 @@ new #[Layout('layouts.app')] class extends Component {
             'types' => [],
             'account_id' => '',
             'category_id' => '',
+            'frequency' => '',
             'date_mode' => '',
             'search' => '',
             'sort' => [

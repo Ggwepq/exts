@@ -12,6 +12,7 @@ new class extends Component {
         'types' => [],
         'account_id' => [],
         'category_id' => [],
+        'frequency' => [],
         'date_mode' => '',
         'search' => '',
         'sort' => [
@@ -44,6 +45,7 @@ new class extends Component {
             'types' => [],
             'account_id' => [],
             'category_id' => [],
+            'frequency' => [],
             'date_mode' => '',
             'search' => '',
         ];
@@ -76,6 +78,14 @@ new class extends Component {
                     $this->filters['category_id'][] = $value;
                 }
 
+                break;
+
+            case 'frequency':
+                if (in_array($value, $this->filters['frequency'] ?? [])) {
+                    $this->filters['frequency'] = array_filter($this->filters['frequency'], fn($f) => $f !== $value);
+                } else {
+                    $this->filters['frequency'][] = $value;
+                }
                 break;
 
             case 'type':
@@ -286,6 +296,46 @@ new class extends Component {
 
                                 <span class="flex space-x-1 items-center group-hover:text-primary">
                                     <span class="truncate ">{{ $category->name }}</span>
+                                </span>
+                            </a>
+                        @endforeach
+                    </li>
+                </ul>
+            </details>
+
+            <details>
+                <summary
+                    class="flex items-center justify-between cursor-pointer hover:bg-base-200 transition-all duration-200">
+                    <div class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+                        </svg>
+                        <span>Recurrence</span>
+                    </div>
+
+                    @if ($filters['frequency'])
+                        <span class="badge badge-xs badge-primary p-3">
+                            @if ($filters['frequency'] == 'Daily')
+                                Daily
+                            @elseif($filters['date_mode'] == 'Monthly')
+                                Monthly
+                            @else
+                                Weekly
+                            @endif
+                        </span>
+                    @endif
+                </summary>
+                <ul class="ml-2 mt-1.5">
+                    <li class="text-6sm">
+
+                        @foreach (['daily', 'weekly', 'monthly'] as $recurrence)
+                            <a wire:click="filterBy('frequency', '{{ $recurrence }}')"
+                                class="flex items-center justify-between px-3 py-2 hover:bg-base-200 transition-all duration-200 group {{ $filters['frequency'] == $recurrence ? 'bg-gradient-to-r from-primary/100 to-primary/50 text-primary-content' : '' }}">
+
+                                <span class="flex space-x-1 items-center group-hover:text-primary">
+                                    <span class="truncate ">{{ ucfirst($recurrence) }}</span>
                                 </span>
                             </a>
                         @endforeach
