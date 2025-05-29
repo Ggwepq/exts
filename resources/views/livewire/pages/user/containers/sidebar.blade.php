@@ -60,7 +60,7 @@ new class extends Component {
                 <div class="mask mask-squircle w-10 bg-primary/10 flex items-center justify-center p-1">
                     <img src="{{ asset('img/sample-logo.png') }}" alt="Logo" class="w-full h-full object-contain">
                 </div>
-                <span class="font-bold text-xl text-primary">Gastababy</span>
+                <span class="font-bold text-xl text-primary">Trackwise</span>
             </a>
         </div>
 

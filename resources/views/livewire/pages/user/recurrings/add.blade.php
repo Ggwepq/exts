@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Masmerise\Toaster\Toaster;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 
 new #[Layout('layouts.app')] class extends Component {
@@ -16,6 +17,12 @@ new #[Layout('layouts.app')] class extends Component {
     public $name;
 
     public function mount()
+    {
+        $this->loadDropdowns();
+    }
+
+    #[On('reloadDropdowns')]
+    public function loadDropdowns()
     {
         $this->transactions = $this->getTransactionsProperty();
     }

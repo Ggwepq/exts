@@ -125,6 +125,7 @@ new #[Layout('layouts.app')] class extends Component {
 
         // Emit event to refresh transaction list
         $this->dispatch('transactionUpdate');
+        $this->dispatch('rightSidebarClose');
         $this->dispatch('reloadDropdowns');
 
         Toaster::success('Transaction Created!');
