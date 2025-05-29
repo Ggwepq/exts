@@ -21,29 +21,31 @@ new #[Layout('layouts.app')] class extends Component {
     public function mount($modelId)
     {
         $this->modelId = $modelId;
+        $this->transaction_id = $this->modelId;
 
         $this->recurring = RecurringTransaction::findOrFail($modelId);
-        $this->name = $this->recurring->transactions->name;
         $this->frequency = $this->recurring->frequency;
-        $this->getRecurringTransactions();
+
+        // Load dropdown data
+        $this->loadDropdowns();
+
+        // Get the linked transaction
+        $transaction = $this->recurring->transactions;
+        $this->name = $transaction->name;
+        $this->transaction_id = $transaction->id;
     }
 
-    public function getRecurringTransactions()
+    public function getSelectedTransactionProperty()
     {
-        $transactions = Transaction::where('recurring_id', $this->recurring->id)->get();
+        $transaction = collect($this->transactions)->firstWhere('id', $this->transaction_id);
+        $this->name = $transaction->name ?? $this->name;
+        return $transaction;
+    }
 
-        $this->transactions = $transactions
-            ->groupBy(function ($transaction) {
-                $date = Carbon::parse($transaction->created_at);
-                if ($date->isToday()) {
-                    return 'Today';
-                } elseif ($date->isYesterday()) {
-                    return 'Yesterday';
-                } else {
-                    return $date->format('F j, Y'); // April 14, 2025
-                }
-            })
-            ->all();
+    #[On('reloadDropdowns')]
+    public function loadDropdowns()
+    {
+        $this->transactions = $this->getTransactionsProperty();
     }
 
     public function getTransactionsProperty()
@@ -58,7 +60,7 @@ new #[Layout('layouts.app')] class extends Component {
             'frequency' => 'required|in:daily,weekly,monthly',
         ]);
 
-        $transaction = Transaction::findOrFail($this->transaction_id);
+        $newTransaction = Transaction::findOrFail($this->transaction_id);
 
         // Calculate next due date
         $nextDueDate = match ($this->frequency) {
@@ -67,28 +69,35 @@ new #[Layout('layouts.app')] class extends Component {
             'monthly' => Carbon::today()->addMonth(),
         };
 
-        $recurring = RecurringTransaction::create([
-            'user_id' => Auth::id(),
-            'frequency' => $this->frequency,
-            'next_due_date' => $nextDueDate,
-            'status' => 'Active',
-        ]);
+        if ($this->recurring) {
+            // Step 1: Unlink the old transaction
+            Transaction::where('recurring_id', $this->recurring->id)
+                ->where('id', '!=', $newTransaction->id)
+                ->update(['recurring_id' => null]);
 
-        // Update transaction to link with recurring
-        $transaction->update(['recurring_id' => $recurring->id]);
+            // Step 2: Update recurring details
+            $this->recurring->update([
+                'frequency' => $this->frequency,
+                'next_due_date' => $nextDueDate,
+            ]);
 
-        session()->flash('success', 'Recurring transaction created!');
-        $this->reset();
-    }
+            // Step 3: Link new transaction
+            $newTransaction->update(['recurring_id' => $this->recurring->id]);
 
-    public function formatShortAmount($amount)
-    {
-        if ($amount >= 1_000_000) {
-            return number_format($amount / 1_000_000, 1) . 'M';
-        } elseif ($amount >= 1_000) {
-            return number_format($amount / 1_000, 1) . 'K';
+            Toaster::success('Recurring transaction updated!');
+        } else {
+            $recurring = RecurringTransaction::create([
+                'user_id' => Auth::id(),
+                'frequency' => $this->frequency,
+                'next_due_date' => $nextDueDate,
+                'status' => 'Active',
+            ]);
+
+            $newTransaction->update(['recurring_id' => $recurring->id]);
+
+            Toaster::success('Recurring transaction created!');
+            $this->dispatch('recurringUpdate');
         }
-        return number_format($amount, 2);
     }
 }; ?>
 
@@ -109,6 +118,7 @@ new #[Layout('layouts.app')] class extends Component {
                 </span>
             </div>
         </div>
+
         <div class="flex flex-col gap-3 mt-2">
 
             <div x-data="{
@@ -117,6 +127,7 @@ new #[Layout('layouts.app')] class extends Component {
 
                 <!-- display name (click to edit) -->
                 <span class="cursor-pointer font-bold text-3xl block truncate text-center"
+                    @click="$dispatch('showRightSidebar', {operation: 'view', page: 'Transaction', component: 'pages.user.transactions.view', modelId: {{ $transaction_id }}}); rightSidebarOpen = true;"
                     x-text="name || 'ㄟ( ▔, ▔ )ㄏ'">
                 </span>
             </div>
@@ -124,122 +135,93 @@ new #[Layout('layouts.app')] class extends Component {
                 <span class="validator-hint">{{ $message }}</span>
             @enderror
         </div>
-        <div class="flex flex-row gap-4 ">
 
-            <div class="dropdown dropdown-center w-full">
-                <label tabindex="0" class="btn btn-md border shadow-sm w-full" aria-label="Select Group">
+        <div class="space-y-5">
+            <div class="flex flex-row gap-4 ">
+                <div class="dropdown dropdown-center w-full">
+                    <label tabindex="0" class="btn btn-md border shadow-sm w-full" aria-label="Select Group">
 
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
-                    </svg>
-                    <span>{{ ucfirst($frequency) }}</span>
-                </label>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
+                        </svg>
+                        <span>{{ $this->selectedTransaction ? $this->recurring->transactions->name : 'Transaction' }}</span>
+                    </label>
+                    <div tabindex="0"
+                        class="dropdown-content z-[1] menu mt-4 shadow-lg bg-base-100 rounded-xl w-3/4 border border-base-200">
+                        <ul class="ml-2 my-1.5 flex flex-col overflow-auto max-h-40 space-y-1">
+                            @foreach ($transactions as $group)
+                                <li class=" text-6sm  ">
+                                    <a wire:click="$set('transaction_id', {{ $group->id }})"
+                                        class="flex items-center justify-between px-3 py-2 transition-all duration-200 group
+        {{ $transaction_id == $group->id ? 'bg-gradient-to-r from-primary/100 to-primary/50 text-primary-content' : '' }}">
+
+                                        <span class="flex space-x-1 items-center group-hover:text-primary">
+                                            <span class="truncate ">{{ $group->name }}</span>
+                                        </span>
+
+                                        <span class="badge badge-xs badge-primary p-3">
+                                            ₱{{ number_format($group->amount) }}
+                                        </span>
+
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                        <a @click="$dispatch('showRightSidebar', {operation: 'create', page: 'Transaction', component: 'pages.user.transactions.add'}); rightSidebarOpen = true; console.log(rightSidebarOpen)"
+                            class="flex items-center justify-center px-3 py-2 transition-all duration-200 group rounded-xl border-4"
+                            :class="expense ? 'hover:bg-secondary border-secondary' : 'hover:bg-primary border-primary'">
+
+                            <span class="flex space-x-1 items-center justify-center group-hover:text-primary"
+                                :class="expense ? 'group-hover:text-secondary-content' :
+                                    'group-hover:text-primary-content'">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                                <span>New</span>
+                            </span>
+                        </a>
+                    </div>
+                    @error('account_id')
+                        <span class="validator-hint">{{ $message }}</span>
+                    @enderror
+                </div>
             </div>
+            <div class="flex flex-row gap-4 ">
+
+                <div class="dropdown dropdown-center w-full">
+                    <label tabindex="0" class="btn btn-md border shadow-sm w-full" aria-label="Select Group">
+                        <span>{{ $frequency ? ucfirst($frequency) : 'Frequency' }}</span>
+                    </label>
+                    <div tabindex="0"
+                        class="dropdown-content z-[1] menu mt-4 shadow-lg bg-base-100 rounded-xl w-60 border border-base-200">
+                        <ul class="ml-2 my-1.5 flex flex-col overflow-auto max-h-40 space-y-1">
+                            @foreach (['daily', 'weekly', 'monthly'] as $type)
+                                <li class=" text-6sm  ">
+                                    <a wire:click="$set('frequency', '{{ $type }}')"
+                                        class="flex items-center justify-between px-3 py-2 hover:bg-base-200 transition-all duration-200 group {{ $frequency == $type ? 'bg-gradient-to-r from-primary/100 to-primary/50 text-primary-content' : '' }}">
+
+                                        <span class="flex space-x-1 items-center group-hover:text-primary">
+                                            <span class="truncate ">{{ ucfirst($type) }}</span>
+                                        </span>
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                    @error('account_id')
+                        <span class="validator-hint">{{ $message }}</span>
+                    @enderror
+                </div>
+            </div>
+
         </div>
 
+        <button type="submit" class="btn btn-primary w-full bg-primary">Save<span
+                wire:loading.class="loading loading-bars loading-lg"></span></button>
+
     </form>
-
-    <div x-data="{ isDelete: false }" class="mt-6">
-        <template x-if="!isDelete">
-            <button @click="isDelete = true" class="btn btn-error w-full">Delete Recurring<span
-                    wire:loading.class="loading loading-bars loading-lg"></span></button>
-        </template>
-        <template x-if="isDelete">
-            <div class="flex flex-row gap-x-2">
-                <button @click="isDelete = false" class="flex-1 btn btn-neutral">Cancel</button>
-                <button class="btn btn-error flex-1" wire:click="delete"
-                    @click="isDelete = false; detailSidebarOpen = false">Delete<span
-                        class="loading loading-bars loading-lg" wire:loading></span></button>
-            </div>
-        </template>
-    </div>
-
-    <div class="w-full mt-10">
-        @if (count($transactions))
-            <ul class="list bg-base-100 space-y-4">
-                @foreach ($transactions as $date => $record)
-                    @php
-                        $totalIncome = $record->where('type_id', '1')->sum('amount');
-                        $totalExpense = $record->where('type_id', '2')->sum('amount');
-                    @endphp
-                    <li
-                        class="bg-base-200 text-sm font-medium py-2 px-4 mb-2 sticky top-0 z-10 backdrop-blur-sm shadow-sm flex justify-between">
-                        <div class="flex items-center gap-2">
-                            <!-- <input type="checkbox" class="checkbox " /> -->
-                            <div class="flex items-center gap-2"
-                                @click="$dispatch('showRightSidebar', {operation: 'create', page: 'Transaction', component: 'pages.user.transactions.create'}); rightSidebarOpen = true;">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="currentColor" class="size-4 text-base-content/70">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                                </svg>
-                                {{ $date }}
-                            </div>
-                        </div>
-                        <div class="text-right text-xs w-1/2  font-semibold">
-                            <span class="text-primary truncate inline-block md:hidden w-1/2 md:w-auto">
-                                +₱{{ $this->formatShortAmount($totalIncome) }}
-                            </span>
-                            <span class="text-primary truncate hidden md:inline-block w-1/2 md:w-auto">
-                                +₱{{ number_format($totalIncome, 2) }}
-                            </span>
-
-                            <span class="text-secondary truncate inline-block md:hidden w-1/2 md:w-auto">
-                                -₱{{ $this->formatShortAmount($totalExpense) }}
-                            </span>
-                            <span class="text-secondary truncate hidden md:inline-block w-1/2 md:w-auto">
-                                -₱{{ number_format($totalExpense, 2) }}
-                            </span>
-                        </div>
-                    </li>
-
-                    @foreach ($record as $transaction)
-                        <li
-                            class="group list-row hover:bg-base-200 flex items-center justify-between w-full p2-5 py-4 border border-base-200 mb-3 mx-0.5 transition-all duration-200 hover:shadow-md cursor-pointer">
-                            <!-- Red for Expense, Green for Income -->
-                            <div class="flex flex-row md:items-center w-full grow"
-                                @click="$dispatch('showRightSidebar', {operation: 'view', page: 'Transaction', component: 'pages.user.transactions.view', modelId: {{ $transaction->id }}}); rightSidebarOpen = true;">
-                                <!-- Transaction Name -->
-                                <div
-                                    class="w-1/3 truncate font-bold text-md mb-1.5 mr-2 text-base-content transition-colors duration-200 {{ $transaction->types->name == 'Expense' ? 'group-hover:text-secondary' : 'group-hover:text-primary' }}">
-                                    {{ $transaction->name }}
-                                </div>
-
-                                <!-- Account Name -->
-                                <div class="w-1/3 truncate uppercase font-semibold hidden md:flex">
-                                    <span
-                                        class="text-xs badge badge-lg badge-outline {{ $transaction->types->name == 'Expense' ? 'badge-secondary' : 'badge-primary' }}">
-                                        {{ $transaction->accounts->name }}
-                                    </span>
-                                </div>
-
-                                <!-- Amount -->
-                                <div class="w-1/3 flex-shrink-0 text-right grow">
-                                    <span
-                                        class="text-xs uppercase font-semibold badge badge-lg truncate w-3/4 md:w-auto  {{ $transaction->types->name == 'Expense' ? 'badge-secondary ' : 'badge-primary ' }}">
-                                        <span class="md:hidden">
-                                            {{ $transaction->types->name == 'Expense' ? '-₱' : '+₱' }}{{ $this->formatShortAmount($transaction->amount) }}
-                                        </span>
-                                        <span class="hidden md:inline">
-                                            {{ $transaction->types->name == 'Expense' ? '-₱' : '+₱' }}{{ number_format($transaction->amount, 2) }}
-                                        </span>
-                                    </span>
-                                </div>
-                            </div>
-                        </li>
-                    @endforeach
-                @endforeach
-            </ul>
-        @else
-            <div class="flex flex-col items-center justify-center p-10 bg-base-200/30  border border-dashed rounded-xl "
-                :class="$wire.type_id == 1 ? 'border-primary' : 'border-secondary'">
-                <span class="text-base-content text-lg font-medium mb-1">
-                    😴 No transactions found
-                </span>
-            </div>
-        @endif
-    </div>
 
 </section>
