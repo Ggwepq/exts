@@ -142,7 +142,7 @@ new #[Layout('layouts.app')] class extends Component {
 
     <div x-data="{ isDelete: false }" class="mt-6">
         <template x-if="!isDelete">
-            <button @click="isDelete = true" class="btn btn-error w-full">Delete Transaction<span
+            <button @click="isDelete = true" class="btn btn-error w-full">Delete Category<span
                     wire:loading.class="loading loading-bars loading-lg"></span></button>
         </template>
         <template x-if="isDelete">
