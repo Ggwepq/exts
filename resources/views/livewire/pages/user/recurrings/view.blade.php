@@ -93,7 +93,7 @@ new #[Layout('layouts.app')] class extends Component {
         <div class="flex flex-col gap-3 mt-2">
 
             <div x-data="{
-                name: {{ $recurring->transactions->name ?? 'N/A' }}
+                name: '{{ $recurring->transactions->name ?? 'N/A' }}'
             }" class="relative w-full max-w-full">
 
                 <!-- display name (click to edit) -->
