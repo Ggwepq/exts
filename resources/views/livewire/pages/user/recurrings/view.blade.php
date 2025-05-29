@@ -12,27 +12,24 @@ use Livewire\Volt\Component;
 new #[Layout('layouts.app')] class extends Component {
     public $recurring;
     public $transactions;
-
-    public $recurring_id;
-    public $name;
-    public $frequency;
     public $modelId;
 
     public function mount($modelId)
     {
         $this->modelId = $modelId;
-        $this->recurring = RecurringTransaction::find($modelId);
+
+        $this->loadRecurring();
+        $this->loadTransactions();
+    }
+
+    public function loadRecurring()
+    {
+        $this->recurring = RecurringTransaction::find($this->modelId);
 
         if (!$this->recurring) {
             // Redirect, flash message, or fallback
-            session()->flash('error', 'Recurring transaction not found.');
-            return redirect()->route('recurrings.index');
+            Toaster::error('Recurring transaction not found.');
         }
-
-        $this->name = optional($this->recurring->transactions)->name ?? 'N/A'; // null-safe access
-        $this->frequency = $this->recurring->frequency;
-        $this->recurring_id = $this->recurring->id;
-        $this->loadTransactions();
     }
 
     public function loadTransactions()
@@ -72,7 +69,6 @@ new #[Layout('layouts.app')] class extends Component {
     {
         $this->recurring->delete();
 
-        $this->reset();
         $this->dispatch('recurringUpdate');
         Toaster::success('Recurring Transaction Deleted!');
     }
@@ -80,7 +76,6 @@ new #[Layout('layouts.app')] class extends Component {
 
 <section x-data="{ expense: true }">
     <!-- Form -->
-
     <form wire:submit="save" class="space-y-10">
         <!-- name -->
         <div class="flex flex-row w-full">
@@ -98,12 +93,12 @@ new #[Layout('layouts.app')] class extends Component {
         <div class="flex flex-col gap-3 mt-2">
 
             <div x-data="{
-                name: @entangle('name')
+                name: {{ $recurring->transactions->name ?? 'N/A' }}
             }" class="relative w-full max-w-full">
 
                 <!-- display name (click to edit) -->
                 <span class="cursor-pointer font-bold text-3xl block truncate text-center"
-                    @click="$dispatch('showRightSidebar', {operation: 'view', page: 'Transaction', component: 'pages.user.transactions.view', modelId: {{ $recurring_id }}}); rightSidebarOpen = true;"
+                    @click="$dispatch('showRightSidebar', {operation: 'view', page: 'Transaction', component: 'pages.user.transactions.view', modelId: {{ $recurring->transactions->id ?? null }}}); rightSidebarOpen = true;"
                     x-text="name || 'ㄟ( ▔, ▔ )ㄏ'">
                 </span>
             </div>
@@ -115,7 +110,7 @@ new #[Layout('layouts.app')] class extends Component {
 
             <div class="dropdown dropdown-center w-full">
                 <label tabindex="0" class="btn btn-md border shadow-sm w-full" aria-label="Select Group">
-                    <span>{{ ucfirst($frequency) }}</span>
+                    <span>{{ $recurring->frequency ? ucfirst($recurring->frequency) : 'Frequency' }}</span>
                 </label>
             </div>
         </div>
@@ -222,5 +217,4 @@ new #[Layout('layouts.app')] class extends Component {
             </div>
         @endif
     </div>
-
 </section>
