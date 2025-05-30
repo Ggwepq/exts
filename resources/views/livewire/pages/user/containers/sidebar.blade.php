@@ -31,6 +31,7 @@ new class extends Component {
     {
         $this->pinnedAccounts = Account::with('accountCategories')
             ->where('is_pinned', true)
+            ->where('user_id', Auth::id())
             ->get()
             ->groupBy(fn($account) => $account->accountCategories->name ?? 'Uncategorized')
             ->sortKeysUsing(function ($a, $b) {
