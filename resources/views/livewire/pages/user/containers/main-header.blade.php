@@ -16,7 +16,7 @@ new class extends Component {
     <!-- Content -->
     <div class="flex-1">
 
-        <div class="bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-5 shadow-md">
+        <div class="bg-gradient-to-r from-primary/10 to-primary/5 p-5 shadow-md">
             @if ($component)
                 @livewire($component)
             @else

@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
+use App\Models\Transaction;
 
 class LoginForm extends Form
 {
@@ -30,7 +31,7 @@ class LoginForm extends Form
     {
         $this->ensureIsNotRateLimited();
 
-        if (!Auth::attempt($this->only(['email', 'password']), $this->remember)) {
+        if (! Auth::attempt($this->only(['email', 'password']), $this->remember)) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -46,7 +47,7 @@ class LoginForm extends Form
      */
     protected function ensureIsNotRateLimited(): void
     {
-        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             return;
         }
 
@@ -67,6 +68,6 @@ class LoginForm extends Form
      */
     protected function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->email) . '|' . request()->ip());
+        return Str::transliterate(Str::lower($this->email).'|'.request()->ip());
     }
 }

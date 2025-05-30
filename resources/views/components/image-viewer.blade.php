@@ -57,22 +57,27 @@
         this.isDragging = false;
     },
 
-    resetView() {
+    resetView: async function() {
+        await this.sleep(1000); // wait 1 second
         this.scale = this.minScale;
         this.posX = 0;
         this.posY = 0;
+    },
+
+    sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 }" x-init="$watch('show', value => {
     if (value) {
         document.body.classList.add('overflow-y-hidden');
     } else {
         document.body.classList.remove('overflow-y-hidden');
-        resetView();
+        await this.resetView();
     }
 })" x-on:open-image-viewer.window="show = true; imageUrl = $event.detail"
     x-on:close-modal.window="$event.detail == '{{ $name }}' ? show = false : null" x-on:close.stop="show = false"
     x-on:keydown.escape.window="show = false" x-show="show" class="fixed inset-0 overflow-hidden px-4 py-6 sm:px-0 z-100"
-    :class="{ 'hidden': !show, 'block': show }" role="dialog" aria-modal="true">
+    :class="{ 'hidden': !show, 'block': show }" role="dialog" aria-modal="true" x-cloak>
     <!-- Backdrop overlay -->
     <div x-show="show" class="fixed inset-0 transform transition-all" x-on:click="show = false"
         x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
@@ -145,7 +150,7 @@
             <!-- Usage instructions (optional) -->
             @if ($withInstructions)
                 <div
-                    class="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-white text-xs bg-base-300 bg-opacity-50 px-3 py-1 rounded-full">
+                    class="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-base-content text-xs bg-base-300 bg-opacity-50 px-3 py-1 rounded-full">
                     Double-click to zoom • Click and drag to pan • Use buttons to control
                 </div>
             @endif

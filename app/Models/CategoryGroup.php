@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class CategoryGroup extends Model
 {
+    use HasFactory;
+
     protected $guarded = [];
 
     public function users()
@@ -18,8 +21,8 @@ class CategoryGroup extends Model
         return $this->hasMany(AccountCategory::class, 'group_id');
     }
 
-    public function transactionCategory()
+    public function transactionCategories()
     {
-        return $this->hasMany(TransactionCategory::class);
+        return $this->hasMany(TransactionCategory::class, 'group_id');
     }
 }

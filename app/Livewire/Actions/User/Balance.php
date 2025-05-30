@@ -8,17 +8,17 @@ use Livewire\Form;
 
 class Balance extends Form
 {
-    private function getExpense(Account $account)
+    public function getExpense(Account $account)
     {
         return Auth::user()->transactions->where('account_id', $account->id)->where('type_id', 2)->sum('amount');
     }
 
-    private function getIncome(Account $account)
+    public function getIncome(Account $account)
     {
         return Auth::user()->transactions->where('account_id', $account->id)->where('type_id', 1)->sum('amount');
     }
 
-    public function total(Account $account)
+    public function getTotalBalance(Account $account)
     {
         return $this->getIncome($account) - $this->getExpense($account);
     }

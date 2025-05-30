@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="light">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
     <meta charset="utf-8">
@@ -8,6 +8,23 @@
 
     <title>{{ config('app.name', 'Laravel') }}</title>
 
+    <!-- Apply theme immediately to prevent flash -->
+    <script>
+        (function() {
+            // This is not a guest page since we're using app.blade.php
+            const savedTheme = localStorage.getItem('theme') || 'default';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+
+            // Handle dark mode class for themes that might need it
+            if (savedTheme === 'dark' || savedTheme === 'night' || savedTheme === 'coffee' || savedTheme === 'forest' ||
+                savedTheme === 'luxury' || savedTheme === 'synthwave') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+    </script>
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -15,22 +32,18 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body class="font-roboto antialiased">
 
     <div class="drawer lg:drawer-open" x-data="{
         detailSidebarOpen: false,
-        init() {
-            // Restore sidebar state from localStorage if exists
-            this.detailSidebarOpen = localStorage.getItem('detailSidebarOpen') === 'true';
-
-            // Save state to localStorage when it changes
-            this.$watch('detailSidebarOpen', (value) => {
-                localStorage.setItem('detailSidebarOpen', value);
-            });
-        }
-    }">
+        rightSidebarOpen: false,
+    }" x-init="window.addEventListener('rightSidebarClose', () => {
+        rightSidebarOpen = false;
+    });"
+        @detailSidebarClose.window="detailSidebarOpen = false">
         <input id="left-sidebar-drawer" type="checkbox" class="drawer-toggle" />
 
         <!-- Page Content -->
@@ -42,10 +55,16 @@
 
         <!-- Left Sidebar -->
         <livewire:pages.user.containers.sidebar />
-
     </div>
 
     <x-toaster-hub />
 </body>
+<script>
+    document.addEventListener('livewire:init', () => {
+        Livewire.on('detailSidebarClose', (event) => {
+            detailSidebarOpen = false
+        });
+    });
+</script>
 
 </html>

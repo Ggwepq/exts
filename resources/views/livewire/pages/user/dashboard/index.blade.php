@@ -9,22 +9,22 @@ new class extends Component {
         'totalIncome' => 0,
         'totalExpense' => 0,
         'incomeCount' => 0,
-        'expenseCount' => 0
+        'expenseCount' => 0,
     ];
-    
+
     public $totalAccountBalance = 0;
 
     public function mount()
     {
         $user = Auth::user();
-        
+
         $this->transactions = [
             'totalIncome' => Transaction::where('user_id', $user->id)->where('type_id', 1)->where('name', '!=', 'Initial Account Balance')->sum('amount'),
             'totalExpense' => Transaction::where('user_id', $user->id)->where('type_id', 2)->sum('amount'),
             'incomeCount' => Transaction::where('user_id', $user->id)->where('type_id', 1)->where('name', 'not like', 'Initial Account Balance')->count(),
             'expenseCount' => Transaction::where('user_id', $user->id)->where('type_id', 2)->count(),
         ];
-        
+
         $this->totalAccountBalance = $user->accounts->sum('balance');
     }
 }; ?>
@@ -34,7 +34,8 @@ new class extends Component {
     <div class="flex-1 overflow-y-auto md:pt-4 pt-4 px-6 bg-base-200">
         <div class="grid lg:grid-cols-2 mt-2 md:grid-cols-2 grid-cols-1 gap-4">
             <!-- Income Card -->
-            <div class="card p-6 bg-base-100 shadow-lg border border-base-200 hover:shadow-xl transition-all duration-300">
+            <div
+                class="card p-6 bg-base-100 shadow-lg border border-base-200 hover:shadow-xl transition-all duration-300">
                 <div class="flex items-center">
                     <div class="bg-primary/10 p-4 rounded-lg mr-4">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -44,14 +45,17 @@ new class extends Component {
                         </svg>
                     </div>
                     <div class="flex-1">
-                        <div class="text-sm text-base-content/70 font-medium mb-1">Income ({{ $transactions['incomeCount'] }})</div>
-                        <div class="text-3xl font-bold text-primary">₱{{ number_format($transactions['totalIncome']) }}</div>
+                        <div class="text-sm text-base-content/70 font-medium mb-1">Income
+                            ({{ $transactions['incomeCount'] }})</div>
+                        <div class="text-3xl font-bold text-primary">₱{{ number_format($transactions['totalIncome']) }}
+                        </div>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Expense Card -->
-            <div class="card p-6 bg-base-100 shadow-lg border border-base-200 hover:shadow-xl transition-all duration-300">
+            <div
+                class="card p-6 bg-base-100 shadow-lg border border-base-200 hover:shadow-xl transition-all duration-300">
                 <div class="flex items-center">
                     <div class="bg-secondary/10 p-4 rounded-lg mr-4">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -61,15 +65,18 @@ new class extends Component {
                         </svg>
                     </div>
                     <div class="flex-1">
-                        <div class="text-sm text-base-content/70 font-medium mb-1">Expenses ({{ $transactions['expenseCount'] }})</div>
-                        <div class="text-3xl font-bold text-secondary">₱{{ number_format($transactions['totalExpense']) }}</div>
+                        <div class="text-sm text-base-content/70 font-medium mb-1">Expenses
+                            ({{ $transactions['expenseCount'] }})</div>
+                        <div class="text-3xl font-bold text-secondary">
+                            ₱{{ number_format($transactions['totalExpense']) }}</div>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <!-- Balance Summary Card -->
-        <div class="card p-6 bg-base-100 shadow-lg border border-base-200 mt-4 hover:shadow-xl transition-all duration-300">
+        <div
+            class="card p-6 bg-base-100 shadow-lg border border-base-200 mt-4 hover:shadow-xl transition-all duration-300">
             <h2 class="text-xl font-bold mb-4">Balance Summary</h2>
             <div class="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-4">
                 <!-- Net Balance -->
@@ -79,7 +86,7 @@ new class extends Component {
                         ₱{{ number_format($totalAccountBalance) }}
                     </div>
                 </div>
-                
+
                 <!-- Income -->
                 <div class="stat bg-primary/5 rounded-xl p-4">
                     <div class="stat-title text-base-content/70">Total Income</div>
@@ -87,7 +94,7 @@ new class extends Component {
                         ₱{{ number_format($transactions['totalIncome']) }}
                     </div>
                 </div>
-                
+
                 <!-- Expense -->
                 <div class="stat bg-secondary/5 rounded-xl p-4">
                     <div class="stat-title text-base-content/70">Total Expenses</div>
@@ -97,5 +104,9 @@ new class extends Component {
                 </div>
             </div>
         </div>
+
+        <!-- Income vs Expenses Chart -->
+        @livewire('pages.user.dashboard.chart')
+        @livewire('pages.user.dashboard.account-chart')
     </div>
 </div>

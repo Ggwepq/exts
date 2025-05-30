@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class TransactionCategory extends Model
 {
+    use HasFactory;
+
     protected $guarded = [];
 
     public function users()
@@ -13,18 +16,23 @@ class TransactionCategory extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function categories()
+    public function groups()
     {
-        return $this->belongsTo(CategoryGroup::class);
+        return $this->belongsTo(CategoryGroup::class, 'group_id');
+    }
+
+    public function types()
+    {
+        return $this->belongsTo(Type::class, 'type_id');
     }
 
     public function budgets()
     {
-        return $this->belongsTo(Budget::class);
+        return $this->hasOne(Budget::class);
     }
 
     public function transactions()
     {
-        return $this->hasMany(Transaction::class);
+        return $this->hasMany(Transaction::class, 'category_id');
     }
 }

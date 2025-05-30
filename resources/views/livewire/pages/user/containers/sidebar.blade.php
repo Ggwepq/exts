@@ -2,11 +2,15 @@
 
 use Illuminate\Support\Facades\Auth;
 use App\Livewire\Actions\Logout;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
+use App\Models\Account;
 
 new class extends Component {
     public $categorizedAccounts;
     public $uncategorizedAccounts;
+    public $pinnedAccounts;
+
     /**
      * Log the current user out of the application.
      */
@@ -19,30 +23,27 @@ new class extends Component {
 
     public function mount()
     {
-        $accounts = \App\Models\Account::where('user_id', Auth::id())
-            ->with('accountCategories')
-            ->orderByRaw('category_id IS NOT NULL') // "null" comes first
-            ->orderBy(function ($query) {
-                $query->select('created_at')->from('account_categories')->whereColumn('account_categories.id', 'accounts.category_id')->limit(1);
-            })
-            ->get();
+        $this->getPinnedAccounts();
+    }
 
-        // Handle categorized accounts
-        $this->categorizedAccounts = $accounts
-            ->filter(function ($account) {
-                return $account->accountCategories !== null;
+    #[On('accountUpdate')]
+    public function getPinnedAccounts()
+    {
+        $this->pinnedAccounts = Account::with('accountCategories')
+            ->where('is_pinned', true)
+            ->where('user_id', Auth::id())
+            ->get()
+            ->groupBy(fn($account) => $account->accountCategories->name ?? 'Uncategorized')
+            ->sortKeysUsing(function ($a, $b) {
+                if ($a === 'Uncategorized') {
+                    return -1;
+                }
+                if ($b === 'Uncategorized') {
+                    return 1;
+                }
+                return strcmp($a, $b);
             })
-            ->groupBy(function ($account) {
-                return $account->accountCategories->name;
-            })
-            ->toArray();
-
-        // Get uncategorized accounts
-        $this->uncategorizedAccounts = $accounts
-            ->filter(function ($account) {
-                return $account->accountCategories === null;
-            })
-            ->toArray();
+            ->all();
     }
 }; ?>
 <div class="drawer-side z-50">
@@ -60,7 +61,7 @@ new class extends Component {
                 <div class="mask mask-squircle w-10 bg-primary/10 flex items-center justify-center p-1">
                     <img src="{{ asset('img/sample-logo.png') }}" alt="Logo" class="w-full h-full object-contain">
                 </div>
-                <span class="font-bold text-xl text-primary">Gastababy</span>
+                <span class="font-bold text-xl text-primary">Trackwise</span>
             </a>
         </div>
 
@@ -70,7 +71,7 @@ new class extends Component {
                 <!-- Dashboard -->
                 <li>
                     <a aria-current="page"
-                        class="{{ request()->routeIs('dashboard') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200"
+                        class="{{ request()->routeIs('dashboard') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 transition-all duration-200"
                         href="{{ route('dashboard') }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="h-5 w-5">
@@ -83,7 +84,7 @@ new class extends Component {
 
                 <!-- Transactions -->
                 <li>
-                    <a class="{{ request()->routeIs('user.transactions') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200"
+                    <a class="{{ request()->routeIs('user.transactions') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 transition-all duration-200"
                         href="{{ route('user.transactions') }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="h-5 w-5">
@@ -96,7 +97,7 @@ new class extends Component {
 
                 <!-- Accounts -->
                 <li>
-                    <a class="{{ request()->routeIs('user.accounts') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200"
+                    <a class="{{ request()->routeIs('user.accounts') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 transition-all duration-200"
                         href="{{ route('user.accounts') }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="h-5 w-5">
@@ -108,23 +109,23 @@ new class extends Component {
                 </li>
 
                 <!-- Save Goals -->
-                <li>
-                    <a class="{{ request()->routeIs('user.goals') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200"
-                        href="/app/leads">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="h-5 w-5">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M9 3.75H6.912a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H15M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859M12 3v8.25m0 0l-3-3m3 3l3-3">
-                            </path>
-                        </svg>
-                        Save Goals
-                    </a>
-                </li>
+                <!-- <li> -->
+                <!--     <a class="{{ request()->routeIs('user.goals') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 transition-all duration-200" -->
+                <!--         href="/app/leads"> -->
+                <!--         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" -->
+                <!--             stroke="currentColor" class="h-5 w-5"> -->
+                <!--             <path stroke-linecap="round" stroke-linejoin="round" -->
+                <!--                 d="M9 3.75H6.912a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H15M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859M12 3v8.25m0 0l-3-3m3 3l3-3"> -->
+                <!--             </path> -->
+                <!--         </svg> -->
+                <!--         Save Goals -->
+                <!--     </a> -->
+                <!-- </li> -->
 
                 <!-- Categories -->
                 <li>
-                    <a class="{{ request()->routeIs('user.categories') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200"
-                        href="/app/leads">
+                    <a class="{{ request()->routeIs('user.categories') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 transition-all duration-200"
+                        href="{{ route('user.categories') }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="h-5 w-5">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -136,8 +137,8 @@ new class extends Component {
 
                 <!-- Recurring -->
                 <li>
-                    <a class="{{ request()->routeIs('user.recurring') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200"
-                        href="/app/leads">
+                    <a class="{{ request()->routeIs('user.recurring') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 transition-all duration-200"
+                        href="{{ route('user.recurring') }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="h-5 w-5">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -153,74 +154,66 @@ new class extends Component {
 
         <!-- Account Wallets -->
         <div class="grow overflow-y-auto px-3">
-            <div class="bg-primary/5 rounded-lg px-4 py-2 mb-2 flex items-center justify-between">
-                <span class="text-sm font-medium text-primary">ACCOUNTS</span>
-                <span
-                    class="badge badge-sm badge-primary text-xs">{{ count($uncategorizedAccounts) + array_sum(array_map('count', $categorizedAccounts)) }}</span>
+            <div class="bg-primary/5 px-4 py-2 mb-2 flex items-center justify-between">
+                <span class="text-sm font-medium text-primary">PINNED ACCOUNTS</span>
+
             </div>
             <ul class="mt-1 space-y-1.5">
                 <ul class="ml-3 mt-2 space-y-1">
                     <!-- Display uncategorized accounts first, directly without a nested dropdown -->
-                    @if (count($uncategorizedAccounts) > 0)
-                        @foreach ($uncategorizedAccounts as $account)
-                            <li>
-                                <a
-                                    class="flex items-center justify-between px-3 py-2 text-sm rounded-md hover:bg-base-200 transition-all duration-200 group">
-                                    <span class="truncate group-hover:text-primary">{{ $account['name'] }}</span>
-                                    <span
-                                        class="badge badge-sm badge-primary text-xs">₱{{ number_format($account['balance'], 0) }}</span>
-                                </a>
-                            </li>
-                        @endforeach
-
-                        @if (count($categorizedAccounts) > 0)
-                            <div class="divider my-1 h-px"></div>
-                        @endif
-                    @endif
 
                     <!-- Display categorized accounts -->
-                    @foreach ($categorizedAccounts as $categoryName => $records)
-                        <li>
-                            <details open>
-                                <summary
-                                    class="px-3 py-2 text-xs font-medium flex items-center justify-between cursor-pointer rounded hover:bg-base-200 transition-all duration-200 bg-base-200/50">
-                                    <div class="flex items-center gap-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                            stroke-width="1.5" stroke="currentColor"
-                                            class="w-3.5 h-3.5 text-primary/70">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                                        </svg>
-                                        <span>{{ $categoryName }}</span>
-                                    </div>
-                                    <span class="badge badge-xs badge-ghost">{{ count($records) }}</span>
-                                </summary>
-                                <ul class="ml-2 mt-1.5 space-y-1">
-                                    @foreach ($records as $account)
-                                        <li>
-                                            <a
-                                                class="flex items-center justify-between px-3 py-2 text-sm rounded-md hover:bg-base-200 transition-all duration-200 group">
-                                                <span
-                                                    class="truncate group-hover:text-primary">{{ $account['name'] }}</span>
-                                                <span
-                                                    class="badge badge-sm badge-primary text-xs">₱{{ number_format($account['balance'], 0) }}</span>
-                                            </a>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            </details>
-                        </li>
-                    @endforeach
+                    @if (count($pinnedAccounts) > 0)
+
+                        @foreach ($pinnedAccounts as $categoryName => $accounts)
+                            <li>
+                                <details open>
+                                    <summary
+                                        class="px-3 py-2 text-xs font-medium flex items-center justify-between cursor-pointer hover:bg-base-200 transition-all duration-200 bg-base-200/50">
+                                        <div class="flex items-center gap-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                stroke-width="1.5" stroke="currentColor"
+                                                class="w-3.5 h-3.5 text-primary/70">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                                            </svg>
+                                            <span>{{ $categoryName }}</span>
+                                        </div>
+                                    </summary>
+                                    <ul class="ml-2 mt-1.5 space-y-1">
+                                        @foreach ($accounts as $account)
+                                            <li>
+                                                <a
+                                                    class="flex items-center justify-between px-3 py-2 text-sm hover:bg-base-200 transition-all duration-200 group">
+                                                    <span
+                                                        class="truncate group-hover:text-primary">{{ $account['name'] }}</span>
+                                                    <span
+                                                        class="badge badge-sm badge-primary text-xs">₱{{ number_format($account['balance'], 0) }}</span>
+                                                </a>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </details>
+                            </li>
+                        @endforeach
+                    @else
+                        <div class="flex flex-col items-center justify-center p-10 bg-base-200/30  border border-dashed rounded-xl "
+                            :class="$wire.type_id == 1 ? 'border-primary' : 'border-secondary'">
+                            <span class="text-base-content text-sm font-medium mb-1">
+                                Nothing here
+                            </span>
+                        </div>
+                    @endif
                 </ul>
             </ul>
         </div>
 
         <!-- User Buttons -->
-        <div class="sticky bottom-0 w-full bg-base-100 shadow-[0_-2px_4px_rgba(0,0,0,0.05)]">
+        <div class="sticky  bottom-0 w-full bg-base-100 shadow-[0_-2px_4px_rgba(0,0,0,0.05)]">
             <div class="divider my-0 h-px"></div>
             <div class="dropdown dropdown-top w-full">
                 <div tabindex="0" role="button"
-                    class="flex items-center gap-3 p-3 m-2 rounded-lg hover:bg-base-200 cursor-pointer transition-all border bg-gradient-to-t from-primary/20 to-primary/10 border-base-200">
+                    class="flex items-center gap-3 p-3 m-2 rounded-xl hover:bg-base-200 cursor-pointer transition-all border bg-gradient-to-t from-primary/20 to-primary/10 border-base-200">
                     <div class="avatar">
                         <div class="mask mask-squircle w-10 h-10 shadow-sm border border-base-200">
                             <img src="{{ auth()->user()->profile_image_url ? asset('app/' . auth()->user()->profile_image_url) : asset('img/user-img.jpg') }}"
@@ -239,10 +232,10 @@ new class extends Component {
                     </svg>
                 </div>
                 <ul tabindex="0"
-                    class="dropdown-content menu bg-base-100 rounded-lg w-56 p-2 shadow-lg mb-2 border border-base-200">
+                    class="dropdown-content menu bg-base-100  w-56 p-2 shadow-lg mb-2 border border-base-200">
                     <li>
                         <a href="{{ route('profile') }}" wire:navigate
-                            class="flex items-center gap-2 px-4 py-2 hover:bg-base-200 rounded-lg transition-all duration-200">
+                            class="flex items-center gap-2 px-4 py-2 hover:bg-base-200 transition-all duration-200">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -252,8 +245,7 @@ new class extends Component {
                         </a>
                     </li>
                     <li>
-                        <a
-                            class="flex items-center gap-2 px-4 py-2 hover:bg-base-200 rounded-lg transition-all duration-200">
+                        <a class="flex items-center gap-2 px-4 py-2 hover:bg-base-200 transition-all duration-200">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                 <path stroke-linecap="round" stroke-linejoin="round"

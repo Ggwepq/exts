@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Transaction extends Model
 {
+    use HasFactory;
+
     protected $guarded = [];
 
     public function users()
@@ -40,6 +43,11 @@ class Transaction extends Model
 
     public function transactionCategories()
     {
-        return $this->hasMany(TransactionCategory::class);
+        return $this->belongsTo(TransactionCategory::class, 'category_id');
+    }
+
+    public function recurringTransactions()
+    {
+        return $this->belongsTo(RecurringTransaction::class, 'recurring_id');
     }
 }

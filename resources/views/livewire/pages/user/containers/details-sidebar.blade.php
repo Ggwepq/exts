@@ -10,33 +10,40 @@ new #[Layout('layouts.app')] class extends Component {
     public string $page = ''; // Account, Transaction
     public string $component = '';
     public mixed $modelId = null;
+    public bool $cancel;
 
     #[On('showSidebar')]
-    public function open(string $operation, string $page, string $component = '', ?int $modelId = null): void
+    public function open(string $operation, string $page, string $component = '', $modelId = null, bool $cancel = true): void
     {
+        $this->oldComponent = $component;
         $this->operation = $operation;
         $this->page = $page;
         $this->component = $component;
         $this->modelId = $modelId;
+        $this->cancel = $cancel;
     }
 };
 
 ?>
 
 <div>
+    <!-- If margin adjusting is off -->
+    <div x-show="detailSidebarOpen" x-transition.opacity class="fixed inset-0 bg-black/30 z-55"
+        @click="detailSidebarOpen = false" x-cloak>
+    </div>
     <!-- Sidebar -->
     <aside x-show="detailSidebarOpen" x-transition:enter="transition-transform duration-300 ease-in-out"
         x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
         x-transition:leave="transition-transform duration-300 ease-in-out" x-transition:leave-start="translate-x-0"
         x-transition:leave-end="translate-x-full"
-        class="fixed right-0 h-full w-full top-0 md:max-w-1/3 z-50 bg-gradient-to-b from-base-100 to-base-100/95 border-l border-base-200 shadow-lg rounded-xl"
+        class="fixed right-0 h-full w-full top-0 md:max-w-1/3 z-60 bg-gradient-to-b from-base-100 to-base-100/95 border-l border-base-200 shadow-lg "
         x-cloak>
         <div class="flex flex-col h-full">
             <!-- Header -->
             <div class="bg-gradient-to-r from-primary/10 to-primary/5 p-4 border-b border-base-200 shadow-sm">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <div class="bg-primary/20 p-2 rounded-lg">
+                        <div class="bg-primary/20 p-2">
                             @if ($operation == 'edit' || $operation == 'details')
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor" class="size-5 text-primary">
@@ -60,14 +67,52 @@ new #[Layout('layouts.app')] class extends Component {
                             {{ ucfirst($operation) }} {{ $page }}
                         </h2>
                     </div>
-                    <button
-                        class="btn btn-ghost btn-sm bg-base-100 hover:bg-base-200 border border-base-300 shadow-sm rounded-lg"
-                        @click="detailSidebarOpen = false">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="size-5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
+                    <div>
+                        @if ($operation == 'view')
+                            <button
+                                class="btn btn-ghost btn-sm bg-base-100 hover:bg-base-200 border border-base-300 shadow-sm"
+                                @click="$dispatch('showSidebar', {operation: 'edit', page: '{{ $page }}', component: 'pages.user.{{ \Illuminate\Support\Str::plural(strtolower($page)) }}.edit', modelId: {{ $modelId }}}); detailSidebarOpen = true;">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                </svg>
+                                <span class="hidden md:flex">Edit</span>
+                            </button>
+                        @elseif ($operation == 'edit')
+                            @if ($cancel)
+                                <button
+                                    class="btn btn-ghost btn-sm bg-base-100 hover:bg-base-200 border border-base-300 shadow-sm"
+                                    @click="$dispatch('showSidebar', {operation: 'view', page: '{{ $page }}', component: 'pages.user.{{ \Illuminate\Support\Str::plural(strtolower($page)) }}.view', modelId: {{ $modelId }}}); detailSidebarOpen = true;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor" class="size-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+                                    </svg>
+                                    <span class="hidden md:flex">Cancel</span>
+                                </button>
+                            @else
+                                <button
+                                    class="btn btn-ghost btn-sm bg-base-100 hover:bg-base-200 border border-base-300 shadow-sm"
+                                    @click="detailSidebarOpen = false">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor" class="size-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+                                    </svg>
+                                    <span class="hidden md:flex">Cancel</span>
+                                </button>
+                            @endif
+                        @endif
+                        <button
+                            class="btn btn-ghost btn-sm bg-base-100 hover:bg-base-200 border border-base-300 shadow-sm "
+                            @click="detailSidebarOpen = false">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke-width="1.5" stroke="currentColor" class="size-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
