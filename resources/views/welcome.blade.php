@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>TrackWise - Intelligent Tracking Solutions</title>
+    <title>TrackWise</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -150,7 +150,7 @@
                                     <span class="text-gradient">TrackWise</span>
                                 </h1>
                                 <p class="mt-6 text-lg text-slate-600 dark:text-slate-300">
-                                    TrackWise provides powerful expense monitoring and tracking tools to help you manage
+                                    TrackWise provides expense monitoring and tracking tools to help you manage
                                     your finances, track spending, and improve budgeting.
                                 </p>
                                 <div class="mt-10 flex gap-4">
@@ -212,7 +212,7 @@
                 <div class="mx-auto max-w-7xl px-6 lg:px-8">
                     <div class="mx-auto max-w-2xl text-center">
                         <h2 class="text-3xl font-bold tracking-tight text-slate-800 dark:text-white sm:text-4xl reveal">
-                            Powerful Features for Perfect Expense Tracking
+                            Simple Features for Expense Tracking
                         </h2>
                         <p class="mt-6 text-lg leading-8 text-slate-600 dark:text-slate-300 reveal">
                             TrackWise offers comprehensive tools to manage your finances and gain insights into your
@@ -250,8 +250,8 @@
                             </div>
                             <h3 class="text-xl font-semibold text-slate-800 dark:text-white">Income Tracking</h3>
                             <p class="mt-4 flex-1 text-slate-600 dark:text-slate-300">
-                                Monitor all your income sources in one place. Easily record salary, freelance work,
-                                investments, and other revenue streams.
+                                Monitor all your income sources in one place. Easily record salary, freelance work, and
+                                investments.
                             </p>
                         </div>
 
@@ -282,7 +282,7 @@
                         class="mx-auto max-w-2xl rounded-2xl bg-gradient-custom p-10 text-center text-white shadow-xl">
                         <h2 class="text-2xl font-bold sm:text-3xl">Ready to take control of your finances?</h2>
                         <p class="mt-4 text-lg">
-                            Join TrackWise today and start tracking your expenses with our simple yet powerful solution.
+                            Join TrackWise today and start tracking your expenses.
                         </p>
                         <div class="mt-8">
                             <a href="#"
