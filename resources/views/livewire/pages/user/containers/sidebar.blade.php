@@ -99,12 +99,13 @@ new class extends Component {
                 <li>
                     <a class="{{ request()->routeIs('user.accounts') ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/10' : 'hover:bg-base-200 font-normal' }} flex items-center gap-3 px-4 py-2.5 transition-all duration-200"
                         href="{{ route('user.accounts') }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="h-5 w-5">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+                        <svg class="size-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
+                            height="24" fill="none" viewBox="0 0 24 24">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="1.5"
+                                d="M17 8H5m12 0a1 1 0 0 1 1 1v2.6M17 8l-4-4M5 8a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.6M5 8l4-4 4 4m6 4h-4a2 2 0 1 0 0 4h4a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1Z" />
                         </svg>
-                        Accounts
+                        Wallets
                     </a>
                 </li>
 
@@ -155,7 +156,7 @@ new class extends Component {
         <!-- Account Wallets -->
         <div class="grow overflow-y-auto px-3">
             <div class="bg-primary/5 px-4 py-2 mb-2 flex items-center justify-between">
-                <span class="text-sm font-medium text-primary">PINNED ACCOUNTS</span>
+                <span class="text-sm font-medium text-primary">PINNED WALLETS</span>
 
             </div>
             <ul class="mt-1 space-y-1.5">

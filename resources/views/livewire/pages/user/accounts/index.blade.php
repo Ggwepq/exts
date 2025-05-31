@@ -209,7 +209,7 @@ new class extends Component {
                             @foreach ($record as $account)
                                 <li class="group list-row hover:bg-base-200 flex items-center justify-between w-full px-5 py-4 border border-base-200  mb-3 mx-0.5 transition-all duration-200 hover:shadow-md cursor-pointer"
                                     draggable="true" x-data @dragstart="draggedAccountId = {{ $account->id }}"
-                                    @click="$dispatch('showSidebar', {operation: 'view', page: 'Account', component: 'pages.user.accounts.view', modelId: {{ $account['id'] }}}); detailSidebarOpen = true;">
+                                    @click="$dispatch('showSidebar', {operation: 'view', page: 'Wallet', component: 'pages.user.accounts.view', modelId: {{ $account['id'] }}}); detailSidebarOpen = true;">
                                     <div class="flex items-center gap-4">
                                         <div class="bg-primary/10 p-2.5 ">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -272,7 +272,7 @@ new class extends Component {
                 @else
                     <div class="flex flex-col items-center justify-center p-10 bg-base-200/30 ">
                         <span class="text-base-content text-lg font-medium mb-5">
-                            😴 No Accounts found
+                            😴 No Wallets found
                         </span>
                         <button class="btn btn-sm btn-primary"
                             @click="detailSidebarOpen = true; $dispatch('showSidebar', {operation: 'create', page: 'Category', component: 'pages.user.categories.add', modelId: null})">
@@ -280,7 +280,7 @@ new class extends Component {
                                 stroke-width="1.5" stroke="currentColor" class="size-5 mr-1">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg>
-                            Add Account
+                            Add Wallet
                         </button>
                     </div>
                 @endif

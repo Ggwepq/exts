@@ -36,7 +36,7 @@ new class extends Component {
 
 <div class="card p-6 bg-base-100 shadow-lg border border-base-200 mt-4 hover:shadow-xl transition-all duration-300">
     <div class="flex justify-between items-center mb-6">
-        <h2 class="text-xl font-bold">Accounts Breakdown</h2>
+        <h2 class="text-xl font-bold">Wallets Breakdown</h2>
     </div>
 
     <div class="w-full h-[300px]" x-data="{

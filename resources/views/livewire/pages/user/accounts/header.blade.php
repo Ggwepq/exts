@@ -10,14 +10,14 @@ new class extends Component {
         @livewire('pages.user.components.sidebar-button')
         <div class="bg-primary/20 p-3 rounded-lg hidden md:flex">
 
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                stroke="currentColor" class="size-8 text-primary">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+            <svg class="size-8 text-primary" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
+                height="24" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M17 8H5m12 0a1 1 0 0 1 1 1v2.6M17 8l-4-4M5 8a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.6M5 8l4-4 4 4m6 4h-4a2 2 0 1 0 0 4h4a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1Z" />
             </svg>
         </div>
         <div>
-            <h1 class="text-2xl font-bold text-base-content">Accounts</h1>
+            <h1 class="text-2xl font-bold text-base-content">Wallets</h1>
         </div>
     </div>
 
@@ -25,7 +25,7 @@ new class extends Component {
         <!-- Add Button -->
         <label
             class="btn btn-sm shadow-md bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-700 hover:to-accent border-0"
-            @click="detailSidebarOpen = true; $dispatch('showSidebar', {operation: 'create', page: 'Accounts', component: 'pages.user.accounts.add', modelId: null})">
+            @click="detailSidebarOpen = true; $dispatch('showSidebar', {operation: 'create', page: 'Wallet', component: 'pages.user.accounts.add', modelId: null})">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                 stroke="currentColor" class="size-4 mr-1">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
