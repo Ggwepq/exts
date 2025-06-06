@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 new #[Layout('layouts.app')] class extends Component {
-    public $recurrings;
+    public $recurrings, $recurringCheck;
+
     public function mount()
     {
         $this->loadRecurrings();
@@ -18,6 +19,8 @@ new #[Layout('layouts.app')] class extends Component {
     public function loadRecurrings()
     {
         $this->recurrings = RecurringTransaction::where('user_id', Auth::id())->get()->groupBy('frequency')->all();
+        $recurringsCheck = RecurringTransaction::where('user_id', Auth::id());
+        $this->recurringCheck = $recurringsCheck->count() == 0 ? false : true;
     }
 
     public function formatShortAmount($amount)
@@ -44,7 +47,7 @@ new #[Layout('layouts.app')] class extends Component {
         <div class="flex-1 overflow-y-auto pt-4 pb-10 px-6 bg-base-200">
 
             <div class="card w-full p-6 bg-base-100 shadow-xl mt-2">
-                @if (count($recurrings))
+                @if ($recurringCheck)
                     <ul class="list bg-base-100 space-y-4">
                         @foreach ($recurrings as $frequency => $record)
                             <li
@@ -96,10 +99,20 @@ new #[Layout('layouts.app')] class extends Component {
                     </ul>
                 @else
                     <div class="flex flex-col items-center justify-center p-10 bg-base-200/30 ">
-                        <span class="text-base-content text-lg font-medium mb-1">
+                        <span class="text-base-content text-lg font-medium mb-5">
                             😴 No Recurring Transactions found
                         </span>
+
+                        <button class="btn btn-sm btn-primary"
+                            @click="detailSidebarOpen = true; $dispatch('showSidebar', {operation: 'create', page: 'Recurring', component: 'pages.user.recurrings.add', modelId: null})">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke-width="1.5" stroke="currentColor" class="size-5 mr-1">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                            </svg>
+                            Add Recurring
+                        </button>
                     </div>
+
                 @endif
             </div>
         </div>
