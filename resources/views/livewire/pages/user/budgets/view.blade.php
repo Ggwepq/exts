@@ -23,7 +23,7 @@ new class extends Component {
 
     public function loadTransactions()
     {
-        $transactions = $this->category->transactions->sortByDesc('amount');
+        $transactions = $this->category->transactions->where('user_id', Auth::id())->sortByDesc('amount');
 
         $this->transactions = $transactions
             ->groupBy(function ($transaction) {
@@ -41,6 +41,13 @@ new class extends Component {
             return number_format($amount / 1_000, 1) . 'K';
         }
         return number_format($amount, 2);
+    }
+
+    public function delete()
+    {
+        $this->category->budgets->delete();
+        $this->dispatch('categoryUpdate');
+        Toaster::success('Budget Unset!');
     }
 }; ?>
 
@@ -65,6 +72,21 @@ new class extends Component {
             class="progress @if ($percentage < 50) progress-success @elseif($percentage >= 50 && $percentage < 100) progress-warning @else progress-error @endif w-full mt-2"
             value="{{ $category->transactions->where('type_id', '2')->sum('amount') ?? 0 }}"
             max="{{ $category->budgets->limit_amount ?? 1 }}"></progress>
+    </div>
+
+    <div x-data="{ isDelete: false }" class="mt-6">
+        <template x-if="!isDelete">
+            <button @click="isDelete = true" class="btn btn-error w-full">Unset Budget<span
+                    wire:loading.class="loading loading-bars loading-lg"></span></button>
+        </template>
+        <template x-if="isDelete">
+            <div class="flex flex-row gap-x-2">
+                <button @click="isDelete = false" class="flex-1 btn btn-neutral">Cancel</button>
+                <button class="btn btn-error flex-1" wire:click="delete"
+                    @click="isDelete = false; detailSidebarOpen = false">Delete<span
+                        class="loading loading-bars loading-lg" wire:loading></span></button>
+            </div>
+        </template>
     </div>
 
     <div class="w-full mt-10">
@@ -146,5 +168,6 @@ new class extends Component {
             </div>
         @endif
     </div>
+
 
 </section>
