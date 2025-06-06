@@ -37,7 +37,9 @@ new #[Layout('layouts.app')] class extends Component {
     {
         $query = Transaction::with(['tags', 'accounts', 'types'])
             ->where('user_id', Auth::id())
-            ->where('name', 'not like', 'Initial Account Balance');
+            ->where('name', '!=', 'Initial Account Balance');
+
+        // dd(Transaction::all()->where('user_id', Auth::id())->where('name', '!=', 'Initial Account Balance'));
 
         // Apply type filter
         if (!empty($this->filters['types'])) {
