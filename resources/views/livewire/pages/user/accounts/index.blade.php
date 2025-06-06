@@ -275,7 +275,7 @@ new class extends Component {
                             😴 No Wallets found
                         </span>
                         <button class="btn btn-sm btn-primary"
-                            @click="detailSidebarOpen = true; $dispatch('showSidebar', {operation: 'create', page: 'Category', component: 'pages.user.categories.add', modelId: null})">
+                            @click="detailSidebarOpen = true; $dispatch('showSidebar', {operation: 'create', page: 'Account', component: 'pages.user.accounts.add', modelId: null})">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke-width="1.5" stroke="currentColor" class="size-5 mr-1">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
