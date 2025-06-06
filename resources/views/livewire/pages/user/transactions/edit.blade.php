@@ -103,15 +103,6 @@ new #[Layout('layouts.app')] class extends Component {
             return;
         }
 
-        if ($this->type_id == 2) {
-            $account = Account::find($this->account_id);
-            if ($account->balance < $this->amount) {
-                Toaster::error('Insufficient Account Balance');
-                $this->amount = $this->oldTransaction->amount;
-                return;
-            }
-        }
-
         if ($this->account_id != $this->oldTransaction->account_id) {
             $currentAccount = Account::find($this->account_id);
         } else {
@@ -140,14 +131,13 @@ new #[Layout('layouts.app')] class extends Component {
             $this->transaction->update([
                 'user_id' => Auth::id(),
                 'account_id' => $currentAccount->id,
-                'category_id' => $this->category_id == null ? 1 : $this->category_id,
+                'category_id' => $this->category_id != null ? $this->category_id : null,
                 'recurring_id' => $this->recurring_id,
                 'type_id' => $this->type_id,
                 'name' => $this->name,
                 'description' => $this->description,
                 'amount' => $this->amount,
                 'image_url' => $imagePath,
-                'updated_at' => now(),
             ]);
 
             Toaster::success('Transaction Updated!');
@@ -158,45 +148,51 @@ new #[Layout('layouts.app')] class extends Component {
             $previousAccount = $this->oldTransaction->accounts;
             $currentAccount = Account::find($this->account_id);
 
+            $accountChanged = $this->account_id != $this->oldTransaction->account_id;
+            $typeChanged = $this->type_id != $this->oldTransaction->type_id;
+            $amountChanged = $this->amount != $this->oldTransaction->amount;
+
             // DO NOT ANYTHING HERE FOR THE LOVE OF GOD
             // Case 1: Account has changed
-            if ($this->account_id != $this->oldTransaction->account_id) {
-                // Reverse old transaction from old account
-                if ($this->oldTransaction->type_id == 1) {
-                    $previousAccount->balance -= $this->oldTransaction->amount;
-                } else {
-                    $previousAccount->balance += $this->oldTransaction->amount;
-                }
+            if ($accountChanged || $typeChanged || $amountChanged) {
+                if ($this->account_id != $this->oldTransaction->account_id) {
+                    // Reverse old transaction from old account
+                    if ($this->oldTransaction->type_id == 1) {
+                        $previousAccount->balance -= $this->oldTransaction->amount;
+                    } else {
+                        $previousAccount->balance += $this->oldTransaction->amount;
+                    }
 
-                // Apply new transaction to new account
-                if ($this->type_id == 1) {
-                    $currentAccount->balance += $this->amount;
-                } else {
-                    $currentAccount->balance -= $this->amount;
+                    // Apply new transaction to new account
+                    if ($this->type_id == 1) {
+                        $currentAccount->balance += $this->amount;
+                    } else {
+                        $currentAccount->balance -= $this->amount;
+                    }
                 }
-            }
-            // Case 2: Same account, but type changed
-            elseif ($this->type_id != $this->oldTransaction->type_id) {
-                // Reverse old type
-                if ($this->oldTransaction->type_id == 1) {
-                    // Was income → remove it
-                    $currentAccount->balance -= $this->oldTransaction->amount;
-                } else {
-                    // Was expense → add it back
-                    $currentAccount->balance += $this->oldTransaction->amount;
-                }
+                // Case 2: Same account, but type changed
+                elseif ($this->type_id != $this->oldTransaction->type_id) {
+                    // Reverse old type
+                    if ($this->oldTransaction->type_id == 1) {
+                        // Was income → remove it
+                        $currentAccount->balance -= $this->oldTransaction->amount;
+                    } else {
+                        // Was expense → add it back
+                        $currentAccount->balance += $this->oldTransaction->amount;
+                    }
 
-                // Apply new type
-                if ($this->type_id == 1) {
-                    $currentAccount->balance += $this->amount;
+                    // Apply new type
+                    if ($this->type_id == 1) {
+                        $currentAccount->balance += $this->amount;
+                    } else {
+                        $currentAccount->balance -= $this->amount;
+                    }
                 } else {
-                    $currentAccount->balance -= $this->amount;
-                }
-            } else {
-                if ($this->type_id == 1) {
-                    $currentAccount->balance += $this->amount;
-                } else {
-                    $currentAccount->balance -= $this->amount;
+                    if ($this->type_id == 1) {
+                        $currentAccount->balance += $this->amount;
+                    } else {
+                        $currentAccount->balance -= $this->amount;
+                    }
                 }
             }
 

@@ -108,7 +108,7 @@ new #[Layout('layouts.app')] class extends Component {
             $transaction = Transaction::create([
                 'user_id' => Auth::id(),
                 'account_id' => $this->account_id,
-                'category_id' => $this->category_id == null ? 1 : $this->category_id,
+                'category_id' => $this->category_id ?? null,
                 'recurring_id' => $this->recurring_id,
                 'type_id' => $this->type_id,
                 'name' => $this->name,
