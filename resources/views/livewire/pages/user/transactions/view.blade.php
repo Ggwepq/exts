@@ -56,6 +56,10 @@ new #[Layout('layouts.app')] class extends Component {
             $account->balance += $this->transaction->amount;
         }
 
+        if ($this->transaction->recurringTransactions) {
+            $this->transaction->recurringTransactions->delete();
+        }
+
         $account->save();
         $this->transaction->delete();
 
