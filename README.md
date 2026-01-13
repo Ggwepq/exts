@@ -77,6 +77,8 @@ Follow these steps to set up the GastaBaby system on your machine:
    DB_USERNAME=your_username
    DB_PASSWORD=your_password
    ```
+> [!TIP]
+> Email variables are required. [Watch here](https://youtu.be/PeK_tD4T3Og?si=pZXji2BequAURexh) to create one.
 
 6. **Generate App Key**
 

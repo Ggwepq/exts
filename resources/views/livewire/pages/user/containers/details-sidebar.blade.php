@@ -17,7 +17,7 @@ new #[Layout('layouts.app')] class extends Component {
     {
         $this->oldComponent = $component;
         $this->operation = $operation;
-        $this->page = $page;
+        $this->page = $page == 'Wallet' ? 'Account' : $page;
         $this->component = $component;
         $this->modelId = $modelId;
         $this->cancel = $cancel;

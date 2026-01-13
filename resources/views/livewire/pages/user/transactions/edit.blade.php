@@ -103,15 +103,6 @@ new #[Layout('layouts.app')] class extends Component {
             return;
         }
 
-        if ($this->type_id == 2) {
-            $account = Account::find($this->account_id);
-            if ($account->balance < $this->amount) {
-                Toaster::error('Insufficient Account Balance');
-                $this->amount = $this->oldTransaction->amount;
-                return;
-            }
-        }
-
         if ($this->account_id != $this->oldTransaction->account_id) {
             $currentAccount = Account::find($this->account_id);
         } else {
@@ -140,14 +131,13 @@ new #[Layout('layouts.app')] class extends Component {
             $this->transaction->update([
                 'user_id' => Auth::id(),
                 'account_id' => $currentAccount->id,
-                'category_id' => $this->category_id == null ? 1 : $this->category_id,
+                'category_id' => $this->category_id != null ? $this->category_id : null,
                 'recurring_id' => $this->recurring_id,
                 'type_id' => $this->type_id,
                 'name' => $this->name,
                 'description' => $this->description,
                 'amount' => $this->amount,
                 'image_url' => $imagePath,
-                'updated_at' => now(),
             ]);
 
             Toaster::success('Transaction Updated!');
@@ -158,45 +148,51 @@ new #[Layout('layouts.app')] class extends Component {
             $previousAccount = $this->oldTransaction->accounts;
             $currentAccount = Account::find($this->account_id);
 
+            $accountChanged = $this->account_id != $this->oldTransaction->account_id;
+            $typeChanged = $this->type_id != $this->oldTransaction->type_id;
+            $amountChanged = $this->amount != $this->oldTransaction->amount;
+
             // DO NOT ANYTHING HERE FOR THE LOVE OF GOD
             // Case 1: Account has changed
-            if ($this->account_id != $this->oldTransaction->account_id) {
-                // Reverse old transaction from old account
-                if ($this->oldTransaction->type_id == 1) {
-                    $previousAccount->balance -= $this->oldTransaction->amount;
-                } else {
-                    $previousAccount->balance += $this->oldTransaction->amount;
-                }
+            if ($accountChanged || $typeChanged || $amountChanged) {
+                if ($this->account_id != $this->oldTransaction->account_id) {
+                    // Reverse old transaction from old account
+                    if ($this->oldTransaction->type_id == 1) {
+                        $previousAccount->balance -= $this->oldTransaction->amount;
+                    } else {
+                        $previousAccount->balance += $this->oldTransaction->amount;
+                    }
 
-                // Apply new transaction to new account
-                if ($this->type_id == 1) {
-                    $currentAccount->balance += $this->amount;
-                } else {
-                    $currentAccount->balance -= $this->amount;
+                    // Apply new transaction to new account
+                    if ($this->type_id == 1) {
+                        $currentAccount->balance += $this->amount;
+                    } else {
+                        $currentAccount->balance -= $this->amount;
+                    }
                 }
-            }
-            // Case 2: Same account, but type changed
-            elseif ($this->type_id != $this->oldTransaction->type_id) {
-                // Reverse old type
-                if ($this->oldTransaction->type_id == 1) {
-                    // Was income → remove it
-                    $currentAccount->balance -= $this->oldTransaction->amount;
-                } else {
-                    // Was expense → add it back
-                    $currentAccount->balance += $this->oldTransaction->amount;
-                }
+                // Case 2: Same account, but type changed
+                elseif ($this->type_id != $this->oldTransaction->type_id) {
+                    // Reverse old type
+                    if ($this->oldTransaction->type_id == 1) {
+                        // Was income → remove it
+                        $currentAccount->balance -= $this->oldTransaction->amount;
+                    } else {
+                        // Was expense → add it back
+                        $currentAccount->balance += $this->oldTransaction->amount;
+                    }
 
-                // Apply new type
-                if ($this->type_id == 1) {
-                    $currentAccount->balance += $this->amount;
+                    // Apply new type
+                    if ($this->type_id == 1) {
+                        $currentAccount->balance += $this->amount;
+                    } else {
+                        $currentAccount->balance -= $this->amount;
+                    }
                 } else {
-                    $currentAccount->balance -= $this->amount;
-                }
-            } else {
-                if ($this->type_id == 1) {
-                    $currentAccount->balance += $this->amount;
-                } else {
-                    $currentAccount->balance -= $this->amount;
+                    if ($this->type_id == 1) {
+                        $currentAccount->balance += $this->amount;
+                    } else {
+                        $currentAccount->balance -= $this->amount;
+                    }
                 }
             }
 
@@ -328,7 +324,7 @@ new #[Layout('layouts.app')] class extends Component {
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
                         </svg>
-                        <span>{{ $this->selectedAccount?->name ?? 'Account' }}</span>
+                        <span>{{ $this->selectedAccount?->name ?? 'Wallet' }}</span>
                         @if ($account_id)
                             <span class="badge badge-sm block truncate"
                                 :class="expense ? 'badge-secondary' : 'badge-primary'">₱{{ $account_id ? number_format($this->selectedAccount->balance) : '' }}</span>
@@ -358,7 +354,7 @@ new #[Layout('layouts.app')] class extends Component {
                                 @endforeach
                             </li>
                         </ul>
-                        <a @click="$dispatch('showRightSidebar', {operation: 'create', page: 'Account', component: 'pages.user.accounts.add'}); rightSidebarOpen = true;"
+                        <a @click="$dispatch('showRightSidebar', {operation: 'create', page: 'Wallet', component: 'pages.user.accounts.add'}); rightSidebarOpen = true;"
                             class="flex items-center justify-center px-3 py-2 transition-all duration-200 group rounded-xl border-4"
                             :class="expense ? 'hover:bg-secondary border-secondary' : 'hover:bg-primary border-primary'">
 

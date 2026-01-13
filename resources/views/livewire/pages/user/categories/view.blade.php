@@ -44,7 +44,7 @@ new #[Layout('layouts.app')] class extends Component {
 
     public function loadTransactions()
     {
-        $transactions = $this->currentCategory->transactions->sortByDesc('created_at');
+        $transactions = $this->currentCategory->transactions->where('user_id', Auth::id())->sortByDesc('created_at');
 
         $this->transactions = $transactions
             ->groupBy(function ($transaction) {
